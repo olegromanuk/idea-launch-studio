@@ -38,6 +38,13 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel }: IdeaSelectorProps) => {
   const [ideas, setIdeas] = useState<ProductIdea[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedIdea, setSelectedIdea] = useState<number | null>(null);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [quizStep, setQuizStep] = useState(0);
+  const [quizAnswers, setQuizAnswers] = useState({
+    topics: "",
+    productType: "",
+    idealUser: "",
+  });
   const { toast } = useToast();
 
   const toggleInterest = (interest: string) => {
@@ -48,7 +55,7 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel }: IdeaSelectorProps) => {
     );
   };
 
-  const generateIdeas = async () => {
+  const generateIdeas = async (refinement?: any) => {
     if (selectedInterests.length === 0) {
       toast({
         title: "Select interests",
@@ -63,7 +70,7 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel }: IdeaSelectorProps) => {
       const { data, error } = await supabase.functions.invoke(
         "generate-product-ideas",
         {
-          body: { interests: selectedInterests },
+          body: { interests: selectedInterests, refinement },
         }
       );
 
@@ -71,6 +78,7 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel }: IdeaSelectorProps) => {
 
       if (data?.ideas) {
         setIdeas(data.ideas);
+        setShowQuiz(false);
       }
     } catch (error: any) {
       console.error("Error generating ideas:", error);
@@ -84,6 +92,29 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel }: IdeaSelectorProps) => {
     }
   };
 
+  const handleRefineIdeas = () => {
+    setShowQuiz(true);
+    setQuizStep(0);
+    setIdeas([]);
+  };
+
+  const handleQuizNext = () => {
+    if (quizStep < 2) {
+      setQuizStep(quizStep + 1);
+    } else {
+      generateIdeas(quizAnswers);
+    }
+  };
+
+  const handleQuizBack = () => {
+    if (quizStep > 0) {
+      setQuizStep(quizStep - 1);
+    } else {
+      setShowQuiz(false);
+      setIdeas([]);
+    }
+  };
+
   const handleIdeaClick = (index: number) => {
     setSelectedIdea(index);
   };
@@ -94,9 +125,83 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel }: IdeaSelectorProps) => {
     }
   };
 
+  const QUIZ_QUESTIONS = [
+    {
+      title: "What topics or industries excite you?",
+      placeholder: "e.g., Healthcare, Finance, Education, Climate Tech...",
+      field: "topics" as const,
+    },
+    {
+      title: "What type of product do you prefer building?",
+      placeholder: "e.g., Tools, Platforms, Content products, Marketplaces...",
+      field: "productType" as const,
+    },
+    {
+      title: "Who would your ideal user be?",
+      placeholder: "e.g., Small business owners, Students, Freelancers...",
+      field: "idealUser" as const,
+    },
+  ];
+
+  const currentQuestion = QUIZ_QUESTIONS[quizStep];
+  const isQuizStepValid = quizAnswers[currentQuestion?.field]?.trim().length > 0;
+
   return (
     <div className="space-y-6">
-      {ideas.length === 0 ? (
+      {showQuiz ? (
+        <>
+          <div className="text-center">
+            <h3 className="text-xl font-semibold mb-2">
+              Let's refine your ideas
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Step {quizStep + 1} of 3
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <label className="block text-sm font-semibold text-foreground">
+              {currentQuestion.title}
+            </label>
+            <textarea
+              value={quizAnswers[currentQuestion.field]}
+              onChange={(e) =>
+                setQuizAnswers({
+                  ...quizAnswers,
+                  [currentQuestion.field]: e.target.value,
+                })
+              }
+              placeholder={currentQuestion.placeholder}
+              className="w-full min-h-[100px] p-3 rounded-md border border-border bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={handleQuizBack}>
+              {quizStep === 0 ? "Cancel" : "Back"}
+            </Button>
+            <Button
+              onClick={handleQuizNext}
+              disabled={!isQuizStepValid || loading}
+              className="flex-1 gradient-primary"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : quizStep === 2 ? (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate Refined Ideas
+                </>
+              ) : (
+                "Next"
+              )}
+            </Button>
+          </div>
+        </>
+      ) : ideas.length === 0 ? (
         <>
           <div className="text-center">
             <h3 className="text-xl font-semibold mb-2">What interests you?</h3>
@@ -200,16 +305,25 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel }: IdeaSelectorProps) => {
             ))}
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-3">
+              <Button
+                onClick={confirmSelection}
+                disabled={selectedIdea === null}
+                className="flex-1 gradient-primary"
+              >
+                Use This Idea
+              </Button>
+              <Button variant="outline" onClick={() => setIdeas([])}>
+                Back
+              </Button>
+            </div>
             <Button
-              onClick={confirmSelection}
-              disabled={selectedIdea === null}
-              className="flex-1 gradient-primary"
+              variant="ghost"
+              onClick={handleRefineIdeas}
+              className="text-muted-foreground hover:text-foreground"
             >
-              Use This Idea
-            </Button>
-            <Button variant="outline" onClick={() => setIdeas([])}>
-              Back
+              None of these fit me - Help me refine ideas
             </Button>
           </div>
         </>

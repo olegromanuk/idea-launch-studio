@@ -12,19 +12,28 @@ serve(async (req) => {
   }
 
   try {
-    const { interests } = await req.json();
+    const { interests, refinement } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const systemPrompt = `You are a product ideation expert helping entrepreneurs generate viable product ideas.
+    let systemPrompt = `You are a product ideation expert helping entrepreneurs generate viable product ideas.
 Based on user interests and market trends, suggest 5 unique and actionable product ideas.
 Each idea should be practical, market-validated, and suitable for solo founders or small teams.
 Focus on digital products: SaaS, apps, tools, marketplaces, or AI-powered solutions.`;
 
-    const userPrompt = `Generate 5 product ideas based on these interests: ${interests.join(', ')}.
+    let userPrompt = '';
+    
+    if (refinement) {
+      systemPrompt += `\nThe user has refined their preferences and is looking for highly personalized ideas.`;
+      userPrompt = `Generate 3 highly personalized product ideas based on:
+- Topics/Industries: ${refinement.topics || 'Not specified'}
+- Product Type Preference: ${refinement.productType || 'Not specified'}
+- Ideal User: ${refinement.idealUser || 'Not specified'}
+- Initial interests: ${interests.join(', ')}
+
 For each idea, provide:
 1. A catchy title (max 8 words)
 2. A one-line description (max 20 words)
@@ -32,6 +41,16 @@ For each idea, provide:
 4. The core problem it solves (max 20 words)
 
 Format as JSON array with objects containing: title, description, audience, problem`;
+    } else {
+      userPrompt = `Generate 5 product ideas based on these interests: ${interests.join(', ')}.
+For each idea, provide:
+1. A catchy title (max 8 words)
+2. A one-line description (max 20 words)
+3. Target audience (max 15 words)
+4. The core problem it solves (max 20 words)
+
+Format as JSON array with objects containing: title, description, audience, problem`;
+    }
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
