@@ -230,7 +230,7 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel }: IdeaSelectorProps) => {
 
           <div className="flex gap-3">
             <Button
-              onClick={generateIdeas}
+              onClick={() => generateIdeas()}
               disabled={loading || selectedInterests.length === 0}
               className="flex-1 gradient-primary"
             >
