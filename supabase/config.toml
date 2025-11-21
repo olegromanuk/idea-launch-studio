@@ -1,0 +1,4 @@
+project_id = "rspxejrzthyijxpbywuv"
+
+[functions.generate-product-ideas]
+verify_jwt = false

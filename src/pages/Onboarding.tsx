@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Rocket, Target, Users } from "lucide-react";
+import { Sparkles, Rocket, Target, Users, Lightbulb } from "lucide-react";
+import { IdeaSelector } from "@/components/onboarding/IdeaSelector";
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const [showIdeaSelector, setShowIdeaSelector] = useState(false);
   const [formData, setFormData] = useState({
     idea: "",
     audience: "",
@@ -15,9 +17,17 @@ const Onboarding = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Save to localStorage for now
     localStorage.setItem("productIdea", JSON.stringify(formData));
     navigate("/canvas");
+  };
+
+  const handleIdeaSelect = (idea: any) => {
+    setFormData({
+      idea: idea.title,
+      audience: idea.audience,
+      problem: idea.problem,
+    });
+    setShowIdeaSelector(false);
   };
 
   const isFormValid = formData.idea && formData.audience && formData.problem;
@@ -38,19 +48,37 @@ const Onboarding = () => {
         </div>
 
         <Card className="p-8 glass hover-lift">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Rocket className="w-4 h-4 text-primary" />
-                What's your product idea?
-              </label>
-              <Textarea
-                placeholder="e.g., A mobile app that helps freelancers track their time and generate invoices automatically..."
-                value={formData.idea}
-                onChange={(e) => setFormData({ ...formData, idea: e.target.value })}
-                className="min-h-[100px] resize-none"
-              />
-            </div>
+          {showIdeaSelector ? (
+            <IdeaSelector
+              onIdeaSelect={handleIdeaSelect}
+              onCancel={() => setShowIdeaSelector(false)}
+            />
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <Rocket className="w-4 h-4 text-primary" />
+                  What's your product idea?
+                </label>
+                <Textarea
+                  placeholder="e.g., A mobile app that helps freelancers track their time and generate invoices automatically..."
+                  value={formData.idea}
+                  onChange={(e) =>
+                    setFormData({ ...formData, idea: e.target.value })
+                  }
+                  className="min-h-[100px] resize-none"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowIdeaSelector(true)}
+                  className="text-primary hover:text-primary/80"
+                >
+                  <Lightbulb className="w-4 h-4 mr-2" />
+                  Help me choose an idea
+                </Button>
+              </div>
 
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -78,17 +106,18 @@ const Onboarding = () => {
               />
             </div>
 
-            <div className="flex gap-4 pt-4">
-              <Button
-                type="submit"
-                disabled={!isFormValid}
-                className="flex-1 h-12 gradient-primary text-white font-semibold hover-glow"
-              >
-                Start Building
-                <Sparkles className="ml-2 w-4 h-4" />
-              </Button>
-            </div>
-          </form>
+              <div className="flex gap-4 pt-4">
+                <Button
+                  type="submit"
+                  disabled={!isFormValid}
+                  className="flex-1 h-12 gradient-primary text-white font-semibold hover-glow"
+                >
+                  Start Building
+                  <Sparkles className="ml-2 w-4 h-4" />
+                </Button>
+              </div>
+            </form>
+          )}
         </Card>
 
         <div className="mt-8 text-center">
