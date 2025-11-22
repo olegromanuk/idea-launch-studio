@@ -114,6 +114,31 @@ const Canvas = () => {
   useEffect(() => {
     // Auto-save canvas data
     localStorage.setItem("leanCanvas", JSON.stringify(canvasData));
+    
+    // Auto-update step completion based on filled fields
+    const stepFieldMap = [
+      { id: 1, fields: ["problem", "existingAlternatives", "solution", "keyMetrics"] },
+      { id: 2, fields: ["customerSegments", "earlyAdopters", "uniqueValueProposition", "highLevelConcept"] },
+      { id: 3, fields: ["solution", "keyMetrics"] },
+      { id: 4, fields: ["channels", "uniqueValueProposition"] },
+      { id: 5, fields: ["costStructure", "revenueStreams"] },
+      { id: 6, fields: ["channels", "unfairAdvantage"] },
+    ];
+
+    setSteps(prevSteps =>
+      prevSteps.map(step => {
+        const stepMapping = stepFieldMap.find(s => s.id === step.id);
+        if (!stepMapping) return step;
+        
+        const filledFields = stepMapping.fields.filter(field => {
+          const value = canvasData[field as keyof typeof canvasData];
+          return value && value.trim().length > 0;
+        });
+        
+        const isCompleted = filledFields.length === stepMapping.fields.length;
+        return { ...step, completed: isCompleted };
+      })
+    );
   }, [canvasData]);
 
   const handleCanvasChange = (field: string, value: string) => {

@@ -2,13 +2,66 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Download, Sparkles } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Progress } from "@/components/ui/progress";
+import { ArrowLeft, Lightbulb, Target, Boxes, Palette, Cpu, Rocket, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+interface CanvasStep {
+  id: number;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  fields: string[];
+}
+
+const canvasSteps: CanvasStep[] = [
+  {
+    id: 1,
+    title: "Idea Validation",
+    description: "Validate your product concept and market fit",
+    icon: Lightbulb,
+    fields: ["problem", "existingAlternatives", "solution", "keyMetrics"],
+  },
+  {
+    id: 2,
+    title: "Target Audience & Value Proposition",
+    description: "Define who you're building for and why they'll care",
+    icon: Target,
+    fields: ["customerSegments", "earlyAdopters", "uniqueValueProposition", "highLevelConcept"],
+  },
+  {
+    id: 3,
+    title: "Product Architecture",
+    description: "Map out the core features and user flows",
+    icon: Boxes,
+    fields: ["solution", "keyMetrics"],
+  },
+  {
+    id: 4,
+    title: "UI / UX Design Elements",
+    description: "Design the look, feel, and user experience",
+    icon: Palette,
+    fields: ["channels", "uniqueValueProposition"],
+  },
+  {
+    id: 5,
+    title: "Tech Stack / MVP Logic",
+    description: "Choose the right technologies for your MVP",
+    icon: Cpu,
+    fields: ["costStructure", "revenueStreams"],
+  },
+  {
+    id: 6,
+    title: "Launch Plan & Marketing",
+    description: "Create your go-to-market strategy",
+    icon: Rocket,
+    fields: ["channels", "unfairAdvantage"],
+  },
+];
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [projectData, setProjectData] = useState<any>(null);
   const [canvasData, setCanvasData] = useState({
     problem: "",
@@ -40,258 +93,115 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  useEffect(() => {
-    // Auto-save canvas data
-    localStorage.setItem("leanCanvas", JSON.stringify(canvasData));
-  }, [canvasData]);
-
-  const handleInputChange = (field: string, value: string) => {
-    setCanvasData(prev => ({ ...prev, [field]: value }));
+  const calculateStepProgress = (fields: string[]): number => {
+    const filledFields = fields.filter(field => {
+      const value = canvasData[field as keyof typeof canvasData];
+      return value && value.trim().length > 0;
+    });
+    return Math.round((filledFields.length / fields.length) * 100);
   };
 
-  const [loadingSection, setLoadingSection] = useState<string | null>(null);
-  const { toast } = useToast();
-
-  const generateSuggestions = async (section: string) => {
-    setLoadingSection(section);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-canvas-suggestions', {
-        body: { section, productIdea: projectData }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data?.error) {
-        toast({
-          title: "Error",
-          description: data.error,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (data?.suggestions) {
-        handleInputChange(section, data.suggestions);
-        toast({
-          title: "Suggestions generated!",
-          description: "AI suggestions have been added to the section.",
-        });
-      }
-    } catch (error) {
-      console.error('Error generating suggestions:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate suggestions. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingSection(null);
-    }
+  const calculateOverallProgress = (): number => {
+    const allFields = Object.values(canvasData);
+    const filledFields = allFields.filter(value => value && value.trim().length > 0);
+    return Math.round((filledFields.length / allFields.length) * 100);
   };
 
   if (!projectData) return null;
 
+  const overallProgress = calculateOverallProgress();
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-[1400px] mx-auto space-y-6">
+      <div className="max-w-[1400px] mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate("/canvas")}
+              onClick={() => navigate("/")}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Canvas
+              Home
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">Lean Canvas</h1>
+              <h1 className="text-3xl font-bold">Product Development Dashboard</h1>
               <p className="text-sm text-muted-foreground">{projectData.idea}</p>
             </div>
           </div>
-          <Button variant="outline" size="sm">
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
         </div>
 
-        {/* Lean Canvas Grid */}
-        <Card className="p-1 border-2">
-          <div className="grid grid-cols-5 gap-[1px] bg-border">
-            {/* Row 1 */}
-            <CanvasCell
-              title="PROBLEM"
-              subtitle="List your top 1-3 problems"
-              value={canvasData.problem}
-              onChange={(value) => handleInputChange("problem", value)}
-              onAIGenerate={() => generateSuggestions("problem")}
-              isGenerating={loadingSection === "problem"}
-              className="row-span-2"
-            />
-            <CanvasCell
-              title="SOLUTION"
-              subtitle="Outline a possible solution for each problem"
-              value={canvasData.solution}
-              onChange={(value) => handleInputChange("solution", value)}
-              onAIGenerate={() => generateSuggestions("solution")}
-              isGenerating={loadingSection === "solution"}
-            />
-            <CanvasCell
-              title="UNIQUE VALUE PROPOSITION"
-              subtitle="Single, clear, compelling message that states why you are different and worth paying attention"
-              value={canvasData.uniqueValueProposition}
-              onChange={(value) => handleInputChange("uniqueValueProposition", value)}
-              onAIGenerate={() => generateSuggestions("uniqueValueProposition")}
-              isGenerating={loadingSection === "uniqueValueProposition"}
-              className="row-span-2"
-            />
-            <CanvasCell
-              title="UNFAIR ADVANTAGE"
-              subtitle="Something that cannot easily be bought or copied"
-              value={canvasData.unfairAdvantage}
-              onChange={(value) => handleInputChange("unfairAdvantage", value)}
-              onAIGenerate={() => generateSuggestions("unfairAdvantage")}
-              isGenerating={loadingSection === "unfairAdvantage"}
-            />
-            <CanvasCell
-              title="CUSTOMER SEGMENTS"
-              subtitle="List your target customers and users"
-              value={canvasData.customerSegments}
-              onChange={(value) => handleInputChange("customerSegments", value)}
-              onAIGenerate={() => generateSuggestions("customerSegments")}
-              isGenerating={loadingSection === "customerSegments"}
-              className="row-span-2"
-            />
-
-            {/* Row 2 - Subsections */}
-            <CanvasCell
-              title="EXISTING ALTERNATIVES"
-              subtitle="List how these problems are solved today"
-              value={canvasData.existingAlternatives}
-              onChange={(value) => handleInputChange("existingAlternatives", value)}
-              onAIGenerate={() => generateSuggestions("existingAlternatives")}
-              isGenerating={loadingSection === "existingAlternatives"}
-              isSubsection
-            />
-            <CanvasCell
-              title="KEY METRICS"
-              subtitle="List the key numbers that tell you how your business is doing"
-              value={canvasData.keyMetrics}
-              onChange={(value) => handleInputChange("keyMetrics", value)}
-              onAIGenerate={() => generateSuggestions("keyMetrics")}
-              isGenerating={loadingSection === "keyMetrics"}
-              isSubsection
-            />
-            <CanvasCell
-              title="HIGH-LEVEL CONCEPT"
-              subtitle="List your X for Y analogy e.g. YouTube = Flickr for videos"
-              value={canvasData.highLevelConcept}
-              onChange={(value) => handleInputChange("highLevelConcept", value)}
-              onAIGenerate={() => generateSuggestions("highLevelConcept")}
-              isGenerating={loadingSection === "highLevelConcept"}
-              isSubsection
-            />
-            <CanvasCell
-              title="CHANNELS"
-              subtitle="List your path to customers (inbound or outbound)"
-              value={canvasData.channels}
-              onChange={(value) => handleInputChange("channels", value)}
-              onAIGenerate={() => generateSuggestions("channels")}
-              isGenerating={loadingSection === "channels"}
-              isSubsection
-            />
-            <CanvasCell
-              title="EARLY ADOPTERS"
-              subtitle="List the characteristics of your ideal customers"
-              value={canvasData.earlyAdopters}
-              onChange={(value) => handleInputChange("earlyAdopters", value)}
-              onAIGenerate={() => generateSuggestions("earlyAdopters")}
-              isGenerating={loadingSection === "earlyAdopters"}
-              isSubsection
-            />
-
-            {/* Row 3 - Bottom sections */}
-            <CanvasCell
-              title="COST STRUCTURE"
-              subtitle="List your fixed and variable costs"
-              value={canvasData.costStructure}
-              onChange={(value) => handleInputChange("costStructure", value)}
-              onAIGenerate={() => generateSuggestions("costStructure")}
-              isGenerating={loadingSection === "costStructure"}
-              className="col-span-2"
-            />
-            <CanvasCell
-              title="REVENUE STREAMS"
-              subtitle="List your sources of revenue"
-              value={canvasData.revenueStreams}
-              onChange={(value) => handleInputChange("revenueStreams", value)}
-              onAIGenerate={() => generateSuggestions("revenueStreams")}
-              isGenerating={loadingSection === "revenueStreams"}
-              className="col-span-3"
-            />
+        {/* Overall Progress */}
+        <Card className="p-6">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Overall Progress</h2>
+                <p className="text-sm text-muted-foreground">
+                  Complete all sections to validate your product
+                </p>
+              </div>
+              <div className="text-3xl font-bold text-primary">
+                {overallProgress}%
+              </div>
+            </div>
+            <Progress value={overallProgress} className="h-3" />
           </div>
         </Card>
 
-        <div className="text-right text-xs text-muted-foreground">
-          Generated by SparkilAI • All changes saved automatically
+        {/* Canvas Steps Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {canvasSteps.map((step) => {
+            const progress = calculateStepProgress(step.fields);
+            const Icon = step.icon;
+            
+            return (
+              <Card
+                key={step.id}
+                className="p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50"
+                onClick={() => navigate("/canvas")}
+              >
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="p-3 rounded-lg bg-primary/10">
+                      <Icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-2xl font-bold text-primary">{progress}%</span>
+                      <span className="text-xs text-muted-foreground">complete</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1">{step.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {step.description}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Progress value={progress} className="h-2" />
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>
+                        {step.fields.filter(f => canvasData[f as keyof typeof canvasData]?.trim()).length} of {step.fields.length} fields
+                      </span>
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="flex justify-center gap-4">
+          <Button onClick={() => navigate("/canvas")} size="lg">
+            Continue Working on Canvas
+          </Button>
         </div>
       </div>
-    </div>
-  );
-};
-
-interface CanvasCellProps {
-  title: string;
-  subtitle: string;
-  value: string;
-  onChange: (value: string) => void;
-  onAIGenerate: () => void;
-  isGenerating: boolean;
-  className?: string;
-  isSubsection?: boolean;
-}
-
-const CanvasCell = ({ 
-  title, 
-  subtitle, 
-  value, 
-  onChange, 
-  onAIGenerate, 
-  isGenerating,
-  className = "", 
-  isSubsection = false 
-}: CanvasCellProps) => {
-  return (
-    <div className={`bg-background p-4 flex flex-col ${className}`}>
-      <div className="mb-3 flex items-start justify-between gap-2">
-        <div className="flex-1">
-          <h3 className={`font-bold ${isSubsection ? "text-xs" : "text-sm"} uppercase tracking-wide mb-1`}>
-            {title}
-          </h3>
-          <p className="text-[10px] text-muted-foreground italic leading-tight">
-            {subtitle}
-          </p>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onAIGenerate}
-          disabled={isGenerating}
-          className="h-7 w-7 p-0 hover:bg-primary/10"
-          title="Generate AI suggestions"
-        >
-          <Sparkles className={`w-3.5 h-3.5 ${isGenerating ? 'animate-pulse text-primary' : 'text-muted-foreground'}`} />
-        </Button>
-      </div>
-      <Textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Type here or click ✨ for AI suggestions..."
-        className="flex-1 min-h-[120px] resize-none border-0 bg-transparent p-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-      />
     </div>
   );
 };
