@@ -35,7 +35,7 @@ export const ExpandedCanvasEditor = ({
 }: ExpandedCanvasEditorProps) => {
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="h-[85vh] md:h-[90vh]">
+      <DrawerContent className="h-[80vh]">
         <DrawerHeader className="border-b border-border">
           <div className="flex items-start justify-between">
             <div>
