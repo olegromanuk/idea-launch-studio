@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { StepCard } from "@/components/canvas/StepCard";
-import { ArrowLeft, Download, Home } from "lucide-react";
+import { TeamChat } from "@/components/canvas/TeamChat";
+import { ArrowLeft, Download, Home, Users } from "lucide-react";
 import {
   Lightbulb,
   Target,
@@ -31,6 +32,7 @@ const Canvas = () => {
   const [loadingSection, setLoadingSection] = useState<string | null>(null);
   const [aiSuggestions, setAiSuggestions] = useState<Record<number, any[]>>({});
   const [loadingSuggestions, setLoadingSuggestions] = useState<number | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [canvasData, setCanvasData] = useState({
     problem: "",
     existingAlternatives: "",
@@ -280,6 +282,15 @@ const Canvas = () => {
                 Dashboard
               </Button>
               <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsChatOpen(true)}
+                className="hover-lift"
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Connect to Team
+              </Button>
+              <Button
                 size="sm"
                 className="gradient-accent text-white hover-accent-glow"
               >
@@ -316,6 +327,9 @@ const Canvas = () => {
           ))}
         </div>
       </main>
+
+      {/* Team Chat Panel */}
+      <TeamChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </div>
   );
 };
