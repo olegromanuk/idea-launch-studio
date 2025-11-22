@@ -1,20 +1,36 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, ChevronDown, ChevronRight, Sparkles } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronRight } from "lucide-react";
 import { AIAssistant } from "./AIAssistant";
+import { CanvasCell } from "./CanvasCell";
 import type { Step } from "@/pages/Canvas";
 
 interface StepCardProps {
   step: Step;
   index: number;
   projectData: any;
+  canvasData: any;
+  loadingSection: string | null;
   onToggle: () => void;
   onComplete: () => void;
+  onCanvasChange: (field: string, value: string) => void;
+  onGenerateSuggestions: (section: string) => void;
 }
 
-export const StepCard = ({ step, index, projectData, onToggle, onComplete }: StepCardProps) => {
+export const StepCard = ({ 
+  step, 
+  index, 
+  projectData, 
+  canvasData,
+  loadingSection,
+  onToggle, 
+  onComplete,
+  onCanvasChange,
+  onGenerateSuggestions
+}: StepCardProps) => {
   const Icon = step.icon;
+  const canvasSections = getStepCanvasSections(step.id);
 
   return (
     <Card
@@ -90,6 +106,26 @@ export const StepCard = ({ step, index, projectData, onToggle, onComplete }: Ste
               </ul>
             </div>
 
+            {/* Lean Canvas Sections */}
+            <div className="mb-6">
+              <h4 className="text-sm font-semibold text-foreground mb-4">
+                Lean Canvas Sections
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {canvasSections.map((section) => (
+                  <CanvasCell
+                    key={section.key}
+                    title={section.title}
+                    subtitle={section.subtitle}
+                    value={canvasData[section.key]}
+                    onChange={(value) => onCanvasChange(section.key, value)}
+                    onAIGenerate={() => onGenerateSuggestions(section.key)}
+                    isGenerating={loadingSection === section.key}
+                  />
+                ))}
+              </div>
+            </div>
+
             {/* AI Assistant */}
             <AIAssistant step={step} projectData={projectData} />
 
@@ -104,10 +140,6 @@ export const StepCard = ({ step, index, projectData, onToggle, onComplete }: Ste
                   Mark as Complete
                 </Button>
               )}
-              <Button variant="outline" className="hover-lift">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Get AI Suggestions
-              </Button>
             </div>
           </div>
         </div>
@@ -157,4 +189,40 @@ function getStepGuidance(stepId: number): string[] {
   };
 
   return guidance[stepId] || [];
+}
+
+function getStepCanvasSections(stepId: number) {
+  const sections: Record<number, Array<{ key: string; title: string; subtitle: string }>> = {
+    1: [
+      { key: "problem", title: "Problem", subtitle: "List your top 1-3 problems" },
+      { key: "existingAlternatives", title: "Existing Alternatives", subtitle: "How are these problems solved today" },
+      { key: "solution", title: "Solution", subtitle: "Outline a possible solution for each problem" },
+      { key: "keyMetrics", title: "Key Metrics", subtitle: "Key numbers that tell you how your business is doing" },
+    ],
+    2: [
+      { key: "uniqueValueProposition", title: "Unique Value Proposition", subtitle: "Why you are different and worth attention" },
+      { key: "highLevelConcept", title: "High-Level Concept", subtitle: "Your X for Y analogy (e.g. YouTube = Flickr for videos)" },
+      { key: "customerSegments", title: "Customer Segments", subtitle: "List your target customers and users" },
+      { key: "earlyAdopters", title: "Early Adopters", subtitle: "Characteristics of your ideal customers" },
+    ],
+    3: [
+      { key: "solution", title: "Solution", subtitle: "Outline core features and functionality" },
+      { key: "keyMetrics", title: "Key Metrics", subtitle: "Metrics to track feature success" },
+    ],
+    4: [
+      { key: "highLevelConcept", title: "High-Level Concept", subtitle: "Visual identity and brand analogy" },
+      { key: "uniqueValueProposition", title: "Unique Value Proposition", subtitle: "Design that communicates your unique value" },
+    ],
+    5: [
+      { key: "unfairAdvantage", title: "Unfair Advantage", subtitle: "Something that cannot easily be bought or copied" },
+      { key: "costStructure", title: "Cost Structure", subtitle: "List your fixed and variable costs" },
+    ],
+    6: [
+      { key: "channels", title: "Channels", subtitle: "Your path to customers (inbound or outbound)" },
+      { key: "revenueStreams", title: "Revenue Streams", subtitle: "List your sources of revenue" },
+      { key: "unfairAdvantage", title: "Unfair Advantage", subtitle: "Leverage points for market penetration" },
+    ],
+  };
+
+  return sections[stepId] || [];
 }
