@@ -271,7 +271,7 @@ const Canvas = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant="outline"
                 size="sm"
@@ -279,7 +279,7 @@ const Canvas = () => {
                 className="hover-lift"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Dashboard
+                <span className="hidden sm:inline">Dashboard</span>
               </Button>
               <Button
                 variant="outline"
@@ -288,14 +288,14 @@ const Canvas = () => {
                 className="hover-lift"
               >
                 <Users className="w-4 h-4 mr-2" />
-                Connect to Team
+                <span className="hidden sm:inline">Connect to Team</span>
               </Button>
               <Button
                 size="sm"
                 className="gradient-accent text-white hover-accent-glow"
               >
                 <Download className="w-4 h-4 mr-2" />
-                Export
+                <span className="hidden sm:inline">Export</span>
               </Button>
             </div>
           </div>
