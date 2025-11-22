@@ -29,6 +29,8 @@ const Canvas = () => {
   const { toast } = useToast();
   const [projectData, setProjectData] = useState<any>(null);
   const [loadingSection, setLoadingSection] = useState<string | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<Record<number, any[]>>({});
+  const [loadingSuggestions, setLoadingSuggestions] = useState<number | null>(null);
   const [canvasData, setCanvasData] = useState({
     problem: "",
     existingAlternatives: "",
@@ -157,6 +159,46 @@ const Canvas = () => {
     }
   };
 
+  const generateAISuggestions = async (stepId: number) => {
+    setLoadingSuggestions(stepId);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-canvas-suggestions', {
+        body: { 
+          section: `step_${stepId}_suggestions`,
+          productIdea: projectData,
+          stepId 
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.error) {
+        toast({
+          title: "Error",
+          description: data.error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.suggestions) {
+        setAiSuggestions(prev => ({
+          ...prev,
+          [stepId]: data.suggestions
+        }));
+      }
+    } catch (error) {
+      console.error('Error generating AI suggestions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate suggestions. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingSuggestions(null);
+    }
+  };
+
   const toggleStep = (stepId: number) => {
     setSteps(
       steps.map((step) =>
@@ -236,10 +278,13 @@ const Canvas = () => {
               projectData={projectData}
               canvasData={canvasData}
               loadingSection={loadingSection}
+              aiSuggestions={aiSuggestions[step.id] || []}
+              loadingAISuggestions={loadingSuggestions === step.id}
               onToggle={() => toggleStep(step.id)}
               onComplete={() => markStepComplete(step.id)}
               onCanvasChange={handleCanvasChange}
               onGenerateSuggestions={generateSuggestions}
+              onRegenerateAI={() => generateAISuggestions(step.id)}
             />
           ))}
         </div>

@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { section, productIdea } = await req.json();
+    const { section, productIdea, stepId } = await req.json();
     
     if (!section || !productIdea) {
       return new Response(
@@ -26,6 +26,142 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    // Check if this is a request for AI step suggestions
+    if (section.startsWith('step_') && stepId) {
+      const stepSuggestionsPrompts: Record<number, string> = {
+        1: `Based on this product idea: ${JSON.stringify(productIdea)}
+        
+Generate 3-4 actionable suggestions for Idea Validation. Include:
+- Market opportunity analysis (use "trend" icon)
+- Competitive differentiation strategy (use "users" icon)
+- Unique value angle (use "lightbulb" icon)
+- Revenue model recommendation (use "check" icon)
+
+Format each suggestion with: icon, type (e.g., "Market Analysis", "Competition", "Value Prop"), title, and detailed content.`,
+        2: `Based on this product idea: ${JSON.stringify(productIdea)}
+        
+Generate 3-4 suggestions for Target Audience & Value Proposition. Include:
+- Primary user segment definition (use "users" icon)
+- Key pain point to solve (use "lightbulb" icon)
+- Value proposition clarity (use "check" icon)`,
+        3: `Based on this product idea: ${JSON.stringify(productIdea)}
+        
+Generate 3-4 suggestions for Product Architecture. Include:
+- Must-have features for MVP (use "check" icon)
+- Nice-to-have features for later (use "lightbulb" icon)
+- Technical architecture recommendations (use "trend" icon)`,
+        4: `Based on this product idea: ${JSON.stringify(productIdea)}
+        
+Generate 2-3 suggestions for UI/UX Design. Include:
+- Visual design direction (use "lightbulb" icon)
+- User experience priorities (use "users" icon)`,
+        5: `Based on this product idea: ${JSON.stringify(productIdea)}
+        
+Generate 2-3 suggestions for Tech Stack. Include:
+- Recommended technology stack (use "trend" icon)
+- MVP development approach (use "lightbulb" icon)`,
+        6: `Based on this product idea: ${JSON.stringify(productIdea)}
+        
+Generate 3-4 suggestions for Launch & Marketing. Include:
+- Launch strategy (use "users" icon)
+- Marketing channels (use "trend" icon)
+- Growth tactics (use "lightbulb" icon)`
+      };
+
+      const stepPrompt = stepSuggestionsPrompts[stepId] || `Generate helpful suggestions for step ${stepId}`;
+
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a product strategy expert helping entrepreneurs validate and build their ideas.'
+            },
+            {
+              role: 'user',
+              content: stepPrompt
+            }
+          ],
+          tools: [{
+            type: 'function',
+            function: {
+              name: 'provide_suggestions',
+              description: 'Provide AI suggestions for the step',
+              parameters: {
+                type: 'object',
+                properties: {
+                  suggestions: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        icon: {
+                          type: 'string',
+                          enum: ['trend', 'users', 'lightbulb', 'check'],
+                          description: 'Icon type for the suggestion'
+                        },
+                        type: {
+                          type: 'string',
+                          description: 'Category tag (e.g., Market Analysis, Competition)'
+                        },
+                        title: {
+                          type: 'string',
+                          description: 'Short title for the suggestion'
+                        },
+                        content: {
+                          type: 'string',
+                          description: 'Detailed suggestion content'
+                        }
+                      },
+                      required: ['icon', 'type', 'title', 'content']
+                    }
+                  }
+                },
+                required: ['suggestions']
+              }
+            }
+          }],
+          tool_choice: { type: 'function', function: { name: 'provide_suggestions' } }
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        if (response.status === 402) {
+          return new Response(
+            JSON.stringify({ error: 'AI usage limit reached. Please add credits to continue.' }),
+            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const errorText = await response.text();
+        console.error('AI Gateway error:', response.status, errorText);
+        throw new Error(`AI Gateway returned ${response.status}`);
+      }
+
+      const aiData = await response.json();
+      const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+      
+      if (toolCall?.function?.arguments) {
+        const result = JSON.parse(toolCall.function.arguments);
+        return new Response(
+          JSON.stringify({ suggestions: result.suggestions }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // Original canvas section suggestions
     const sectionPrompts: Record<string, string> = {
       problem: `List 2-3 top problems that ${productIdea.audience} face related to: ${productIdea.problem}. Be specific and actionable.`,
       existingAlternatives: `List 2-3 existing ways people currently solve these problems: ${productIdea.problem}. Include both direct competitors and workarounds.`,

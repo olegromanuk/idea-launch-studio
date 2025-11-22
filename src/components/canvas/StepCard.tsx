@@ -12,10 +12,13 @@ interface StepCardProps {
   projectData: any;
   canvasData: any;
   loadingSection: string | null;
+  aiSuggestions: any[];
+  loadingAISuggestions: boolean;
   onToggle: () => void;
   onComplete: () => void;
   onCanvasChange: (field: string, value: string) => void;
   onGenerateSuggestions: (section: string) => void;
+  onRegenerateAI: () => void;
 }
 
 export const StepCard = ({ 
@@ -24,10 +27,13 @@ export const StepCard = ({
   projectData, 
   canvasData,
   loadingSection,
+  aiSuggestions,
+  loadingAISuggestions,
   onToggle, 
   onComplete,
   onCanvasChange,
-  onGenerateSuggestions
+  onGenerateSuggestions,
+  onRegenerateAI
 }: StepCardProps) => {
   const Icon = step.icon;
   const canvasSections = getStepCanvasSections(step.id);
@@ -126,8 +132,14 @@ export const StepCard = ({
               </div>
             </div>
 
-            {/* AI Assistant */}
-            <AIAssistant step={step} projectData={projectData} />
+          {/* AI Assistant */}
+          <AIAssistant 
+            step={step} 
+            projectData={projectData}
+            suggestions={aiSuggestions}
+            isLoading={loadingAISuggestions}
+            onRegenerate={onRegenerateAI}
+          />
 
             {/* Action Buttons */}
             <div className="flex gap-3 mt-6 pt-6 border-t border-border">

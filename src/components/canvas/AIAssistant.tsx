@@ -1,144 +1,124 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bot, TrendingUp, Users, Lightbulb, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bot, TrendingUp, Users, Lightbulb, CheckCircle2, ThumbsUp, ThumbsDown, RefreshCw } from "lucide-react";
 import type { Step } from "@/pages/Canvas";
+
+interface Suggestion {
+  icon: string;
+  type: string;
+  title: string;
+  content: string;
+}
 
 interface AIAssistantProps {
   step: Step;
   projectData: any;
+  suggestions: Suggestion[];
+  isLoading: boolean;
+  onRegenerate: () => void;
 }
 
-export const AIAssistant = ({ step, projectData }: AIAssistantProps) => {
-  const suggestions = getAISuggestions(step.id, projectData);
+export const AIAssistant = ({ step, projectData, suggestions, isLoading, onRegenerate }: AIAssistantProps) => {
+  const [feedback, setFeedback] = useState<Record<number, 'up' | 'down' | null>>({});
+
+  const handleFeedback = (index: number, type: 'up' | 'down') => {
+    setFeedback(prev => ({
+      ...prev,
+      [index]: prev[index] === type ? null : type
+    }));
+  };
+
+  const getIconComponent = (iconType: string) => {
+    switch (iconType) {
+      case "trend": return TrendingUp;
+      case "users": return Users;
+      case "lightbulb": return Lightbulb;
+      case "check": return CheckCircle2;
+      default: return Lightbulb;
+    }
+  };
 
   return (
     <Card className="gradient-card border-primary/20 p-6 space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <Bot className="w-5 h-5 text-primary" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Bot className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h4 className="font-semibold">AI Co-Pilot Suggestions</h4>
+            <p className="text-xs text-muted-foreground">
+              Personalized insights based on your project
+            </p>
+          </div>
         </div>
-        <div>
-          <h4 className="font-semibold">AI Co-Pilot Suggestions</h4>
-          <p className="text-xs text-muted-foreground">
-            Personalized insights based on your project
-          </p>
-        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onRegenerate}
+          disabled={isLoading}
+          className="hover-scale"
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          Regenerate
+        </Button>
       </div>
 
       <div className="space-y-3">
-        {suggestions.map((suggestion, index) => (
-          <div
-            key={index}
-            className="flex gap-3 p-4 rounded-lg bg-card hover:bg-muted/50 transition-colors group"
-          >
-            <div className="mt-0.5">
-              {suggestion.icon === "trend" && <TrendingUp className="w-4 h-4 text-primary" />}
-              {suggestion.icon === "users" && <Users className="w-4 h-4 text-primary" />}
-              {suggestion.icon === "lightbulb" && <Lightbulb className="w-4 h-4 text-primary" />}
-              {suggestion.icon === "check" && <CheckCircle2 className="w-4 h-4 text-primary" />}
-            </div>
-            <div className="flex-1 space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <h5 className="text-sm font-medium">{suggestion.title}</h5>
-                <Badge variant="secondary" className="text-xs">
-                  {suggestion.type}
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">{suggestion.content}</p>
-            </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <RefreshCw className="w-6 h-6 animate-spin text-primary" />
           </div>
-        ))}
+        ) : suggestions.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <p className="text-sm">Click "Regenerate" to get AI suggestions for this step</p>
+          </div>
+        ) : (
+          suggestions.map((suggestion, index) => {
+            const IconComponent = getIconComponent(suggestion.icon);
+            return (
+              <div
+                key={index}
+                className="flex gap-3 p-4 rounded-lg bg-card hover:bg-muted/50 transition-colors group border border-border/50"
+              >
+                <div className="mt-0.5">
+                  <IconComponent className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <h5 className="text-sm font-medium">{suggestion.title}</h5>
+                    <Badge variant="secondary" className="text-xs shrink-0">
+                      {suggestion.type}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{suggestion.content}</p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleFeedback(index, 'up')}
+                      className={`h-7 px-2 ${feedback[index] === 'up' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
+                    >
+                      <ThumbsUp className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleFeedback(index, 'down')}
+                      className={`h-7 px-2 ${feedback[index] === 'down' ? 'bg-destructive/10 text-destructive' : 'text-muted-foreground'}`}
+                    >
+                      <ThumbsDown className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </Card>
   );
 };
 
-function getAISuggestions(stepId: number, projectData: any) {
-  // Mock AI suggestions based on step and project data
-  const suggestions: Record<number, any[]> = {
-    1: [
-      {
-        icon: "trend",
-        type: "Market Analysis",
-        title: "Growing Market Opportunity",
-        content:
-          "The freelance economy is projected to grow 40% by 2027. Your timing is excellent for entering this market.",
-      },
-      {
-        icon: "users",
-        type: "Competition",
-        title: "Differentiation Strategy",
-        content:
-          "Consider focusing on niche verticals (e.g., designers, writers) where existing solutions are generic.",
-      },
-      {
-        icon: "lightbulb",
-        type: "Value Prop",
-        title: "Unique Angle",
-        content:
-          "Emphasize automation + AI-powered insights rather than just time tracking to stand out.",
-      },
-    ],
-    2: [
-      {
-        icon: "users",
-        type: "Persona",
-        title: "Primary User Segment",
-        content:
-          "Focus on freelancers earning $50k-$150k annually who value their time and want professional invoicing.",
-      },
-      {
-        icon: "lightbulb",
-        type: "Pain Point",
-        title: "Key Problem to Solve",
-        content:
-          "Most freelancers lose 15-20% of billable hours due to poor tracking. This is your core value driver.",
-      },
-    ],
-    3: [
-      {
-        icon: "check",
-        type: "Core Feature",
-        title: "Must-Have for MVP",
-        content:
-          "Automatic time tracking, invoice generation, and client portal should be your v1.0 features.",
-      },
-      {
-        icon: "lightbulb",
-        type: "Nice-to-Have",
-        title: "Future Enhancements",
-        content:
-          "Expense tracking, tax calculations, and payment processing can come in v2.0.",
-      },
-    ],
-    4: [
-      {
-        icon: "lightbulb",
-        type: "Design System",
-        title: "Visual Direction",
-        content:
-          "Clean, professional aesthetic with calming blues/greens. Avoid overly corporate or cluttered interfaces.",
-      },
-    ],
-    5: [
-      {
-        icon: "trend",
-        type: "Tech Stack",
-        title: "Recommended Stack",
-        content:
-          "Consider React + Node.js + PostgreSQL for scalability, or no-code tools like Bubble for faster MVP.",
-      },
-    ],
-    6: [
-      {
-        icon: "users",
-        type: "Marketing",
-        title: "Launch Strategy",
-        content:
-          "Start with ProductHunt launch, freelancer communities (Reddit, FB groups), and content marketing.",
-      },
-    ],
-  };
-
-  return suggestions[stepId] || [];
-}
