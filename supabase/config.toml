@@ -2,3 +2,6 @@ project_id = "rspxejrzthyijxpbywuv"
 
 [functions.generate-product-ideas]
 verify_jwt = false
+
+[functions.generate-canvas-suggestions]
+verify_jwt = false
