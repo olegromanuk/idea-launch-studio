@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Maximize2 } from "lucide-react";
 
 interface CanvasCellProps {
   title: string;
@@ -8,6 +8,7 @@ interface CanvasCellProps {
   value: string;
   onChange: (value: string) => void;
   onAIGenerate: () => void;
+  onExpand: () => void;
   isGenerating: boolean;
   className?: string;
 }
@@ -17,7 +18,8 @@ export const CanvasCell = ({
   subtitle, 
   value, 
   onChange, 
-  onAIGenerate, 
+  onAIGenerate,
+  onExpand,
   isGenerating,
   className = "" 
 }: CanvasCellProps) => {
@@ -32,16 +34,27 @@ export const CanvasCell = ({
             {subtitle}
           </p>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onAIGenerate}
-          disabled={isGenerating}
-          className="h-7 w-7 p-0 hover:bg-primary/10"
-          title="Generate AI suggestions"
-        >
-          <Sparkles className={`w-3.5 h-3.5 ${isGenerating ? 'animate-pulse text-primary' : 'text-muted-foreground'}`} />
-        </Button>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onExpand}
+            className="h-7 w-7 p-0 hover:bg-primary/10"
+            title="Expand for focused editing"
+          >
+            <Maximize2 className="w-3.5 h-3.5 text-muted-foreground" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onAIGenerate}
+            disabled={isGenerating}
+            className="h-7 w-7 p-0 hover:bg-primary/10"
+            title="Generate AI suggestions"
+          >
+            <Sparkles className={`w-3.5 h-3.5 ${isGenerating ? 'animate-pulse text-primary' : 'text-muted-foreground'}`} />
+          </Button>
+        </div>
       </div>
       <Textarea
         value={value}
