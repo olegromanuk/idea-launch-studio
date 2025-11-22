@@ -12,6 +12,8 @@ import {
   Cpu,
   Rocket,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Step {
   id: number;
@@ -24,7 +26,23 @@ export interface Step {
 
 const Canvas = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [projectData, setProjectData] = useState<any>(null);
+  const [loadingSection, setLoadingSection] = useState<string | null>(null);
+  const [canvasData, setCanvasData] = useState({
+    problem: "",
+    existingAlternatives: "",
+    solution: "",
+    keyMetrics: "",
+    uniqueValueProposition: "",
+    highLevelConcept: "",
+    unfairAdvantage: "",
+    channels: "",
+    customerSegments: "",
+    earlyAdopters: "",
+    costStructure: "",
+    revenueStreams: "",
+  });
   const [steps, setSteps] = useState<Step[]>([
     {
       id: 1,
@@ -83,7 +101,61 @@ const Canvas = () => {
       return;
     }
     setProjectData(JSON.parse(data));
+    
+    // Load saved canvas data if exists
+    const savedCanvas = localStorage.getItem("leanCanvas");
+    if (savedCanvas) {
+      setCanvasData(JSON.parse(savedCanvas));
+    }
   }, [navigate]);
+
+  useEffect(() => {
+    // Auto-save canvas data
+    localStorage.setItem("leanCanvas", JSON.stringify(canvasData));
+  }, [canvasData]);
+
+  const handleCanvasChange = (field: string, value: string) => {
+    setCanvasData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const generateSuggestions = async (section: string) => {
+    setLoadingSection(section);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-canvas-suggestions', {
+        body: { section, productIdea: projectData }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.error) {
+        toast({
+          title: "Error",
+          description: data.error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.suggestions) {
+        handleCanvasChange(section, data.suggestions);
+        toast({
+          title: "Suggestions generated!",
+          description: "AI suggestions have been added to the section.",
+        });
+      }
+    } catch (error) {
+      console.error('Error generating suggestions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate suggestions. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingSection(null);
+    }
+  };
 
   const toggleStep = (stepId: number) => {
     setSteps(
@@ -162,8 +234,12 @@ const Canvas = () => {
               step={step}
               index={index}
               projectData={projectData}
+              canvasData={canvasData}
+              loadingSection={loadingSection}
               onToggle={() => toggleStep(step.id)}
               onComplete={() => markStepComplete(step.id)}
+              onCanvasChange={handleCanvasChange}
+              onGenerateSuggestions={generateSuggestions}
             />
           ))}
         </div>
