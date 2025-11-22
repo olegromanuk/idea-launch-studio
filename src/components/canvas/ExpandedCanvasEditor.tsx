@@ -37,7 +37,7 @@ export const ExpandedCanvasEditor = ({
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="h-[80vh]">
         <DrawerHeader className="border-b border-border">
-          <div className="flex items-start justify-between">
+          <div className="max-w-4xl mx-auto w-full px-6 flex items-start justify-between">
             <div>
               <DrawerTitle className="text-xl font-bold uppercase tracking-wide">
                 {title}
@@ -57,8 +57,8 @@ export const ExpandedCanvasEditor = ({
           </div>
         </DrawerHeader>
 
-        <ScrollArea className="flex-1 px-6">
-          <div className="py-6 space-y-6">
+        <ScrollArea className="flex-1">
+          <div className="max-w-4xl mx-auto w-full px-6 py-8 space-y-8">
             {/* Main Editor */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -135,9 +135,11 @@ export const ExpandedCanvasEditor = ({
         </ScrollArea>
 
         <DrawerFooter className="border-t border-border">
-          <Button onClick={onClose} className="w-full">
-            Done
-          </Button>
+          <div className="max-w-4xl mx-auto w-full px-6">
+            <Button onClick={onClose} className="w-full">
+              Done
+            </Button>
+          </div>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
