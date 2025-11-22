@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, ChevronDown, ChevronRight } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronRight, Users } from "lucide-react";
 import { AIAssistant } from "./AIAssistant";
 import { CanvasCell } from "./CanvasCell";
 import { ExpandedCanvasEditor } from "./ExpandedCanvasEditor";
@@ -21,6 +21,7 @@ interface StepCardProps {
   onCanvasChange: (field: string, value: string) => void;
   onGenerateSuggestions: (section: string) => void;
   onRegenerateAI: () => void;
+  onOpenChat: () => void;
 }
 
 export const StepCard = ({ 
@@ -35,7 +36,8 @@ export const StepCard = ({
   onComplete,
   onCanvasChange,
   onGenerateSuggestions,
-  onRegenerateAI
+  onRegenerateAI,
+  onOpenChat
 }: StepCardProps) => {
   const Icon = step.icon;
   const canvasSections = getStepCanvasSections(step.id);
@@ -197,6 +199,14 @@ export const StepCard = ({
                   Mark as Complete
                 </Button>
               )}
+              <Button
+                variant="outline"
+                onClick={onOpenChat}
+                className="hover-lift"
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Connect to Team
+              </Button>
             </div>
           </div>
         </div>

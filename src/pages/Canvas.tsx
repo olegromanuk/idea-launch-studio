@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { StepCard } from "@/components/canvas/StepCard";
 import { TeamChat } from "@/components/canvas/TeamChat";
-import { ArrowLeft, Download, Home, Users } from "lucide-react";
+import { ArrowLeft, Download, Home } from "lucide-react";
 import {
   Lightbulb,
   Target,
@@ -282,15 +282,6 @@ const Canvas = () => {
                 <span className="hidden sm:inline">Dashboard</span>
               </Button>
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsChatOpen(true)}
-                className="hover-lift"
-              >
-                <Users className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Connect to Team</span>
-              </Button>
-              <Button
                 size="sm"
                 className="gradient-accent text-white hover-accent-glow"
               >
@@ -323,6 +314,7 @@ const Canvas = () => {
               onCanvasChange={handleCanvasChange}
               onGenerateSuggestions={generateSuggestions}
               onRegenerateAI={() => generateAISuggestions(step.id)}
+              onOpenChat={() => setIsChatOpen(true)}
             />
           ))}
         </div>
