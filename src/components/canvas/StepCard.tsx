@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, ChevronDown, ChevronRight } from "lucide-react";
 import { AIAssistant } from "./AIAssistant";
 import { CanvasCell } from "./CanvasCell";
+import { ExpandedCanvasEditor } from "./ExpandedCanvasEditor";
 import type { Step } from "@/pages/Canvas";
 
 interface StepCardProps {
@@ -37,6 +39,31 @@ export const StepCard = ({
 }: StepCardProps) => {
   const Icon = step.icon;
   const canvasSections = getStepCanvasSections(step.id);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [pendingSuggestion, setPendingSuggestion] = useState<string | null>(null);
+
+  const handleExpandSection = (sectionKey: string) => {
+    setExpandedSection(sectionKey);
+    setPendingSuggestion(null);
+  };
+
+  const handleGenerateForExpanded = async (section: string) => {
+    await onGenerateSuggestions(section);
+    // The suggestion will appear in the canvasData after generation
+  };
+
+  const handleAcceptSuggestion = () => {
+    if (pendingSuggestion && expandedSection) {
+      onCanvasChange(expandedSection, pendingSuggestion);
+      setPendingSuggestion(null);
+    }
+  };
+
+  const handleDiscardSuggestion = () => {
+    setPendingSuggestion(null);
+  };
+
+  const currentExpandedSection = canvasSections.find(s => s.key === expandedSection);
 
   return (
     <Card
@@ -126,11 +153,29 @@ export const StepCard = ({
                     value={canvasData[section.key]}
                     onChange={(value) => onCanvasChange(section.key, value)}
                     onAIGenerate={() => onGenerateSuggestions(section.key)}
+                    onExpand={() => handleExpandSection(section.key)}
                     isGenerating={loadingSection === section.key}
                   />
                 ))}
               </div>
             </div>
+
+            {/* Expanded Canvas Editor */}
+            {currentExpandedSection && (
+              <ExpandedCanvasEditor
+                isOpen={expandedSection !== null}
+                onClose={() => setExpandedSection(null)}
+                title={currentExpandedSection.title}
+                subtitle={currentExpandedSection.subtitle}
+                value={canvasData[expandedSection]}
+                onChange={(value) => onCanvasChange(expandedSection, value)}
+                onAIGenerate={() => handleGenerateForExpanded(expandedSection)}
+                isGenerating={loadingSection === expandedSection}
+                aiSuggestion={pendingSuggestion || undefined}
+                onAcceptSuggestion={handleAcceptSuggestion}
+                onDiscardSuggestion={handleDiscardSuggestion}
+              />
+            )}
 
           {/* AI Assistant */}
           <AIAssistant 
