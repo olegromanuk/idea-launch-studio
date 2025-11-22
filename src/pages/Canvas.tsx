@@ -236,7 +236,9 @@ const Canvas = () => {
                 <Home className="w-5 h-5" />
               </Button>
               <div>
-                <h2 className="font-semibold text-foreground">Your Product Journey</h2>
+                <h2 className="font-semibold text-foreground">
+                  {projectData?.idea || "Your Product Journey"}
+                </h2>
                 <p className="text-sm text-muted-foreground">
                   {completedSteps} of {steps.length} steps completed
                 </p>
