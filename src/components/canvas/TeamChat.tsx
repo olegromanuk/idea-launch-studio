@@ -55,7 +55,7 @@ export const TeamChat = ({ isOpen, onClose }: TeamChatProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-[380px] h-[500px] glass rounded-lg shadow-elegant border border-border/50 flex flex-col">
+    <div className="fixed bottom-4 right-4 z-[70] w-[380px] h-[500px] glass rounded-lg shadow-elegant border border-border/50 flex flex-col animate-slide-in-right">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border/50">
         <div className="flex items-center gap-2">
