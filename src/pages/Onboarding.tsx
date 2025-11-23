@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Rocket, Target, Users, Lightbulb } from "lucide-react";
+import { Sparkles, Rocket, Target, Users, Lightbulb, ArrowLeft } from "lucide-react";
 import { IdeaSelector } from "@/components/onboarding/IdeaSelector";
+import { PersonaSelector, PersonaType } from "@/components/onboarding/PersonaSelector";
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(null);
   const [showIdeaSelector, setShowIdeaSelector] = useState(false);
   const [formData, setFormData] = useState({
     idea: "",
@@ -15,9 +17,46 @@ const Onboarding = () => {
     problem: "",
   });
 
+  const personaConfig = {
+    enterprise: {
+      ideaLabel: "What's your product vision?",
+      ideaPlaceholder: "e.g., An enterprise-grade AI platform for automated compliance monitoring and risk assessment across multiple regulatory frameworks...",
+      audienceLabel: "Who are your target users?",
+      audiencePlaceholder: "e.g., Compliance officers, risk managers, and CTOs at enterprise organizations with complex regulatory requirements...",
+      problemLabel: "What business challenge does it address?",
+      problemPlaceholder: "e.g., Manual compliance processes are error-prone, time-consuming, and don't scale with growing regulatory complexity..."
+    },
+    agency: {
+      ideaLabel: "What's your product concept?",
+      ideaPlaceholder: "e.g., A white-label client portal that agencies can customize with their branding to deliver projects and collect feedback...",
+      audienceLabel: "Who will use this?",
+      audiencePlaceholder: "e.g., Creative agencies, consulting firms, and freelancers who need a professional way to collaborate with clients...",
+      problemLabel: "What pain point does it solve?",
+      problemPlaceholder: "e.g., Scattered communication across email, Slack, and other tools makes client collaboration chaotic and unprofessional..."
+    },
+    solo: {
+      ideaLabel: "What's your product idea?",
+      ideaPlaceholder: "e.g., A mobile app that helps freelancers track their time and generate invoices automatically...",
+      audienceLabel: "Who is it for?",
+      audiencePlaceholder: "e.g., Solo freelancers and small creative agencies who struggle with invoicing...",
+      problemLabel: "What problem does it solve?",
+      problemPlaceholder: "e.g., They waste time on manual invoicing and often forget to track billable hours..."
+    }
+  };
+
+  const config = selectedPersona ? personaConfig[selectedPersona] : personaConfig.solo;
+
+  const handlePersonaSelect = (persona: PersonaType) => {
+    setSelectedPersona(persona);
+    localStorage.setItem("userPersona", persona);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem("productIdea", JSON.stringify(formData));
+    localStorage.setItem("productIdea", JSON.stringify({
+      ...formData,
+      persona: selectedPersona
+    }));
     navigate("/canvas");
   };
 
@@ -48,20 +87,32 @@ const Onboarding = () => {
         </div>
 
         <Card className="p-8 glass hover-lift">
-          {showIdeaSelector ? (
+          {!selectedPersona ? (
+            <PersonaSelector onPersonaSelect={handlePersonaSelect} />
+          ) : showIdeaSelector ? (
             <IdeaSelector
               onIdeaSelect={handleIdeaSelect}
               onCancel={() => setShowIdeaSelector(false)}
             />
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedPersona(null)}
+                className="mb-4"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Change persona
+              </Button>
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
                   <Rocket className="w-4 h-4 text-primary" />
-                  What's your product idea?
+                  {config.ideaLabel}
                 </label>
                 <Textarea
-                  placeholder="e.g., A mobile app that helps freelancers track their time and generate invoices automatically..."
+                  placeholder={config.ideaPlaceholder}
                   value={formData.idea}
                   onChange={(e) =>
                     setFormData({ ...formData, idea: e.target.value })
@@ -80,31 +131,31 @@ const Onboarding = () => {
                 </Button>
               </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Users className="w-4 h-4 text-primary" />
-                Who is it for?
-              </label>
-              <Textarea
-                placeholder="e.g., Solo freelancers and small creative agencies who struggle with invoicing..."
-                value={formData.audience}
-                onChange={(e) => setFormData({ ...formData, audience: e.target.value })}
-                className="min-h-[80px] resize-none"
-              />
-            </div>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <Users className="w-4 h-4 text-primary" />
+                  {config.audienceLabel}
+                </label>
+                <Textarea
+                  placeholder={config.audiencePlaceholder}
+                  value={formData.audience}
+                  onChange={(e) => setFormData({ ...formData, audience: e.target.value })}
+                  className="min-h-[80px] resize-none"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Target className="w-4 h-4 text-primary" />
-                What problem does it solve?
-              </label>
-              <Textarea
-                placeholder="e.g., They waste time on manual invoicing and often forget to track billable hours..."
-                value={formData.problem}
-                onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
-                className="min-h-[80px] resize-none"
-              />
-            </div>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <Target className="w-4 h-4 text-primary" />
+                  {config.problemLabel}
+                </label>
+                <Textarea
+                  placeholder={config.problemPlaceholder}
+                  value={formData.problem}
+                  onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
+                  className="min-h-[80px] resize-none"
+                />
+              </div>
 
               <div className="flex gap-4 pt-4">
                 <Button
