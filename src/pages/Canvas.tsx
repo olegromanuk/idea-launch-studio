@@ -8,7 +8,7 @@ import { ExpandedCanvasEditor } from "@/components/canvas/ExpandedCanvasEditor";
 import { TeamChat } from "@/components/canvas/TeamChat";
 import { CelebrationModal } from "@/components/canvas/CelebrationModal";
 import { ValidationModal } from "@/components/canvas/ValidationModal";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -339,43 +339,81 @@ const Canvas = () => {
               })}
             </TabsList>
 
-            {canvasTabs.map((tab) => (
-              <TabsContent key={tab.id} value={tab.id} className="space-y-6">
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-2xl font-bold text-foreground">
-                      {tab.title}
-                    </h3>
-                    <Button
-                      onClick={() => setValidationBlock({ id: tab.id, title: tab.title })}
-                      className="gradient-accent text-white hover-accent-glow"
-                    >
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      Validate
-                    </Button>
-                  </div>
-                  <Progress
-                    value={calculateCanvasProgress(tab.id)}
-                    className="h-2"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {tab.sections.map((section) => (
-                    <CanvasCell
-                      key={section.key}
-                      title={section.title}
-                      subtitle={section.subtitle}
-                      value={canvasData[section.key as keyof typeof canvasData]}
-                      onChange={(value) => handleCanvasChange(section.key, value)}
-                      onAIGenerate={() => generateSuggestions(section.key)}
-                      onExpand={() => handleExpandSection(section.key)}
-                      isGenerating={loadingSection === section.key}
+            {canvasTabs.map((tab) => {
+              const isLocked = isBlockLocked(tab.id);
+              const previousBlockName = tab.id === "development" ? "Business Logic" : "Development";
+              
+              return (
+                <TabsContent key={tab.id} value={tab.id} className="space-y-6">
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-2xl font-bold text-foreground">
+                        {tab.title}
+                      </h3>
+                      {!isLocked && (
+                        <Button
+                          onClick={() => setValidationBlock({ id: tab.id, title: tab.title })}
+                          className="gradient-accent text-white hover-accent-glow"
+                        >
+                          <CheckCircle2 className="w-4 h-4 mr-2" />
+                          Validate
+                        </Button>
+                      )}
+                    </div>
+                    <Progress
+                      value={calculateCanvasProgress(tab.id)}
+                      className="h-2"
                     />
-                  ))}
-                </div>
-              </TabsContent>
-            ))}
+                  </div>
+
+                  {isLocked ? (
+                    <div className="glass p-8 rounded-lg text-center space-y-4">
+                      <div className="flex justify-center">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Lock className="w-8 h-8 text-primary" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <h4 className="text-xl font-semibold text-foreground">
+                          This Section is Locked
+                        </h4>
+                        <p className="text-muted-foreground max-w-md mx-auto">
+                          Before you can access the <strong>{tab.title}</strong> canvas, you must complete and validate the <strong>{previousBlockName}</strong> block.
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (tab.id === "development") {
+                            setActiveTab("business");
+                          } else if (tab.id === "gtm") {
+                            setActiveTab("development");
+                          }
+                        }}
+                        className="mt-4"
+                      >
+                        Go to {previousBlockName}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {tab.sections.map((section) => (
+                        <CanvasCell
+                          key={section.key}
+                          title={section.title}
+                          subtitle={section.subtitle}
+                          value={canvasData[section.key as keyof typeof canvasData]}
+                          onChange={(value) => handleCanvasChange(section.key, value)}
+                          onAIGenerate={() => generateSuggestions(section.key)}
+                          onExpand={() => handleExpandSection(section.key)}
+                          isGenerating={loadingSection === section.key}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+              );
+            })}
           </Tabs>
         </div>
       </main>
