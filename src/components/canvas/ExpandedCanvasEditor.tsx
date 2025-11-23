@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "@/components/ui/drawer";
 import { Sparkles, X, Check, Trash2, Headphones, MessageSquare } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { TeamChat } from "./TeamChat";
+import { AIChat } from "./AIChat";
 
 interface ExpandedCanvasEditorProps {
   isOpen: boolean;
@@ -19,6 +22,12 @@ interface ExpandedCanvasEditorProps {
   onDiscardSuggestion?: () => void;
   onRequestSupport?: () => void;
   onChatWithAI?: () => void;
+  canvasContext?: {
+    sectionTitle: string;
+    sectionSubtitle: string;
+    currentContent: string;
+    projectData?: any;
+  };
 }
 
 export const ExpandedCanvasEditor = ({
@@ -35,12 +44,25 @@ export const ExpandedCanvasEditor = ({
   onDiscardSuggestion,
   onRequestSupport,
   onChatWithAI,
+  canvasContext,
 }: ExpandedCanvasEditorProps) => {
+  const [activeChatPanel, setActiveChatPanel] = useState<'support' | 'ai' | null>(null);
+
+  const handleRequestSupport = () => {
+    setActiveChatPanel(activeChatPanel === 'support' ? null : 'support');
+    onRequestSupport?.();
+  };
+
+  const handleChatWithAI = () => {
+    setActiveChatPanel(activeChatPanel === 'ai' ? null : 'ai');
+    onChatWithAI?.();
+  };
+
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="h-[80vh]">
+      <DrawerContent className="h-[85vh]">
         <DrawerHeader className="border-b border-border">
-          <div className="max-w-4xl mx-auto w-full px-6 flex items-start justify-between">
+          <div className="max-w-7xl mx-auto w-full px-6 flex items-start justify-between">
             <div>
               <DrawerTitle className="text-xl font-bold uppercase tracking-wide">
                 {title}
@@ -60,104 +82,131 @@ export const ExpandedCanvasEditor = ({
           </div>
         </DrawerHeader>
 
-        <ScrollArea className="flex-1">
-          <div className="max-w-4xl mx-auto w-full px-6 py-8 space-y-8">
-            {/* Main Editor */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-foreground">
-                  Your Content
-                </label>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onAIGenerate}
-                  disabled={isGenerating}
-                  className="gap-2"
-                >
-                  <Sparkles className={`w-4 h-4 ${isGenerating ? 'animate-pulse' : ''}`} />
-                  {isGenerating ? "Generating..." : "Generate with AI"}
-                </Button>
-              </div>
-              <Textarea
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                placeholder="Type your content here or generate AI suggestions..."
-                className="min-h-[200px] text-base resize-none"
-              />
-            </div>
-
-            {/* AI Suggestion Section */}
-            {aiSuggestion && (
-              <div className="space-y-2 animate-fade-in">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    AI Suggestion
-                  </Badge>
-                </div>
-                <div className="bg-muted/50 rounded-lg p-4 border border-border space-y-3">
-                  <div className="text-sm text-foreground whitespace-pre-wrap">
-                    {aiSuggestion}
-                  </div>
-                  <div className="flex gap-2">
+        <div className="flex-1 overflow-hidden">
+          <div className="max-w-7xl mx-auto w-full h-full flex gap-4 px-6 py-6">
+            {/* Main Editor Section */}
+            <ScrollArea className={`${activeChatPanel ? 'flex-1' : 'w-full'} transition-all`}>
+              <div className="space-y-8 pr-4">
+                {/* Main Editor */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-foreground">
+                      Your Content
+                    </label>
                     <Button
-                      size="sm"
-                      onClick={onAcceptSuggestion}
-                      className="gap-2"
-                    >
-                      <Check className="w-4 h-4" />
-                      Accept & Replace
-                    </Button>
-                    <Button
-                      size="sm"
                       variant="outline"
-                      onClick={onDiscardSuggestion}
+                      size="sm"
+                      onClick={onAIGenerate}
+                      disabled={isGenerating}
                       className="gap-2"
                     >
-                      <Trash2 className="w-4 h-4" />
-                      Discard
+                      <Sparkles className={`w-4 h-4 ${isGenerating ? 'animate-pulse' : ''}`} />
+                      {isGenerating ? "Generating..." : "Generate with AI"}
                     </Button>
                   </div>
+                  <Textarea
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder="Type your content here or generate AI suggestions..."
+                    className="min-h-[200px] text-base resize-none"
+                  />
                 </div>
+
+                {/* AI Suggestion Section */}
+                {aiSuggestion && (
+                  <div className="space-y-2 animate-fade-in">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        AI Suggestion
+                      </Badge>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-4 border border-border space-y-3">
+                      <div className="text-sm text-foreground whitespace-pre-wrap">
+                        {aiSuggestion}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={onAcceptSuggestion}
+                          className="gap-2"
+                        >
+                          <Check className="w-4 h-4" />
+                          Accept & Replace
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={onDiscardSuggestion}
+                          className="gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Discard
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tips Section */}
+                <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                  <h4 className="text-sm font-semibold text-foreground mb-2">
+                    💡 Tips for better results:
+                  </h4>
+                  <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                    <li>Be specific and detailed in your descriptions</li>
+                    <li>Use AI suggestions as a starting point, then customize</li>
+                    <li>Reference your product idea: "{title}"</li>
+                  </ul>
+                </div>
+              </div>
+            </ScrollArea>
+
+            {/* Chat Panel Section */}
+            {activeChatPanel && (
+              <div className="w-[420px] h-full border-l border-border pl-4 animate-slide-in-right">
+                {activeChatPanel === 'support' && (
+                  <div className="h-full flex flex-col">
+                    <TeamChat 
+                      isOpen={true} 
+                      onClose={() => setActiveChatPanel(null)}
+                      embedded={true}
+                    />
+                  </div>
+                )}
+                {activeChatPanel === 'ai' && (
+                  <div className="h-full flex flex-col">
+                    <AIChat 
+                      isOpen={true} 
+                      onClose={() => setActiveChatPanel(null)}
+                      canvasContext={canvasContext}
+                      embedded={true}
+                    />
+                  </div>
+                )}
               </div>
             )}
-
-            {/* Tips Section */}
-            <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
-              <h4 className="text-sm font-semibold text-foreground mb-2">
-                💡 Tips for better results:
-              </h4>
-              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li>Be specific and detailed in your descriptions</li>
-                <li>Use AI suggestions as a starting point, then customize</li>
-                <li>Reference your product idea: "{title}"</li>
-              </ul>
-            </div>
           </div>
-        </ScrollArea>
+        </div>
 
         <DrawerFooter className="border-t border-border">
-          <div className="max-w-4xl mx-auto w-full px-6 flex flex-col gap-3">
+          <div className="max-w-7xl mx-auto w-full px-6 flex flex-col gap-3">
             <div className="flex flex-col md:flex-row gap-3">
               <Button
-                variant="outline"
+                variant={activeChatPanel === 'support' ? 'default' : 'outline'}
                 className="flex-1 hover-scale"
-                onClick={onRequestSupport}
+                onClick={handleRequestSupport}
               >
                 <Headphones className="w-4 h-4 mr-2" />
-                Request Launch Support
+                {activeChatPanel === 'support' ? 'Hide Support' : 'Request Launch Support'}
               </Button>
               <Button
-                variant="outline"
+                variant={activeChatPanel === 'ai' ? 'default' : 'outline'}
                 className="flex-1 hover-scale"
-                onClick={() => {
-                  onClose();
-                  onChatWithAI?.();
-                }}
+                onClick={handleChatWithAI}
               >
                 <MessageSquare className="w-4 h-4 mr-2" />
-                Chat with AI
+                {activeChatPanel === 'ai' ? 'Hide AI Chat' : 'Chat with AI'}
               </Button>
             </div>
             <Button onClick={onClose} className="w-full">

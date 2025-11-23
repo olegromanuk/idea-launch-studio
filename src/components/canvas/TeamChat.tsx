@@ -14,9 +14,10 @@ interface Message {
 interface TeamChatProps {
   isOpen: boolean;
   onClose: () => void;
+  embedded?: boolean;
 }
 
-export const TeamChat = ({ isOpen, onClose }: TeamChatProps) => {
+export const TeamChat = ({ isOpen, onClose, embedded = false }: TeamChatProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -54,8 +55,12 @@ export const TeamChat = ({ isOpen, onClose }: TeamChatProps) => {
 
   if (!isOpen) return null;
 
+  const containerClasses = embedded 
+    ? "h-full flex flex-col rounded-lg border border-border/50 bg-background"
+    : "fixed bottom-4 right-4 z-[70] w-[380px] h-[500px] glass rounded-lg shadow-elegant border border-border/50 flex flex-col animate-slide-in-right";
+
   return (
-    <div className="fixed bottom-4 right-4 z-[70] w-[380px] h-[500px] glass rounded-lg shadow-elegant border border-border/50 flex flex-col animate-slide-in-right">
+    <div className={containerClasses}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border/50">
         <div className="flex items-center gap-2">

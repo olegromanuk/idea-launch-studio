@@ -22,9 +22,10 @@ interface AIChatProps {
     currentContent: string;
     projectData?: any;
   };
+  embedded?: boolean;
 }
 
-export const AIChat = ({ isOpen, onClose, canvasContext }: AIChatProps) => {
+export const AIChat = ({ isOpen, onClose, canvasContext, embedded = false }: AIChatProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -173,8 +174,12 @@ export const AIChat = ({ isOpen, onClose, canvasContext }: AIChatProps) => {
 
   if (!isOpen) return null;
 
+  const containerClasses = embedded 
+    ? "h-full flex flex-col rounded-lg border border-border/50 bg-background"
+    : "fixed bottom-4 left-4 z-[70] w-[420px] h-[600px] glass rounded-lg shadow-elegant border border-border/50 flex flex-col animate-slide-in-right";
+
   return (
-    <div className="fixed bottom-4 left-4 z-[70] w-[420px] h-[600px] glass rounded-lg shadow-elegant border border-border/50 flex flex-col animate-slide-in-right">
+    <div className={containerClasses}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border/50 bg-gradient-to-r from-primary/10 to-accent/10">
         <div className="flex items-center gap-2">
