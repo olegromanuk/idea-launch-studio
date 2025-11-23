@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CanvasCell } from "@/components/canvas/CanvasCell";
 import { ExpandedCanvasEditor } from "@/components/canvas/ExpandedCanvasEditor";
 import { TeamChat } from "@/components/canvas/TeamChat";
+import { CelebrationModal } from "@/components/canvas/CelebrationModal";
 import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +33,8 @@ const Canvas = () => {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [pendingSuggestion, setPendingSuggestion] = useState<string>("");
   const [activeTab, setActiveTab] = useState("business");
+  const [celebrationBlock, setCelebrationBlock] = useState<{ id: string; title: string } | null>(null);
+  const [completedBlocks, setCompletedBlocks] = useState<Set<string>>(new Set());
   
   const [canvasData, setCanvasData] = useState({
     // Business Logic
@@ -114,11 +117,30 @@ const Canvas = () => {
     if (savedCanvas) {
       setCanvasData(JSON.parse(savedCanvas));
     }
+
+    // Load completed blocks
+    const savedCompletions = localStorage.getItem("completedBlocks");
+    if (savedCompletions) {
+      setCompletedBlocks(new Set(JSON.parse(savedCompletions)));
+    }
   }, [navigate]);
 
   useEffect(() => {
     // Auto-save canvas data
     localStorage.setItem("multiCanvas", JSON.stringify(canvasData));
+
+    // Check for newly completed blocks
+    canvasTabs.forEach((tab) => {
+      const progress = calculateCanvasProgress(tab.id);
+      if (progress === 100 && !completedBlocks.has(tab.id)) {
+        // Block just completed!
+        setCelebrationBlock({ id: tab.id, title: tab.title });
+        const newCompleted = new Set(completedBlocks);
+        newCompleted.add(tab.id);
+        setCompletedBlocks(newCompleted);
+        localStorage.setItem("completedBlocks", JSON.stringify([...newCompleted]));
+      }
+    });
   }, [canvasData]);
 
   const handleCanvasChange = (field: string, value: string) => {
@@ -344,6 +366,14 @@ const Canvas = () => {
 
       {/* Team Chat Panel */}
       <TeamChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+
+      {/* Celebration Modal */}
+      <CelebrationModal
+        isOpen={celebrationBlock !== null}
+        onClose={() => setCelebrationBlock(null)}
+        blockId={celebrationBlock?.id || ""}
+        blockTitle={celebrationBlock?.title || ""}
+      />
     </div>
   );
 };
