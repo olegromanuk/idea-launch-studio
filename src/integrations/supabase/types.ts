@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      dashboard_elements: {
+        Row: {
+          color: string
+          content: string
+          created_at: string
+          height: number
+          id: string
+          position_x: number
+          position_y: number
+          section_key: string
+          section_title: string
+          updated_at: string
+          user_id: string
+          width: number
+        }
+        Insert: {
+          color?: string
+          content: string
+          created_at?: string
+          height?: number
+          id?: string
+          position_x?: number
+          position_y?: number
+          section_key: string
+          section_title: string
+          updated_at?: string
+          user_id: string
+          width?: number
+        }
+        Update: {
+          color?: string
+          content?: string
+          created_at?: string
+          height?: number
+          id?: string
+          position_x?: number
+          position_y?: number
+          section_key?: string
+          section_title?: string
+          updated_at?: string
+          user_id?: string
+          width?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
