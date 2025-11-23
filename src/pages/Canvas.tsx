@@ -397,7 +397,7 @@ const Canvas = () => {
                   </div>
 
                   {isLocked ? (
-                    <div className="glass p-8 rounded-lg text-center space-y-4">
+                    <div className="glass p-8 rounded-lg text-center space-y-6">
                       <div className="flex justify-center">
                         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                           <Lock className="w-8 h-8 text-primary" />
@@ -411,6 +411,32 @@ const Canvas = () => {
                           Before you can access the <strong>{tab.title}</strong> canvas, you must complete and validate the <strong>{previousBlockName}</strong> block.
                         </p>
                       </div>
+                      
+                      {/* Unlock Requirements */}
+                      <div className="glass-dark p-4 rounded-lg max-w-lg mx-auto text-left space-y-3">
+                        <h5 className="font-semibold text-foreground text-sm">How to unlock this block:</h5>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-start gap-2">
+                            <span className="text-primary mt-0.5">1.</span>
+                            <span className="text-muted-foreground">
+                              Complete all sections in the <strong className="text-foreground">{previousBlockName}</strong> canvas
+                            </span>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <span className="text-primary mt-0.5">2.</span>
+                            <span className="text-muted-foreground">
+                              Click the <strong className="text-foreground">"Validate"</strong> button to submit your canvas for review
+                            </span>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <span className="text-primary mt-0.5">3.</span>
+                            <span className="text-muted-foreground">
+                              Once validated, the <strong className="text-foreground">{tab.title}</strong> block will automatically unlock
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
                       <Button
                         variant="outline"
                         onClick={() => {
