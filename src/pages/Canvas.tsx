@@ -8,10 +8,11 @@ import { ExpandedCanvasEditor } from "@/components/canvas/ExpandedCanvasEditor";
 import { TeamChat } from "@/components/canvas/TeamChat";
 import { CelebrationModal } from "@/components/canvas/CelebrationModal";
 import { ValidationModal } from "@/components/canvas/ValidationModal";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock } from "lucide-react";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CanvasSection {
   key: string;
@@ -335,6 +336,8 @@ const Canvas = () => {
                 const progress = calculateCanvasProgress(tab.id);
                 const isLocked = isBlockLocked(tab.id);
                 const isUnlocking = unlockedBlock === tab.id;
+                const previousBlockName = tab.id === "development" ? "Business Logic" : "Development";
+                
                 return (
                   <TabsTrigger
                     key={tab.id}
@@ -358,7 +361,23 @@ const Canvas = () => {
                     <div className="flex items-center gap-2 relative">
                       <Icon className={cn("w-4 h-4", isUnlocking && "animate-scale-in")} />
                       <span className="hidden sm:inline">{tab.title}</span>
-                      {isLocked && !isUnlocking && <span className="text-xs">🔒</span>}
+                      {isLocked && !isUnlocking && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-1">
+                                <Lock className="w-3 h-3" />
+                                <Info className="w-3 h-3 text-muted-foreground hover:text-foreground transition-colors" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-sm">
+                                This block is locked. Complete and validate <strong>{previousBlockName}</strong> to unlock.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                       {isUnlocking && <span className="text-xs animate-fade-in">🔓</span>}
                     </div>
                     <span className="text-xs text-muted-foreground">
