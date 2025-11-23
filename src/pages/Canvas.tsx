@@ -365,14 +365,27 @@ const Canvas = () => {
                         {isLocked && !isUnlocking && (
                           <div className="flex items-center gap-1">
                             <Lock className="w-3 h-3" />
-                            <Tooltip delayDuration={0}>
-                              <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-primary transition-colors cursor-help" />
+                            <Tooltip delayDuration={100}>
+                              <TooltipTrigger asChild>
+                                <button 
+                                  type="button"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center justify-center"
+                                >
+                                  <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-primary transition-colors cursor-help" />
+                                </button>
                               </TooltipTrigger>
-                              <TooltipContent side="bottom" className="max-w-xs bg-card border-border">
-                                <p className="text-sm font-medium mb-1">🔒 Block Locked</p>
-                                <p className="text-xs text-muted-foreground">
-                                  Complete and validate <strong className="text-foreground">{previousBlockName}</strong> to unlock this block.
+                              <TooltipContent 
+                                side="bottom" 
+                                className="max-w-xs bg-popover text-popover-foreground border-border shadow-lg z-50 p-3"
+                                sideOffset={5}
+                              >
+                                <p className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                  <Lock className="w-4 h-4" />
+                                  Block Locked
+                                </p>
+                                <p className="text-xs leading-relaxed">
+                                  Complete and validate <strong className="text-foreground font-semibold">{previousBlockName}</strong> to unlock this block.
                                 </p>
                               </TooltipContent>
                             </Tooltip>
