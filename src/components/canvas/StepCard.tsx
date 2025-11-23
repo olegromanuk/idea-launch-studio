@@ -189,6 +189,11 @@ export const StepCard = ({
                 aiSuggestion={pendingSuggestion || undefined}
                 onAcceptSuggestion={handleAcceptSuggestion}
                 onDiscardSuggestion={handleDiscardSuggestion}
+                onRequestSupport={onOpenChat}
+                onChatWithAI={() => {
+                  setExpandedSection(null);
+                  handleChatWithAI();
+                }}
               />
             )}
 

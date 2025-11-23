@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "@/components/ui/drawer";
-import { Sparkles, X, Check, Trash2 } from "lucide-react";
+import { Sparkles, X, Check, Trash2, Headphones, MessageSquare } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
@@ -18,6 +17,8 @@ interface ExpandedCanvasEditorProps {
   aiSuggestion?: string;
   onAcceptSuggestion?: () => void;
   onDiscardSuggestion?: () => void;
+  onRequestSupport?: () => void;
+  onChatWithAI?: () => void;
 }
 
 export const ExpandedCanvasEditor = ({
@@ -32,6 +33,8 @@ export const ExpandedCanvasEditor = ({
   aiSuggestion,
   onAcceptSuggestion,
   onDiscardSuggestion,
+  onRequestSupport,
+  onChatWithAI,
 }: ExpandedCanvasEditorProps) => {
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
@@ -135,7 +138,25 @@ export const ExpandedCanvasEditor = ({
         </ScrollArea>
 
         <DrawerFooter className="border-t border-border">
-          <div className="max-w-4xl mx-auto w-full px-6">
+          <div className="max-w-4xl mx-auto w-full px-6 flex flex-col gap-3">
+            <div className="flex flex-col md:flex-row gap-3">
+              <Button
+                variant="outline"
+                className="flex-1 hover-scale"
+                onClick={onRequestSupport}
+              >
+                <Headphones className="w-4 h-4 mr-2" />
+                Request Launch Support
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 hover-scale"
+                onClick={onChatWithAI}
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Chat with AI
+              </Button>
+            </div>
             <Button onClick={onClose} className="w-full">
               Done
             </Button>
