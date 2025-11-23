@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CanvasCell } from "@/components/canvas/CanvasCell";
 import { ExpandedCanvasEditor } from "@/components/canvas/ExpandedCanvasEditor";
 import { TeamChat } from "@/components/canvas/TeamChat";
+import { AIChat } from "@/components/canvas/AIChat";
 import { CelebrationModal } from "@/components/canvas/CelebrationModal";
 import { ValidationModal } from "@/components/canvas/ValidationModal";
 import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info } from "lucide-react";
@@ -33,6 +34,7 @@ const Canvas = () => {
   const [projectData, setProjectData] = useState<any>(null);
   const [loadingSection, setLoadingSection] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [pendingSuggestion, setPendingSuggestion] = useState<string>("");
   const [activeTab, setActiveTab] = useState("business");
@@ -540,11 +542,27 @@ const Canvas = () => {
         onAcceptSuggestion={handleAcceptSuggestion}
         onDiscardSuggestion={() => setPendingSuggestion("")}
         onRequestSupport={() => setIsChatOpen(true)}
-        onChatWithAI={() => setIsChatOpen(true)}
+        onChatWithAI={() => setIsAIChatOpen(true)}
       />
 
       {/* Team Chat Panel */}
       <TeamChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+
+      {/* AI Chat Panel */}
+      <AIChat 
+        isOpen={isAIChatOpen} 
+        onClose={() => setIsAIChatOpen(false)}
+        canvasContext={expandedSection ? {
+          sectionTitle: canvasTabs
+            .flatMap((t) => t.sections)
+            .find((s) => s.key === expandedSection)?.title || "",
+          sectionSubtitle: canvasTabs
+            .flatMap((t) => t.sections)
+            .find((s) => s.key === expandedSection)?.subtitle || "",
+          currentContent: canvasData[expandedSection as keyof typeof canvasData] || "",
+          projectData
+        } : undefined}
+      />
 
       {/* Celebration Modal */}
       <CelebrationModal

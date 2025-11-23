@@ -151,7 +151,10 @@ export const ExpandedCanvasEditor = ({
               <Button
                 variant="outline"
                 className="flex-1 hover-scale"
-                onClick={onChatWithAI}
+                onClick={() => {
+                  onClose();
+                  onChatWithAI?.();
+                }}
               >
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Chat with AI

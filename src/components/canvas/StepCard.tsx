@@ -30,6 +30,7 @@ interface StepCardProps {
   onGenerateSuggestions: (section: string) => void;
   onRegenerateAI: () => void;
   onOpenChat: () => void;
+  onOpenAIChat?: () => void;
 }
 
 export const StepCard = ({ 
@@ -45,7 +46,8 @@ export const StepCard = ({
   onCanvasChange,
   onGenerateSuggestions,
   onRegenerateAI,
-  onOpenChat
+  onOpenChat,
+  onOpenAIChat
 }: StepCardProps) => {
   const Icon = step.icon;
   const canvasSections = getStepCanvasSections(step.id);
@@ -229,7 +231,7 @@ export const StepCard = ({
               </Button>
               <Button
                 variant="outline"
-                onClick={handleChatWithAI}
+                onClick={onOpenAIChat || handleChatWithAI}
                 className="hover-lift"
               >
                 <MessageSquare className="w-4 h-4 mr-2" />

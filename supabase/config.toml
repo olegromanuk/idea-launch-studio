@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.generate-canvas-suggestions]
 verify_jwt = false
+
+[functions.ai-canvas-chat]
+verify_jwt = false
