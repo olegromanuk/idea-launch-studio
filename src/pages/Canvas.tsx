@@ -388,11 +388,11 @@ const Canvas = () => {
                 })}
               </TabsList>
 
-            {canvasTabs.map((tab) => {
-              const isLocked = isBlockLocked(tab.id);
-              const previousBlockName = tab.id === "development" ? "Business Logic" : "Development";
-              
-              return (
+              {canvasTabs.map((tab) => {
+                const isLocked = isBlockLocked(tab.id);
+                const previousBlockName = tab.id === "development" ? "Business Logic" : "Development";
+                
+                return (
                 <TabsContent key={tab.id} value={tab.id} className="space-y-6">
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
@@ -487,10 +487,10 @@ const Canvas = () => {
                     </div>
                   )}
                 </TabsContent>
-              );
-            })}
-          </Tabs>
-        </TooltipProvider>
+                );
+              })}
+            </Tabs>
+          </TooltipProvider>
         </div>
       </main>
 
