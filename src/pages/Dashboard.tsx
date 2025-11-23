@@ -3,59 +3,38 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Lightbulb, Target, Boxes, Palette, Cpu, Rocket, ChevronRight } from "lucide-react";
+import { ArrowLeft, Briefcase, Code, Megaphone, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface CanvasStep {
-  id: number;
+interface CanvasBlock {
+  id: string;
   title: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
-  fields: string[];
+  sections: string[];
 }
 
-const canvasSteps: CanvasStep[] = [
+const canvasBlocks: CanvasBlock[] = [
   {
-    id: 1,
-    title: "Idea Validation",
-    description: "Validate your product concept and market fit",
-    icon: Lightbulb,
-    fields: ["problem", "existingAlternatives", "solution", "keyMetrics"],
+    id: "business",
+    title: "Business Logic",
+    description: "Define your business model, value proposition, and market strategy",
+    icon: Briefcase,
+    sections: ["problem", "targetAudience", "uniqueValueProposition", "revenueModel", "marketTrends", "successMetrics"],
   },
   {
-    id: 2,
-    title: "Target Audience & Value Proposition",
-    description: "Define who you're building for and why they'll care",
-    icon: Target,
-    fields: ["customerSegments", "earlyAdopters", "uniqueValueProposition", "highLevelConcept"],
+    id: "development",
+    title: "Development",
+    description: "Plan your technical architecture, features, and implementation",
+    icon: Code,
+    sections: ["coreFeatures", "userFlow", "techStack", "dataRequirements", "integrations", "securityConsiderations"],
   },
   {
-    id: 3,
-    title: "Product Architecture",
-    description: "Map out the core features and user flows",
-    icon: Boxes,
-    fields: ["solution", "keyMetrics"],
-  },
-  {
-    id: 4,
-    title: "UI / UX Design Elements",
-    description: "Design the look, feel, and user experience",
-    icon: Palette,
-    fields: ["channels", "uniqueValueProposition"],
-  },
-  {
-    id: 5,
-    title: "Tech Stack / MVP Logic",
-    description: "Choose the right technologies for your MVP",
-    icon: Cpu,
-    fields: ["costStructure", "revenueStreams"],
-  },
-  {
-    id: 6,
-    title: "Launch Plan & Marketing",
-    description: "Create your go-to-market strategy",
-    icon: Rocket,
-    fields: ["channels", "unfairAdvantage"],
+    id: "gtm",
+    title: "Go-to-Market",
+    description: "Create your launch strategy, positioning, and growth plan",
+    icon: Megaphone,
+    sections: ["positioning", "acquisitionChannels", "pricingModel", "launchPlan", "contentStrategy", "growthLoops"],
   },
 ];
 
@@ -64,18 +43,29 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [projectData, setProjectData] = useState<any>(null);
   const [canvasData, setCanvasData] = useState({
+    // Business Logic
     problem: "",
-    existingAlternatives: "",
-    solution: "",
-    keyMetrics: "",
+    targetAudience: "",
     uniqueValueProposition: "",
-    highLevelConcept: "",
-    unfairAdvantage: "",
-    channels: "",
-    customerSegments: "",
-    earlyAdopters: "",
-    costStructure: "",
-    revenueStreams: "",
+    revenueModel: "",
+    marketTrends: "",
+    successMetrics: "",
+    
+    // Development
+    coreFeatures: "",
+    userFlow: "",
+    techStack: "",
+    dataRequirements: "",
+    integrations: "",
+    securityConsiderations: "",
+    
+    // Go-to-Market
+    positioning: "",
+    acquisitionChannels: "",
+    pricingModel: "",
+    launchPlan: "",
+    contentStrategy: "",
+    growthLoops: "",
   });
 
   useEffect(() => {
@@ -87,18 +77,18 @@ const Dashboard = () => {
     setProjectData(JSON.parse(data));
     
     // Load saved canvas data if exists
-    const savedCanvas = localStorage.getItem("leanCanvas");
+    const savedCanvas = localStorage.getItem("multiCanvas");
     if (savedCanvas) {
       setCanvasData(JSON.parse(savedCanvas));
     }
   }, [navigate]);
 
-  const calculateStepProgress = (fields: string[]): number => {
-    const filledFields = fields.filter(field => {
-      const value = canvasData[field as keyof typeof canvasData];
+  const calculateBlockProgress = (sections: string[]): number => {
+    const filledSections = sections.filter(section => {
+      const value = canvasData[section as keyof typeof canvasData];
       return value && value.trim().length > 0;
     });
-    return Math.round((filledFields.length / fields.length) * 100);
+    return Math.round((filledSections.length / sections.length) * 100);
   };
 
   const calculateOverallProgress = (): number => {
@@ -150,43 +140,46 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        {/* Canvas Steps Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {canvasSteps.map((step) => {
-            const progress = calculateStepProgress(step.fields);
-            const Icon = step.icon;
+        {/* Canvas Blocks Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {canvasBlocks.map((block) => {
+            const progress = calculateBlockProgress(block.sections);
+            const Icon = block.icon;
+            const filledSections = block.sections.filter(s => 
+              canvasData[s as keyof typeof canvasData]?.trim()
+            ).length;
             
             return (
               <Card
-                key={step.id}
-                className="p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50"
+                key={block.id}
+                className="p-6 cursor-pointer hover-lift hover:border-primary/50 transition-all"
                 onClick={() => navigate("/canvas")}
               >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
-                    <div className="p-3 rounded-lg bg-primary/10">
-                      <Icon className="w-6 h-6 text-primary" />
+                    <div className="p-4 rounded-xl gradient-primary">
+                      <Icon className="w-7 h-7 text-white" />
                     </div>
                     <div className="flex flex-col items-end">
-                      <span className="text-2xl font-bold text-primary">{progress}%</span>
+                      <span className="text-3xl font-bold text-primary">{progress}%</span>
                       <span className="text-xs text-muted-foreground">complete</span>
                     </div>
                   </div>
                   
                   <div>
-                    <h3 className="font-semibold text-lg mb-1">{step.title}</h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {step.description}
+                    <h3 className="font-bold text-xl mb-2">{block.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      {block.description}
                     </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <Progress value={progress} className="h-2" />
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>
-                        {step.fields.filter(f => canvasData[f as keyof typeof canvasData]?.trim()).length} of {step.fields.length} fields
+                  <div className="space-y-3">
+                    <Progress value={progress} className="h-2.5" />
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        {filledSections} of {block.sections.length} sections
                       </span>
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-5 h-5 text-primary" />
                     </div>
                   </div>
                 </div>
