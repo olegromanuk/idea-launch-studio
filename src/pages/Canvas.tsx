@@ -11,6 +11,7 @@ import { ValidationModal } from "@/components/canvas/ValidationModal";
 import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface CanvasSection {
   key: string;
@@ -38,6 +39,7 @@ const Canvas = () => {
   const [completedBlocks, setCompletedBlocks] = useState<Set<string>>(new Set());
   const [validationBlock, setValidationBlock] = useState<{ id: string; title: string } | null>(null);
   const [validatedBlocks, setValidatedBlocks] = useState<Set<string>>(new Set());
+  const [unlockedBlock, setUnlockedBlock] = useState<string | null>(null);
   
   const [canvasData, setCanvasData] = useState({
     // Business Logic
@@ -234,6 +236,29 @@ const Canvas = () => {
     setValidatedBlocks(newValidated);
     localStorage.setItem("validatedBlocks", JSON.stringify([...newValidated]));
     
+    // Check if this unlocks the next block
+    let nextBlock: string | null = null;
+    if (blockId === "business") {
+      nextBlock = "development";
+    } else if (blockId === "development") {
+      nextBlock = "gtm";
+    }
+    
+    if (nextBlock) {
+      // Trigger unlock animation
+      setUnlockedBlock(nextBlock);
+      setTimeout(() => setUnlockedBlock(null), 2000);
+      
+      // Show unlock notification
+      setTimeout(() => {
+        const nextBlockTitle = canvasTabs.find(t => t.id === nextBlock)?.title;
+        toast({
+          title: "🎉 New Block Unlocked!",
+          description: `${nextBlockTitle} is now available. Great progress!`,
+        });
+      }, 800);
+    }
+    
     toast({
       title: "Validation Submitted",
       description: "Your canvas has been submitted for review. You'll be notified once it's approved.",
@@ -309,12 +334,16 @@ const Canvas = () => {
                 const Icon = tab.icon;
                 const progress = calculateCanvasProgress(tab.id);
                 const isLocked = isBlockLocked(tab.id);
+                const isUnlocking = unlockedBlock === tab.id;
                 return (
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}
                     disabled={isLocked}
-                    className="flex flex-col items-center gap-1 py-3 disabled:opacity-50"
+                    className={cn(
+                      "flex flex-col items-center gap-1 py-3 disabled:opacity-50 transition-all",
+                      isUnlocking && "animate-[pulse_0.5s_ease-in-out_3] scale-105 shadow-glow"
+                    )}
                     onClick={(e) => {
                       if (isLocked) {
                         e.preventDefault();
@@ -326,10 +355,11 @@ const Canvas = () => {
                       }
                     }}
                   >
-                    <div className="flex items-center gap-2">
-                      <Icon className="w-4 h-4" />
+                    <div className="flex items-center gap-2 relative">
+                      <Icon className={cn("w-4 h-4", isUnlocking && "animate-scale-in")} />
                       <span className="hidden sm:inline">{tab.title}</span>
-                      {isLocked && <span className="text-xs">🔒</span>}
+                      {isLocked && !isUnlocking && <span className="text-xs">🔒</span>}
+                      {isUnlocking && <span className="text-xs animate-fade-in">🔓</span>}
                     </div>
                     <span className="text-xs text-muted-foreground">
                       {Math.round(progress)}%
