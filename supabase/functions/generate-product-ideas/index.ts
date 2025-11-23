@@ -12,35 +12,60 @@ serve(async (req) => {
   }
 
   try {
-    const { interests, refinement } = await req.json();
+    const { interests, refinement, regenerate } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    let systemPrompt = `You are a product ideation expert helping entrepreneurs generate viable product ideas.
-Based on user interests and market trends, suggest 5 unique and actionable product ideas.
-Each idea should be practical, market-validated, and suitable for solo founders or small teams.
-Focus on digital products: SaaS, apps, tools, marketplaces, or AI-powered solutions.`;
+    let systemPrompt = `You are an expert product strategist and market analyst who deeply understands entrepreneurship, human psychology, and market trends.
+Your goal is to generate highly personalized, actionable product ideas that align with the user's passions, lifestyle, thinking style, and resources.
+Focus on digital products: SaaS, apps, tools, marketplaces, or AI-powered solutions that fit their specific profile.`;
 
     let userPrompt = '';
     
-    if (refinement) {
-      systemPrompt += `\nThe user has refined their preferences and is looking for highly personalized ideas.`;
-      userPrompt = `Generate 3 highly personalized product ideas based on:
-- Topics/Industries: ${refinement.topics || 'Not specified'}
-- Product Type Preference: ${refinement.productType || 'Not specified'}
-- Ideal User: ${refinement.idealUser || 'Not specified'}
-- Initial interests: ${interests.join(', ')}
+    if (refinement && Object.keys(refinement).length > 0) {
+      const regenerateNote = regenerate ? '\n\nIMPORTANT: Generate completely NEW ideas different from previous suggestions.' : '';
+      
+      systemPrompt += `\n\nAnalyze the user's complete profile to generate ideas that authentically match WHO they are, not just what they're interested in.
+Consider market viability, their available resources, and realistic execution paths.${regenerateNote}`;
+
+      userPrompt = `Generate 5 highly personalized product ideas based on this comprehensive user profile:
+
+PASSIONS & INTERESTS:
+${refinement.passions || 'Not specified'}
+Selected interest areas: ${interests.join(', ')}
+
+LIFESTYLE & WORK STYLE:
+${refinement.dailyLife || 'Not specified'}
+
+THINKING & PROBLEM-SOLVING APPROACH:
+${refinement.problemSolving || 'Not specified'}
+
+CORE VALUES:
+${refinement.values || 'Not specified'}
+
+EXPERIENCE LEVEL:
+${refinement.experience || 'Not specified'}
+
+AVAILABLE RESOURCES:
+- Time commitment: ${refinement.timeCommitment || 'Not specified'} hours/week
+- Budget: ${refinement.budget || 'Not specified'}
+
+INSTRUCTIONS:
+1. Match ideas to their passions AND lifestyle (e.g., if they're a night owl who works remotely, suggest async products)
+2. Align with their problem-solving style (analytical = data tools, creative = content platforms, etc.)
+3. Consider their values (impact = social good, innovation = cutting-edge tech)
+4. Match complexity to experience level and time availability
+5. Ensure ideas fit their budget constraints
+6. Each idea should feel personally relevant, not generic
 
 For each idea, provide:
-1. A catchy title (max 8 words)
-2. A one-line description (max 20 words)
-3. Target audience (max 15 words)
-4. The core problem it solves (max 20 words)
-
-Format as JSON array with objects containing: title, description, audience, problem`;
+- Title: Catchy, specific name (max 8 words)
+- Description: Clear value proposition (max 20 words)
+- Audience: Specific target users they can relate to (max 15 words)
+- Problem: Real pain point this solves (max 20 words)`;
     } else {
       userPrompt = `Generate 5 product ideas based on these interests: ${interests.join(', ')}.
 For each idea, provide:
