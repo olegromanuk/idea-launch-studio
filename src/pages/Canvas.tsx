@@ -541,8 +541,18 @@ const Canvas = () => {
         aiSuggestion={pendingSuggestion}
         onAcceptSuggestion={handleAcceptSuggestion}
         onDiscardSuggestion={() => setPendingSuggestion("")}
-        onRequestSupport={() => setIsChatOpen(true)}
-        onChatWithAI={() => setIsAIChatOpen(true)}
+        onRequestSupport={() => {}}
+        onChatWithAI={() => {}}
+        canvasContext={expandedSection ? {
+          sectionTitle: canvasTabs
+            .flatMap((t) => t.sections)
+            .find((s) => s.key === expandedSection)?.title || "",
+          sectionSubtitle: canvasTabs
+            .flatMap((t) => t.sections)
+            .find((s) => s.key === expandedSection)?.subtitle || "",
+          currentContent: canvasData[expandedSection as keyof typeof canvasData] || "",
+          projectData
+        } : undefined}
       />
 
       {/* Team Chat Panel */}
