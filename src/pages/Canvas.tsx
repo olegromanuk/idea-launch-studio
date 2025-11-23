@@ -7,7 +7,8 @@ import { CanvasCell } from "@/components/canvas/CanvasCell";
 import { ExpandedCanvasEditor } from "@/components/canvas/ExpandedCanvasEditor";
 import { TeamChat } from "@/components/canvas/TeamChat";
 import { CelebrationModal } from "@/components/canvas/CelebrationModal";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone } from "lucide-react";
+import { ValidationModal } from "@/components/canvas/ValidationModal";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -35,6 +36,7 @@ const Canvas = () => {
   const [activeTab, setActiveTab] = useState("business");
   const [celebrationBlock, setCelebrationBlock] = useState<{ id: string; title: string } | null>(null);
   const [completedBlocks, setCompletedBlocks] = useState<Set<string>>(new Set());
+  const [validationBlock, setValidationBlock] = useState<{ id: string; title: string } | null>(null);
   
   const [canvasData, setCanvasData] = useState({
     // Business Logic
@@ -219,6 +221,13 @@ const Canvas = () => {
     return (filledSections.length / allSections.length) * 100;
   };
 
+  const handleValidateBlock = (blockId: string) => {
+    toast({
+      title: "Validation Submitted",
+      description: "Your canvas has been submitted for review. You'll be notified once it's approved.",
+    });
+  };
+
   const overallProgress = calculateOverallProgress();
 
   if (!projectData) return null;
@@ -301,9 +310,18 @@ const Canvas = () => {
             {canvasTabs.map((tab) => (
               <TabsContent key={tab.id} value={tab.id} className="space-y-6">
                 <div className="mb-4">
-                  <h3 className="text-2xl font-bold text-foreground mb-2">
-                    {tab.title}
-                  </h3>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-2xl font-bold text-foreground">
+                      {tab.title}
+                    </h3>
+                    <Button
+                      onClick={() => setValidationBlock({ id: tab.id, title: tab.title })}
+                      className="gradient-accent text-white hover-accent-glow"
+                    >
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Validate
+                    </Button>
+                  </div>
                   <Progress
                     value={calculateCanvasProgress(tab.id)}
                     className="h-2"
@@ -373,6 +391,16 @@ const Canvas = () => {
         onClose={() => setCelebrationBlock(null)}
         blockId={celebrationBlock?.id || ""}
         blockTitle={celebrationBlock?.title || ""}
+      />
+
+      {/* Validation Modal */}
+      <ValidationModal
+        isOpen={validationBlock !== null}
+        onClose={() => setValidationBlock(null)}
+        blockId={validationBlock?.id || ""}
+        blockTitle={validationBlock?.title || ""}
+        progress={validationBlock ? calculateCanvasProgress(validationBlock.id) : 0}
+        onValidate={() => validationBlock && handleValidateBlock(validationBlock.id)}
       />
     </div>
   );
