@@ -188,4 +188,8 @@ All colors MUST be HSL.
   .glass-dark {
     @apply bg-card/80 backdrop-blur-sm border border-border/50;
   }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
 }
