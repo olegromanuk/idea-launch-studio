@@ -339,26 +339,27 @@ const Canvas = () => {
                   const isUnlocking = unlockedBlock === tab.id;
                   const previousBlockName = tab.id === "development" ? "Business Logic" : "Development";
                   
-                  return (
-                    <TabsTrigger
-                      key={tab.id}
-                      value={tab.id}
-                      disabled={isLocked}
-                      className={cn(
-                        "flex flex-col items-center gap-1 py-3 disabled:opacity-50 transition-all",
-                        isUnlocking && "animate-[pulse_0.5s_ease-in-out_3] scale-105 shadow-glow"
-                      )}
-                      onClick={(e) => {
-                        if (isLocked) {
-                          e.preventDefault();
-                          toast({
-                            title: "Block Locked",
-                            description: "Please complete and validate the previous block first.",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                    >
+                    return (
+                     <TabsTrigger
+                       key={tab.id}
+                       value={tab.id}
+                       className={cn(
+                         "flex flex-col items-center gap-1 py-3 transition-all",
+                         isLocked && "opacity-50",
+                         isUnlocking && "animate-[pulse_0.5s_ease-in-out_3] scale-105 shadow-glow"
+                       )}
+                       onClick={(e) => {
+                         if (isLocked) {
+                           e.preventDefault();
+                           e.stopPropagation();
+                           toast({
+                             title: "Block Locked",
+                             description: "Please complete and validate the previous block first.",
+                             variant: "destructive",
+                           });
+                         }
+                       }}
+                     >
                       <div className="flex items-center gap-2 relative">
                         <Icon className={cn("w-4 h-4", isUnlocking && "animate-scale-in")} />
                         <span className="hidden sm:inline">{tab.title}</span>
