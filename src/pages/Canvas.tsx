@@ -314,6 +314,15 @@ const Canvas = () => {
                 <span className="hidden sm:inline">Dashboard</span>
               </Button>
               <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/board")}
+                className="hover-lift"
+              >
+                <Briefcase className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Board</span>
+              </Button>
+              <Button
                 size="sm"
                 className="gradient-accent text-white hover-accent-glow"
               >

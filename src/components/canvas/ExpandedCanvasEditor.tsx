@@ -2,11 +2,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "@/components/ui/drawer";
-import { Sparkles, X, Check, Trash2, Headphones, MessageSquare } from "lucide-react";
+import { Sparkles, X, Check, Trash2, Headphones, MessageSquare, Upload } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { TeamChat } from "./TeamChat";
 import { AIChat } from "./AIChat";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ExpandedCanvasEditorProps {
   isOpen: boolean;
@@ -47,6 +49,8 @@ export const ExpandedCanvasEditor = ({
   canvasContext,
 }: ExpandedCanvasEditorProps) => {
   const [activeChatPanel, setActiveChatPanel] = useState<'support' | 'ai' | null>(null);
+  const { toast } = useToast();
+  const [isAddingToDashboard, setIsAddingToDashboard] = useState(false);
 
   const handleRequestSupport = () => {
     setActiveChatPanel(activeChatPanel === 'support' ? null : 'support');
@@ -56,6 +60,59 @@ export const ExpandedCanvasEditor = ({
   const handleChatWithAI = () => {
     setActiveChatPanel(activeChatPanel === 'ai' ? null : 'ai');
     onChatWithAI?.();
+  };
+
+  const handleAddToDashboard = async () => {
+    if (!value || value.trim().length === 0) {
+      toast({
+        title: "Nothing to add",
+        description: "Please add some content before adding to the dashboard",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAddingToDashboard(true);
+
+    // Get or create user session ID
+    let userId = localStorage.getItem("boardUserId");
+    if (!userId) {
+      userId = `user_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem("boardUserId", userId);
+    }
+
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+    const { error } = await supabase
+      .from("dashboard_elements")
+      .insert({
+        user_id: userId,
+        section_key: canvasContext?.sectionTitle || title,
+        section_title: title,
+        content: value,
+        position_x: 100 + Math.random() * 200,
+        position_y: 100 + Math.random() * 200,
+        width: 350,
+        height: 220,
+        color: randomColor,
+      });
+
+    setIsAddingToDashboard(false);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add to dashboard. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Added to Dashboard!",
+      description: "Your content has been added to the interactive board",
+    });
   };
 
   return (
@@ -209,9 +266,20 @@ export const ExpandedCanvasEditor = ({
                 {activeChatPanel === 'ai' ? 'Hide AI Chat' : 'Chat with AI'}
               </Button>
             </div>
-            <Button onClick={onClose} className="w-full">
-              Done
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                onClick={handleAddToDashboard}
+                disabled={isAddingToDashboard || !value}
+                className="flex-1"
+                variant="secondary"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {isAddingToDashboard ? "Adding..." : "Add to Online Dashboard"}
+              </Button>
+              <Button onClick={onClose} className="flex-1">
+                Done
+              </Button>
+            </div>
           </div>
         </DrawerFooter>
       </DrawerContent>
