@@ -329,64 +329,64 @@ const Canvas = () => {
       {/* Canvas Tabs */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
-              {canvasTabs.map((tab) => {
-                const Icon = tab.icon;
-                const progress = calculateCanvasProgress(tab.id);
-                const isLocked = isBlockLocked(tab.id);
-                const isUnlocking = unlockedBlock === tab.id;
-                const previousBlockName = tab.id === "development" ? "Business Logic" : "Development";
-                
-                return (
-                  <TabsTrigger
-                    key={tab.id}
-                    value={tab.id}
-                    disabled={isLocked}
-                    className={cn(
-                      "flex flex-col items-center gap-1 py-3 disabled:opacity-50 transition-all",
-                      isUnlocking && "animate-[pulse_0.5s_ease-in-out_3] scale-105 shadow-glow"
-                    )}
-                    onClick={(e) => {
-                      if (isLocked) {
-                        e.preventDefault();
-                        toast({
-                          title: "Block Locked",
-                          description: "Please complete and validate the previous block first.",
-                          variant: "destructive",
-                        });
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-2 relative">
-                      <Icon className={cn("w-4 h-4", isUnlocking && "animate-scale-in")} />
-                      <span className="hidden sm:inline">{tab.title}</span>
-                      {isLocked && !isUnlocking && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center gap-1">
-                                <Lock className="w-3 h-3" />
-                                <Info className="w-3 h-3 text-muted-foreground hover:text-foreground transition-colors" />
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-xs">
-                              <p className="text-sm">
-                                This block is locked. Complete and validate <strong>{previousBlockName}</strong> to unlock.
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+          <TooltipProvider>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-8">
+                {canvasTabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const progress = calculateCanvasProgress(tab.id);
+                  const isLocked = isBlockLocked(tab.id);
+                  const isUnlocking = unlockedBlock === tab.id;
+                  const previousBlockName = tab.id === "development" ? "Business Logic" : "Development";
+                  
+                  return (
+                    <TabsTrigger
+                      key={tab.id}
+                      value={tab.id}
+                      disabled={isLocked}
+                      className={cn(
+                        "flex flex-col items-center gap-1 py-3 disabled:opacity-50 transition-all",
+                        isUnlocking && "animate-[pulse_0.5s_ease-in-out_3] scale-105 shadow-glow"
                       )}
-                      {isUnlocking && <span className="text-xs animate-fade-in">🔓</span>}
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {Math.round(progress)}%
-                    </span>
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
+                      onClick={(e) => {
+                        if (isLocked) {
+                          e.preventDefault();
+                          toast({
+                            title: "Block Locked",
+                            description: "Please complete and validate the previous block first.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-2 relative">
+                        <Icon className={cn("w-4 h-4", isUnlocking && "animate-scale-in")} />
+                        <span className="hidden sm:inline">{tab.title}</span>
+                        {isLocked && !isUnlocking && (
+                          <div className="flex items-center gap-1">
+                            <Lock className="w-3 h-3" />
+                            <Tooltip delayDuration={0}>
+                              <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-primary transition-colors cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom" className="max-w-xs bg-card border-border">
+                                <p className="text-sm font-medium mb-1">🔒 Block Locked</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Complete and validate <strong className="text-foreground">{previousBlockName}</strong> to unlock this block.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        )}
+                        {isUnlocking && <span className="text-xs animate-fade-in">🔓</span>}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {Math.round(progress)}%
+                      </span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
 
             {canvasTabs.map((tab) => {
               const isLocked = isBlockLocked(tab.id);
@@ -490,6 +490,7 @@ const Canvas = () => {
               );
             })}
           </Tabs>
+        </TooltipProvider>
         </div>
       </main>
 
