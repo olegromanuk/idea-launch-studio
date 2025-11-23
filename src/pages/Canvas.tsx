@@ -367,13 +367,12 @@ const Canvas = () => {
                             <Lock className="w-3 h-3" />
                             <Tooltip delayDuration={100}>
                               <TooltipTrigger asChild>
-                                <button 
-                                  type="button"
+                                <span 
                                   onClick={(e) => e.stopPropagation()}
-                                  className="inline-flex items-center justify-center"
+                                  className="inline-flex items-center justify-center cursor-help"
                                 >
-                                  <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-primary transition-colors cursor-help" />
-                                </button>
+                                  <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-primary transition-colors" />
+                                </span>
                               </TooltipTrigger>
                               <TooltipContent 
                                 side="bottom" 
