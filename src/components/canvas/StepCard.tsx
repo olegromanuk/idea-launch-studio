@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, ChevronDown, ChevronRight, Users } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronRight, Users, MessageSquare, Headphones } from "lucide-react";
 import { AIAssistant } from "./AIAssistant";
 import { CanvasCell } from "./CanvasCell";
 import { ExpandedCanvasEditor } from "./ExpandedCanvasEditor";
@@ -51,6 +51,11 @@ export const StepCard = ({
   const canvasSections = getStepCanvasSections(step.id);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [pendingSuggestion, setPendingSuggestion] = useState<string | null>(null);
+  const aiAssistantRef = useRef<HTMLDivElement>(null);
+
+  const handleChatWithAI = () => {
+    aiAssistantRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
 
   const handleExpandSection = (sectionKey: string) => {
     setExpandedSection(sectionKey);
@@ -188,16 +193,18 @@ export const StepCard = ({
             )}
 
           {/* AI Assistant */}
-          <AIAssistant 
-            step={step} 
-            projectData={projectData}
-            suggestions={aiSuggestions}
-            isLoading={loadingAISuggestions}
-            onRegenerate={onRegenerateAI}
-          />
+          <div ref={aiAssistantRef}>
+            <AIAssistant 
+              step={step} 
+              projectData={projectData}
+              suggestions={aiSuggestions}
+              isLoading={loadingAISuggestions}
+              onRegenerate={onRegenerateAI}
+            />
+          </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3 mt-6 pt-6 border-t border-border">
+            <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-border">
               {!step.completed && (
                 <Button
                   onClick={onComplete}
@@ -212,8 +219,16 @@ export const StepCard = ({
                 onClick={onOpenChat}
                 className="hover-lift"
               >
-                <Users className="w-4 h-4 mr-2" />
-                Connect to Team
+                <Headphones className="w-4 h-4 mr-2" />
+                Request Launch Support
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleChatWithAI}
+                className="hover-lift"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Chat with AI
               </Button>
             </div>
           </div>
