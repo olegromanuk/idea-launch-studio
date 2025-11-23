@@ -37,6 +37,7 @@ const Canvas = () => {
   const [celebrationBlock, setCelebrationBlock] = useState<{ id: string; title: string } | null>(null);
   const [completedBlocks, setCompletedBlocks] = useState<Set<string>>(new Set());
   const [validationBlock, setValidationBlock] = useState<{ id: string; title: string } | null>(null);
+  const [validatedBlocks, setValidatedBlocks] = useState<Set<string>>(new Set());
   
   const [canvasData, setCanvasData] = useState({
     // Business Logic
@@ -124,6 +125,12 @@ const Canvas = () => {
     const savedCompletions = localStorage.getItem("completedBlocks");
     if (savedCompletions) {
       setCompletedBlocks(new Set(JSON.parse(savedCompletions)));
+    }
+
+    // Load validated blocks
+    const savedValidations = localStorage.getItem("validatedBlocks");
+    if (savedValidations) {
+      setValidatedBlocks(new Set(JSON.parse(savedValidations)));
     }
   }, [navigate]);
 
@@ -222,10 +229,22 @@ const Canvas = () => {
   };
 
   const handleValidateBlock = (blockId: string) => {
+    const newValidated = new Set(validatedBlocks);
+    newValidated.add(blockId);
+    setValidatedBlocks(newValidated);
+    localStorage.setItem("validatedBlocks", JSON.stringify([...newValidated]));
+    
     toast({
       title: "Validation Submitted",
       description: "Your canvas has been submitted for review. You'll be notified once it's approved.",
     });
+  };
+
+  const isBlockLocked = (blockId: string) => {
+    if (blockId === "business") return false;
+    if (blockId === "development") return !validatedBlocks.has("business");
+    if (blockId === "gtm") return !validatedBlocks.has("development");
+    return false;
   };
 
   const overallProgress = calculateOverallProgress();
@@ -289,15 +308,28 @@ const Canvas = () => {
               {canvasTabs.map((tab) => {
                 const Icon = tab.icon;
                 const progress = calculateCanvasProgress(tab.id);
+                const isLocked = isBlockLocked(tab.id);
                 return (
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}
-                    className="flex flex-col items-center gap-1 py-3"
+                    disabled={isLocked}
+                    className="flex flex-col items-center gap-1 py-3 disabled:opacity-50"
+                    onClick={(e) => {
+                      if (isLocked) {
+                        e.preventDefault();
+                        toast({
+                          title: "Block Locked",
+                          description: "Please complete and validate the previous block first.",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
                   >
                     <div className="flex items-center gap-2">
                       <Icon className="w-4 h-4" />
                       <span className="hidden sm:inline">{tab.title}</span>
+                      {isLocked && <span className="text-xs">🔒</span>}
                     </div>
                     <span className="text-xs text-muted-foreground">
                       {Math.round(progress)}%
