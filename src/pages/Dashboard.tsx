@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Briefcase, Code, Megaphone, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Briefcase, Code, Megaphone, ChevronRight, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface CanvasBlock {
@@ -42,6 +43,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [projectData, setProjectData] = useState<any>(null);
+  const [completedBlocks, setCompletedBlocks] = useState<Set<string>>(new Set());
   const [canvasData, setCanvasData] = useState({
     // Business Logic
     problem: "",
@@ -80,6 +82,12 @@ const Dashboard = () => {
     const savedCanvas = localStorage.getItem("multiCanvas");
     if (savedCanvas) {
       setCanvasData(JSON.parse(savedCanvas));
+    }
+
+    // Load completed blocks
+    const savedCompletions = localStorage.getItem("completedBlocks");
+    if (savedCompletions) {
+      setCompletedBlocks(new Set(JSON.parse(savedCompletions)));
     }
   }, [navigate]);
 
@@ -152,9 +160,19 @@ const Dashboard = () => {
             return (
               <Card
                 key={block.id}
-                className="p-6 cursor-pointer hover-lift hover:border-primary/50 transition-all"
+                className="p-6 cursor-pointer hover-lift hover:border-primary/50 transition-all relative overflow-hidden"
                 onClick={() => navigate("/canvas")}
               >
+                {/* Completion Badge Overlay */}
+                {completedBlocks.has(block.id) && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <Badge className="bg-success text-success-foreground shadow-lg">
+                      <Trophy className="w-3 h-3 mr-1" />
+                      Completed
+                    </Badge>
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
                     <div className="p-4 rounded-xl gradient-primary">
