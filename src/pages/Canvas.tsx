@@ -539,6 +539,8 @@ const Canvas = () => {
         aiSuggestion={pendingSuggestion}
         onAcceptSuggestion={handleAcceptSuggestion}
         onDiscardSuggestion={() => setPendingSuggestion("")}
+        onRequestSupport={() => setIsChatOpen(true)}
+        onChatWithAI={() => setIsChatOpen(true)}
       />
 
       {/* Team Chat Panel */}
