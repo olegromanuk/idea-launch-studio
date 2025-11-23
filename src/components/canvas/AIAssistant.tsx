@@ -3,7 +3,14 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bot, TrendingUp, Users, Lightbulb, CheckCircle2, ThumbsUp, ThumbsDown, RefreshCw } from "lucide-react";
-import type { Step } from "@/pages/Canvas";
+
+interface Step {
+  id: number;
+  title: string;
+  description: string;
+  completed: boolean;
+  expanded: boolean;
+}
 
 interface Suggestion {
   icon: string;

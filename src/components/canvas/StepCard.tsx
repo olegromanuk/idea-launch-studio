@@ -6,7 +6,15 @@ import { CheckCircle2, ChevronDown, ChevronRight, Users } from "lucide-react";
 import { AIAssistant } from "./AIAssistant";
 import { CanvasCell } from "./CanvasCell";
 import { ExpandedCanvasEditor } from "./ExpandedCanvasEditor";
-import type { Step } from "@/pages/Canvas";
+
+interface Step {
+  id: number;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  completed: boolean;
+  expanded: boolean;
+}
 
 interface StepCardProps {
   step: Step;

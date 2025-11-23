@@ -2,27 +2,25 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { StepCard } from "@/components/canvas/StepCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CanvasCell } from "@/components/canvas/CanvasCell";
+import { ExpandedCanvasEditor } from "@/components/canvas/ExpandedCanvasEditor";
 import { TeamChat } from "@/components/canvas/TeamChat";
-import { ArrowLeft, Download, Home } from "lucide-react";
-import {
-  Lightbulb,
-  Target,
-  Boxes,
-  Palette,
-  Cpu,
-  Rocket,
-} from "lucide-react";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-export interface Step {
-  id: number;
+interface CanvasSection {
+  key: string;
   title: string;
-  description: string;
+  subtitle: string;
+}
+
+interface CanvasTab {
+  id: string;
+  title: string;
   icon: React.ComponentType<{ className?: string }>;
-  completed: boolean;
-  expanded: boolean;
+  sections: CanvasSection[];
 }
 
 const Canvas = () => {
@@ -30,73 +28,78 @@ const Canvas = () => {
   const { toast } = useToast();
   const [projectData, setProjectData] = useState<any>(null);
   const [loadingSection, setLoadingSection] = useState<string | null>(null);
-  const [aiSuggestions, setAiSuggestions] = useState<Record<number, any[]>>({});
-  const [loadingSuggestions, setLoadingSuggestions] = useState<number | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [pendingSuggestion, setPendingSuggestion] = useState<string>("");
+  const [activeTab, setActiveTab] = useState("business");
+  
   const [canvasData, setCanvasData] = useState({
+    // Business Logic
     problem: "",
-    existingAlternatives: "",
-    solution: "",
-    keyMetrics: "",
+    targetAudience: "",
     uniqueValueProposition: "",
-    highLevelConcept: "",
-    unfairAdvantage: "",
-    channels: "",
-    customerSegments: "",
-    earlyAdopters: "",
-    costStructure: "",
-    revenueStreams: "",
+    revenueModel: "",
+    marketTrends: "",
+    successMetrics: "",
+    
+    // Development
+    coreFeatures: "",
+    userFlow: "",
+    techStack: "",
+    dataRequirements: "",
+    integrations: "",
+    securityConsiderations: "",
+    
+    // Go-to-Market
+    positioning: "",
+    acquisitionChannels: "",
+    pricingModel: "",
+    launchPlan: "",
+    contentStrategy: "",
+    growthLoops: "",
   });
-  const [steps, setSteps] = useState<Step[]>([
+
+  const canvasTabs: CanvasTab[] = [
     {
-      id: 1,
-      title: "Idea Validation",
-      description: "Validate your product concept and market fit",
-      icon: Lightbulb,
-      completed: false,
-      expanded: false,
+      id: "business",
+      title: "Business Logic",
+      icon: Briefcase,
+      sections: [
+        { key: "problem", title: "Problem", subtitle: "What problem are you solving?" },
+        { key: "targetAudience", title: "Target Audience", subtitle: "Who has this problem?" },
+        { key: "uniqueValueProposition", title: "Unique Value Proposition", subtitle: "Why you over competitors?" },
+        { key: "revenueModel", title: "Revenue Model / Monetization", subtitle: "How will you make money?" },
+        { key: "marketTrends", title: "Market Trends & Validation", subtitle: "What market signals support this?" },
+        { key: "successMetrics", title: "Success Metrics", subtitle: "How will you measure success?" },
+      ],
     },
     {
-      id: 2,
-      title: "Target Audience & Value Proposition",
-      description: "Define who you're building for and why they'll care",
-      icon: Target,
-      completed: false,
-      expanded: false,
+      id: "development",
+      title: "Development",
+      icon: Code,
+      sections: [
+        { key: "coreFeatures", title: "Core Features", subtitle: "What are the must-have features?" },
+        { key: "userFlow", title: "User Flow", subtitle: "How do users interact with your product?" },
+        { key: "techStack", title: "Tech Stack", subtitle: "What technologies will you use?" },
+        { key: "dataRequirements", title: "Data Requirements", subtitle: "What data do you need to collect/store?" },
+        { key: "integrations", title: "Integrations", subtitle: "What third-party services will you integrate?" },
+        { key: "securityConsiderations", title: "Security Considerations", subtitle: "How will you protect user data?" },
+      ],
     },
     {
-      id: 3,
-      title: "Product Architecture",
-      description: "Map out the core features and user flows",
-      icon: Boxes,
-      completed: false,
-      expanded: false,
+      id: "gtm",
+      title: "Go-to-Market",
+      icon: Megaphone,
+      sections: [
+        { key: "positioning", title: "Positioning & Messaging", subtitle: "How will you position your product?" },
+        { key: "acquisitionChannels", title: "Acquisition Channels", subtitle: "Where will you find customers?" },
+        { key: "pricingModel", title: "Pricing Model", subtitle: "What will you charge?" },
+        { key: "launchPlan", title: "Launch Plan", subtitle: "How will you launch?" },
+        { key: "contentStrategy", title: "Content Strategy", subtitle: "What content will you create?" },
+        { key: "growthLoops", title: "Growth Loops", subtitle: "How will you drive viral growth?" },
+      ],
     },
-    {
-      id: 4,
-      title: "UI / UX Design Elements",
-      description: "Design the look, feel, and user experience",
-      icon: Palette,
-      completed: false,
-      expanded: false,
-    },
-    {
-      id: 5,
-      title: "Tech Stack / MVP Logic",
-      description: "Choose the right technologies for your MVP",
-      icon: Cpu,
-      completed: false,
-      expanded: false,
-    },
-    {
-      id: 6,
-      title: "Launch Plan & Marketing",
-      description: "Create your go-to-market strategy",
-      icon: Rocket,
-      completed: false,
-      expanded: false,
-    },
-  ]);
+  ];
 
   useEffect(() => {
     const data = localStorage.getItem("productIdea");
@@ -107,7 +110,7 @@ const Canvas = () => {
     setProjectData(JSON.parse(data));
     
     // Load saved canvas data if exists
-    const savedCanvas = localStorage.getItem("leanCanvas");
+    const savedCanvas = localStorage.getItem("multiCanvas");
     if (savedCanvas) {
       setCanvasData(JSON.parse(savedCanvas));
     }
@@ -115,32 +118,7 @@ const Canvas = () => {
 
   useEffect(() => {
     // Auto-save canvas data
-    localStorage.setItem("leanCanvas", JSON.stringify(canvasData));
-    
-    // Auto-update step completion based on filled fields
-    const stepFieldMap = [
-      { id: 1, fields: ["problem", "existingAlternatives", "solution", "keyMetrics"] },
-      { id: 2, fields: ["customerSegments", "earlyAdopters", "uniqueValueProposition", "highLevelConcept"] },
-      { id: 3, fields: ["solution", "keyMetrics"] },
-      { id: 4, fields: ["channels", "uniqueValueProposition"] },
-      { id: 5, fields: ["costStructure", "revenueStreams"] },
-      { id: 6, fields: ["channels", "unfairAdvantage"] },
-    ];
-
-    setSteps(prevSteps =>
-      prevSteps.map(step => {
-        const stepMapping = stepFieldMap.find(s => s.id === step.id);
-        if (!stepMapping) return step;
-        
-        const filledFields = stepMapping.fields.filter(field => {
-          const value = canvasData[field as keyof typeof canvasData];
-          return value && value.trim().length > 0;
-        });
-        
-        const isCompleted = filledFields.length === stepMapping.fields.length;
-        return { ...step, completed: isCompleted };
-      })
-    );
+    localStorage.setItem("multiCanvas", JSON.stringify(canvasData));
   }, [canvasData]);
 
   const handleCanvasChange = (field: string, value: string) => {
@@ -186,64 +164,40 @@ const Canvas = () => {
     }
   };
 
-  const generateAISuggestions = async (stepId: number) => {
-    setLoadingSuggestions(stepId);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-canvas-suggestions', {
-        body: { 
-          section: `step_${stepId}_suggestions`,
-          productIdea: projectData,
-          stepId 
-        }
-      });
+  const handleExpandSection = (sectionKey: string) => {
+    setExpandedSection(sectionKey);
+    setPendingSuggestion("");
+  };
 
-      if (error) throw error;
-
-      if (data?.error) {
-        toast({
-          title: "Error",
-          description: data.error,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (data?.suggestions) {
-        setAiSuggestions(prev => ({
-          ...prev,
-          [stepId]: data.suggestions
-        }));
-      }
-    } catch (error) {
-      console.error('Error generating AI suggestions:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate suggestions. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingSuggestions(null);
+  const handleAcceptSuggestion = () => {
+    if (expandedSection && pendingSuggestion) {
+      handleCanvasChange(expandedSection, pendingSuggestion);
+      setPendingSuggestion("");
     }
   };
 
-  const toggleStep = (stepId: number) => {
-    setSteps(
-      steps.map((step) =>
-        step.id === stepId ? { ...step, expanded: !step.expanded } : step
-      )
-    );
+  const calculateCanvasProgress = (tabId: string) => {
+    const tab = canvasTabs.find(t => t.id === tabId);
+    if (!tab) return 0;
+    
+    const filledSections = tab.sections.filter(section => {
+      const value = canvasData[section.key as keyof typeof canvasData];
+      return value && value.trim().length > 0;
+    });
+    
+    return (filledSections.length / tab.sections.length) * 100;
   };
 
-  const markStepComplete = (stepId: number) => {
-    setSteps(
-      steps.map((step) =>
-        step.id === stepId ? { ...step, completed: true } : step
-      )
-    );
+  const calculateOverallProgress = () => {
+    const allSections = canvasTabs.flatMap(tab => tab.sections);
+    const filledSections = allSections.filter(section => {
+      const value = canvasData[section.key as keyof typeof canvasData];
+      return value && value.trim().length > 0;
+    });
+    return (filledSections.length / allSections.length) * 100;
   };
 
-  const completedSteps = steps.filter((s) => s.completed).length;
-  const progress = (completedSteps / steps.length) * 100;
+  const overallProgress = calculateOverallProgress();
 
   if (!projectData) return null;
 
@@ -267,7 +221,7 @@ const Canvas = () => {
                   {projectData?.idea || "Your Product Journey"}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  {completedSteps} of {steps.length} steps completed
+                  {Math.round(overallProgress)}% complete across all canvases
                 </p>
               </div>
             </div>
@@ -291,34 +245,102 @@ const Canvas = () => {
             </div>
           </div>
           <div className="mt-4">
-            <Progress value={progress} className="h-2" />
+            <Progress value={overallProgress} className="h-2" />
           </div>
         </div>
       </header>
 
-      {/* Canvas Area */}
+      {/* Canvas Tabs */}
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-5xl mx-auto space-y-6">
-          {steps.map((step, index) => (
-            <StepCard
-              key={step.id}
-              step={step}
-              index={index}
-              projectData={projectData}
-              canvasData={canvasData}
-              loadingSection={loadingSection}
-              aiSuggestions={aiSuggestions[step.id] || []}
-              loadingAISuggestions={loadingSuggestions === step.id}
-              onToggle={() => toggleStep(step.id)}
-              onComplete={() => markStepComplete(step.id)}
-              onCanvasChange={handleCanvasChange}
-              onGenerateSuggestions={generateSuggestions}
-              onRegenerateAI={() => generateAISuggestions(step.id)}
-              onOpenChat={() => setIsChatOpen(true)}
-            />
-          ))}
+        <div className="max-w-7xl mx-auto">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
+              {canvasTabs.map((tab) => {
+                const Icon = tab.icon;
+                const progress = calculateCanvasProgress(tab.id);
+                return (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="flex flex-col items-center gap-1 py-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icon className="w-4 h-4" />
+                      <span className="hidden sm:inline">{tab.title}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {Math.round(progress)}%
+                    </span>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+
+            {canvasTabs.map((tab) => (
+              <TabsContent key={tab.id} value={tab.id} className="space-y-6">
+                <div className="mb-4">
+                  <h3 className="text-2xl font-bold text-foreground mb-2">
+                    {tab.title}
+                  </h3>
+                  <Progress
+                    value={calculateCanvasProgress(tab.id)}
+                    className="h-2"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {tab.sections.map((section) => (
+                    <CanvasCell
+                      key={section.key}
+                      title={section.title}
+                      subtitle={section.subtitle}
+                      value={canvasData[section.key as keyof typeof canvasData]}
+                      onChange={(value) => handleCanvasChange(section.key, value)}
+                      onAIGenerate={() => generateSuggestions(section.key)}
+                      onExpand={() => handleExpandSection(section.key)}
+                      isGenerating={loadingSection === section.key}
+                    />
+                  ))}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
         </div>
       </main>
+
+      {/* Expanded Editor */}
+      <ExpandedCanvasEditor
+        isOpen={expandedSection !== null}
+        onClose={() => {
+          setExpandedSection(null);
+          setPendingSuggestion("");
+        }}
+        title={
+          canvasTabs
+            .flatMap((t) => t.sections)
+            .find((s) => s.key === expandedSection)?.title || ""
+        }
+        subtitle={
+          canvasTabs
+            .flatMap((t) => t.sections)
+            .find((s) => s.key === expandedSection)?.subtitle || ""
+        }
+        value={expandedSection ? canvasData[expandedSection as keyof typeof canvasData] : ""}
+        onChange={(value) => {
+          if (expandedSection) {
+            handleCanvasChange(expandedSection, value);
+          }
+        }}
+        onAIGenerate={() => {
+          if (expandedSection) {
+            generateSuggestions(expandedSection);
+          }
+        }}
+        isGenerating={loadingSection === expandedSection}
+        aiSuggestion={pendingSuggestion}
+        onAcceptSuggestion={handleAcceptSuggestion}
+        onDiscardSuggestion={() => setPendingSuggestion("")}
+      />
 
       {/* Team Chat Panel */}
       <TeamChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
