@@ -147,7 +147,17 @@ const Onboarding = () => {
                 />
               </div>
 
-              <div className="space-y-3 pt-4">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setShowIdeaSelector(true)}
+                className="w-full text-primary hover:text-primary/80 mb-4"
+              >
+                <Lightbulb className="w-4 h-4 mr-2" />
+                Help me with idea
+              </Button>
+
+              <div className="pt-4">
                 <Button
                   type="submit"
                   disabled={!isFormValid}
@@ -155,15 +165,6 @@ const Onboarding = () => {
                 >
                   Start Building
                   <Sparkles className="ml-2 w-4 h-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setShowIdeaSelector(true)}
-                  className="w-full text-primary hover:text-primary/80"
-                >
-                  <Lightbulb className="w-4 h-4 mr-2" />
-                  Help me with idea
                 </Button>
               </div>
             </form>
