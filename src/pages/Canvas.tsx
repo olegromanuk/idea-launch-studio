@@ -9,7 +9,9 @@ import { TeamChat } from "@/components/canvas/TeamChat";
 import { AIChat } from "@/components/canvas/AIChat";
 import { CelebrationModal } from "@/components/canvas/CelebrationModal";
 import { ValidationModal } from "@/components/canvas/ValidationModal";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info } from "lucide-react";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { exportToText, exportToPDF } from "@/lib/exportUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -156,6 +158,22 @@ const Canvas = () => {
       }
     });
   }, [canvasData]);
+
+  const handleExportPDF = () => {
+    exportToPDF(canvasData, canvasTabs, projectData?.idea || "Product Canvas");
+    toast({
+      title: "PDF Exported",
+      description: "Your canvas has been exported as a PDF file.",
+    });
+  };
+
+  const handleExportText = () => {
+    exportToText(canvasData, canvasTabs, projectData?.idea || "Product Canvas");
+    toast({
+      title: "Text File Exported",
+      description: "Your canvas has been exported as a text file.",
+    });
+  };
 
   const handleCanvasChange = (field: string, value: string) => {
     setCanvasData(prev => ({ ...prev, [field]: value }));
@@ -322,13 +340,33 @@ const Canvas = () => {
                 <Briefcase className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">Board</span>
               </Button>
-              <Button
-                size="sm"
-                className="gradient-accent text-white hover-accent-glow"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Export</span>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    className="gradient-accent text-white hover-accent-glow"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    <span className="hidden sm:inline">Export</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem 
+                    onClick={handleExportPDF}
+                    className="cursor-pointer"
+                  >
+                    <File className="w-4 h-4 mr-2" />
+                    Export as PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={handleExportText}
+                    className="cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Export as Text
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
           <div className="mt-4">
