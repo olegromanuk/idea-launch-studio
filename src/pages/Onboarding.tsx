@@ -119,16 +119,6 @@ const Onboarding = () => {
                   }
                   className="min-h-[100px] resize-none"
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowIdeaSelector(true)}
-                  className="text-primary hover:text-primary/80"
-                >
-                  <Lightbulb className="w-4 h-4 mr-2" />
-                  Help me choose an idea
-                </Button>
               </div>
 
               <div className="space-y-2">
@@ -142,16 +132,6 @@ const Onboarding = () => {
                   onChange={(e) => setFormData({ ...formData, audience: e.target.value })}
                   className="min-h-[80px] resize-none"
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowIdeaSelector(true)}
-                  className="text-primary hover:text-primary/80"
-                >
-                  <Lightbulb className="w-4 h-4 mr-2" />
-                  Help with idea
-                </Button>
               </div>
 
               <div className="space-y-2">
@@ -165,26 +145,25 @@ const Onboarding = () => {
                   onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
                   className="min-h-[80px] resize-none"
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowIdeaSelector(true)}
-                  className="text-primary hover:text-primary/80"
-                >
-                  <Lightbulb className="w-4 h-4 mr-2" />
-                  Help with idea
-                </Button>
               </div>
 
-              <div className="flex gap-4 pt-4">
+              <div className="space-y-3 pt-4">
                 <Button
                   type="submit"
                   disabled={!isFormValid}
-                  className="flex-1 h-12 gradient-primary text-white font-semibold hover-glow"
+                  className="w-full h-12 gradient-primary text-white font-semibold hover-glow"
                 >
                   Start Building
                   <Sparkles className="ml-2 w-4 h-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowIdeaSelector(true)}
+                  className="w-full text-primary hover:text-primary/80"
+                >
+                  <Lightbulb className="w-4 h-4 mr-2" />
+                  Help me with idea
                 </Button>
               </div>
             </form>
