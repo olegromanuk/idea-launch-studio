@@ -142,6 +142,16 @@ const Onboarding = () => {
                   onChange={(e) => setFormData({ ...formData, audience: e.target.value })}
                   className="min-h-[80px] resize-none"
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowIdeaSelector(true)}
+                  className="text-primary hover:text-primary/80"
+                >
+                  <Lightbulb className="w-4 h-4 mr-2" />
+                  Help with idea
+                </Button>
               </div>
 
               <div className="space-y-2">
@@ -155,6 +165,16 @@ const Onboarding = () => {
                   onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
                   className="min-h-[80px] resize-none"
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowIdeaSelector(true)}
+                  className="text-primary hover:text-primary/80"
+                >
+                  <Lightbulb className="w-4 h-4 mr-2" />
+                  Help with idea
+                </Button>
               </div>
 
               <div className="flex gap-4 pt-4">
