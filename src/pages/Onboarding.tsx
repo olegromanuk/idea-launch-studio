@@ -151,7 +151,7 @@ const Onboarding = () => {
                 type="button"
                 variant="ghost"
                 onClick={() => setShowIdeaSelector(true)}
-                className="w-full text-primary hover:text-primary/80 mb-4"
+                className="text-primary hover:text-primary/80 mb-4"
               >
                 <Lightbulb className="w-4 h-4 mr-2" />
                 Help me with idea
