@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Trash2, Plus, Save, FileDown } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, Save, FileDown, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 import jsPDF from "jspdf";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +37,7 @@ const Board = () => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const boardRef = useRef<HTMLDivElement>(null);
   const [userId, setUserId] = useState<string>("");
+  const [zoom, setZoom] = useState(1);
 
   useEffect(() => {
     // Get or create user session ID
@@ -83,8 +84,8 @@ const Board = () => {
     if (!draggingElement || !boardRef.current) return;
 
     const boardRect = boardRef.current.getBoundingClientRect();
-    const newX = e.clientX - boardRect.left - dragOffset.x;
-    const newY = e.clientY - boardRect.top - dragOffset.y;
+    const newX = (e.clientX - boardRect.left) / zoom - dragOffset.x;
+    const newY = (e.clientY - boardRect.top) / zoom - dragOffset.y;
 
     setElements(prev =>
       prev.map(el =>
@@ -205,6 +206,18 @@ const Board = () => {
     });
   };
 
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev + 0.1, 2));
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(prev - 0.1, 0.5));
+  };
+
+  const handleZoomReset = () => {
+    setZoom(1);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -226,13 +239,47 @@ const Board = () => {
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/dashboard")}
-          >
-            View Dashboard
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 border border-border rounded-md p-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleZoomOut}
+                disabled={zoom <= 0.5}
+              >
+                <ZoomOut className="w-4 h-4" />
+              </Button>
+              <span className="text-sm font-medium px-2 min-w-[4rem] text-center">
+                {Math.round(zoom * 100)}%
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleZoomIn}
+                disabled={zoom >= 2}
+              >
+                <ZoomIn className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleZoomReset}
+                title="Reset Zoom"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/dashboard")}
+            >
+              View Dashboard
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -248,9 +295,17 @@ const Board = () => {
             linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
             linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px)
           `,
-          backgroundSize: '20px 20px',
+          backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
         }}
       >
+        <div
+          style={{
+            transform: `scale(${zoom})`,
+            transformOrigin: 'top left',
+            width: `${100 / zoom}%`,
+            height: `${100 / zoom}%`,
+          }}
+        >
         {elements.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center">
             <Card className="p-8 text-center max-w-md">
@@ -321,6 +376,7 @@ const Board = () => {
             </div>
           </Card>
         ))}
+        </div>
       </div>
     </div>
   );
