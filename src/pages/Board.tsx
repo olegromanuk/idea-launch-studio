@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Trash2, Plus, Save, FileDown, GripHorizontal } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, Save, FileDown } from "lucide-react";
 import jsPDF from "jspdf";
 import { cn } from "@/lib/utils";
 
@@ -35,8 +35,6 @@ const Board = () => {
   const [elements, setElements] = useState<BoardElement[]>([]);
   const [draggingElement, setDraggingElement] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [resizingElement, setResizingElement] = useState<string | null>(null);
-  const [resizeStart, setResizeStart] = useState({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
   const boardRef = useRef<HTMLDivElement>(null);
   const [userId, setUserId] = useState<string>("");
 
@@ -69,7 +67,6 @@ const Board = () => {
 
   const handleMouseDown = (e: React.MouseEvent, elementId: string) => {
     if ((e.target as HTMLElement).classList.contains('delete-btn')) return;
-    if ((e.target as HTMLElement).classList.contains('resize-handle')) return;
     
     const element = elements.find(el => el.id === elementId);
     if (!element) return;
@@ -82,81 +79,37 @@ const Board = () => {
     setDraggingElement(elementId);
   };
 
-  const handleResizeStart = (e: React.MouseEvent, elementId: string) => {
-    e.stopPropagation();
-    const element = elements.find(el => el.id === elementId);
-    if (!element) return;
-
-    setResizingElement(elementId);
-    setResizeStart({
-      width: element.width,
-      height: element.height,
-      mouseX: e.clientX,
-      mouseY: e.clientY,
-    });
-  };
-
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (draggingElement && boardRef.current) {
-      const boardRect = boardRef.current.getBoundingClientRect();
-      const newX = e.clientX - boardRect.left - dragOffset.x;
-      const newY = e.clientY - boardRect.top - dragOffset.y;
+    if (!draggingElement || !boardRef.current) return;
 
-      setElements(prev =>
-        prev.map(el =>
-          el.id === draggingElement
-            ? { ...el, position_x: newX, position_y: newY }
-            : el
-        )
-      );
-    }
+    const boardRect = boardRef.current.getBoundingClientRect();
+    const newX = e.clientX - boardRect.left - dragOffset.x;
+    const newY = e.clientY - boardRect.top - dragOffset.y;
 
-    if (resizingElement) {
-      const deltaX = e.clientX - resizeStart.mouseX;
-      const deltaY = e.clientY - resizeStart.mouseY;
-
-      setElements(prev =>
-        prev.map(el =>
-          el.id === resizingElement
-            ? {
-                ...el,
-                width: Math.max(200, resizeStart.width + deltaX),
-                height: Math.max(150, resizeStart.height + deltaY),
-              }
-            : el
-        )
-      );
-    }
+    setElements(prev =>
+      prev.map(el =>
+        el.id === draggingElement
+          ? { ...el, position_x: newX, position_y: newY }
+          : el
+      )
+    );
   };
 
   const handleMouseUp = async () => {
-    if (draggingElement) {
-      const element = elements.find(el => el.id === draggingElement);
-      if (element) {
-        await supabase
-          .from("dashboard_elements")
-          .update({
-            position_x: element.position_x,
-            position_y: element.position_y,
-          })
-          .eq("id", draggingElement);
-      }
-      setDraggingElement(null);
+    if (!draggingElement) return;
+
+    const element = elements.find(el => el.id === draggingElement);
+    if (element) {
+      await supabase
+        .from("dashboard_elements")
+        .update({
+          position_x: element.position_x,
+          position_y: element.position_y,
+        })
+        .eq("id", draggingElement);
     }
 
-    if (resizingElement) {
-      const element = elements.find(el => el.id === resizingElement);
-      if (element) {
-        await supabase
-          .from("dashboard_elements")
-          .update({
-            width: element.width,
-            height: element.height,
-          })
-          .eq("id", resizingElement);
-      }
-      setResizingElement(null);
-    }
+    setDraggingElement(null);
   };
 
   const handleDelete = async (elementId: string) => {
@@ -319,8 +272,8 @@ const Board = () => {
           <Card
             key={element.id}
             className={cn(
-              "absolute cursor-move transition-shadow hover:shadow-xl group",
-              (draggingElement === element.id || resizingElement === element.id) && "shadow-2xl z-50"
+              "absolute cursor-move transition-shadow hover:shadow-xl",
+              draggingElement === element.id && "shadow-2xl z-50"
             )}
             style={{
               left: `${element.position_x}px`,
@@ -331,7 +284,7 @@ const Board = () => {
             }}
             onMouseDown={(e) => handleMouseDown(e, element.id)}
           >
-            <div className="p-4 space-y-2 h-full flex flex-col">
+            <div className="p-4 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1">
                   <div
@@ -362,18 +315,9 @@ const Board = () => {
                   </Button>
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground whitespace-pre-wrap flex-1 overflow-y-auto">
+              <div className="text-sm text-muted-foreground whitespace-pre-wrap max-h-[300px] overflow-y-auto">
                 {element.content}
               </div>
-            </div>
-            
-            {/* Resize Handle */}
-            <div
-              className="resize-handle absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize opacity-0 group-hover:opacity-100 transition-opacity"
-              onMouseDown={(e) => handleResizeStart(e, element.id)}
-              title="Resize"
-            >
-              <div className="absolute bottom-1 right-1 w-4 h-4 border-r-2 border-b-2 border-primary rounded-br" />
             </div>
           </Card>
         ))}
