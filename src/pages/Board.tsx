@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Trash2, Plus, Save } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, Save, FileDown } from "lucide-react";
+import jsPDF from "jspdf";
 import { cn } from "@/lib/utils";
 
 interface BoardElement {
@@ -133,6 +134,77 @@ const Board = () => {
     });
   };
 
+  const handleExportToPDF = (element: BoardElement) => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+
+    // Background color
+    doc.setFillColor(248, 250, 252);
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+    // Color accent bar (left side)
+    const rgb = element.color.match(/\w\w/g)?.map(x => parseInt(x, 16)) || [59, 130, 246];
+    doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+    doc.rect(0, 0, 8, pageHeight, 'F');
+
+    // Section key (small text at top)
+    doc.setFontSize(10);
+    doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.text(element.section_key.toUpperCase(), margin, margin);
+
+    // Section title (large heading)
+    doc.setFontSize(32);
+    doc.setTextColor(30, 30, 30);
+    doc.setFont('helvetica', 'bold');
+    doc.text(element.section_title, margin, margin + 15);
+
+    // Separator line
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.5);
+    doc.line(margin, margin + 20, pageWidth - margin, margin + 20);
+
+    // Content
+    doc.setFontSize(12);
+    doc.setTextColor(60, 60, 60);
+    doc.setFont('helvetica', 'normal');
+    
+    const maxWidth = pageWidth - (margin * 2);
+    const lines = doc.splitTextToSize(element.content, maxWidth);
+    let yPosition = margin + 30;
+    
+    lines.forEach((line: string) => {
+      if (yPosition < pageHeight - margin) {
+        doc.text(line, margin, yPosition);
+        yPosition += 7;
+      }
+    });
+
+    // Footer with date
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(
+      `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
+      margin,
+      pageHeight - 10
+    );
+
+    const filename = `${element.section_title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_presentation.pdf`;
+    doc.save(filename);
+
+    toast({
+      title: "PDF Exported",
+      description: `${element.section_title} has been exported successfully`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -223,14 +295,25 @@ const Board = () => {
                   </div>
                   <h4 className="font-bold text-lg">{element.section_title}</h4>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="delete-btn h-8 w-8 hover:bg-destructive hover:text-destructive-foreground"
-                  onClick={() => handleDelete(element.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="delete-btn h-8 w-8 hover:bg-primary hover:text-primary-foreground"
+                    onClick={() => handleExportToPDF(element)}
+                    title="Export to PDF"
+                  >
+                    <FileDown className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="delete-btn h-8 w-8 hover:bg-destructive hover:text-destructive-foreground"
+                    onClick={() => handleDelete(element.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
               <div className="text-sm text-muted-foreground whitespace-pre-wrap max-h-[300px] overflow-y-auto">
                 {element.content}
