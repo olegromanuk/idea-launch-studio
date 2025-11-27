@@ -16,9 +16,12 @@ interface ProductIdea {
   problem: string;
 }
 
+type PersonaType = "enterprise" | "agency" | "solo";
+
 interface IdeaSelectorProps {
   onIdeaSelect: (idea: ProductIdea) => void;
   onCancel: () => void;
+  persona?: PersonaType;
 }
 
 const INTEREST_OPTIONS = [
@@ -36,7 +39,7 @@ const INTEREST_OPTIONS = [
   "Developer Tools",
 ];
 
-export const IdeaSelector = ({ onIdeaSelect, onCancel }: IdeaSelectorProps) => {
+export const IdeaSelector = ({ onIdeaSelect, onCancel, persona = "solo" }: IdeaSelectorProps) => {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [ideas, setIdeas] = useState<ProductIdea[]>([]);
   const [loading, setLoading] = useState(false);
@@ -163,82 +166,238 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel }: IdeaSelectorProps) => {
     }
   };
 
-  const QUIZ_QUESTIONS = [
-    {
-      title: "What are you most passionate about?",
-      description: "Tell us about topics that genuinely excite you and you could talk about for hours",
-      placeholder: "e.g., I'm fascinated by AI and how it can make healthcare more accessible. I also love sustainable living and finding ways to reduce waste...",
-      field: "passions" as const,
-      type: "textarea" as const,
-    },
-    {
-      title: "Describe your typical day or work style",
-      description: "Help us understand your lifestyle and how you prefer to work",
-      placeholder: "e.g., I work remotely as a designer, usually start late morning, take breaks for exercise. I prefer focused work blocks over meetings...",
-      field: "dailyLife" as const,
-      type: "textarea" as const,
-    },
-    {
-      title: "How do you approach problem-solving?",
-      description: "What's your thinking style when facing challenges?",
-      options: [
-        { value: "analytical", label: "Analytical - I love data and systematic approaches" },
-        { value: "creative", label: "Creative - I prefer brainstorming and innovative solutions" },
-        { value: "practical", label: "Practical - I focus on what works quickly" },
-        { value: "collaborative", label: "Collaborative - I work best with others" },
-      ],
-      field: "problemSolving" as const,
-      type: "radio" as const,
-    },
-    {
-      title: "What values matter most in your work?",
-      description: "Select what drives your decisions",
-      options: [
-        { value: "impact", label: "Making a positive impact on people's lives" },
-        { value: "innovation", label: "Creating something new and innovative" },
-        { value: "freedom", label: "Independence and flexibility" },
-        { value: "growth", label: "Learning and personal growth" },
-      ],
-      field: "values" as const,
-      type: "radio" as const,
-    },
-    {
-      title: "What's your experience level with building products?",
-      description: "This helps us suggest ideas matching your skills",
-      options: [
-        { value: "beginner", label: "Beginner - Just starting out" },
-        { value: "intermediate", label: "Intermediate - Built a few things" },
-        { value: "advanced", label: "Advanced - Multiple successful launches" },
-        { value: "expert", label: "Expert - Serial entrepreneur" },
-      ],
-      field: "experience" as const,
-      type: "radio" as const,
-    },
-    {
-      title: "How much time can you dedicate weekly?",
-      description: "Be realistic about your availability",
-      options: [
-        { value: "5-10", label: "5-10 hours - Side project" },
-        { value: "10-20", label: "10-20 hours - Serious side hustle" },
-        { value: "20-40", label: "20-40 hours - Part-time focus" },
-        { value: "40+", label: "40+ hours - Full-time commitment" },
-      ],
-      field: "timeCommitment" as const,
-      type: "radio" as const,
-    },
-    {
-      title: "What's your initial budget range?",
-      description: "For tools, development, marketing, etc.",
-      options: [
-        { value: "0-1000", label: "$0-1,000 - Bootstrap mode" },
-        { value: "1000-5000", label: "$1,000-5,000 - Modest investment" },
-        { value: "5000-20000", label: "$5,000-20,000 - Serious investment" },
-        { value: "20000+", label: "$20,000+ - Well-funded" },
-      ],
-      field: "budget" as const,
-      type: "radio" as const,
-    },
-  ];
+  const QUIZ_QUESTIONS_BY_PERSONA = {
+    enterprise: [
+      {
+        title: "What industry does your organization operate in?",
+        description: "Help us understand your business context",
+        placeholder: "e.g., Financial services, Healthcare, Manufacturing, Technology...",
+        field: "passions" as const,
+        type: "textarea" as const,
+      },
+      {
+        title: "What are your organization's key strategic priorities?",
+        description: "Share the main goals driving your product initiatives",
+        placeholder: "e.g., Digital transformation, customer experience improvement, operational efficiency, market expansion...",
+        field: "dailyLife" as const,
+        type: "textarea" as const,
+      },
+      {
+        title: "What's your organization's approach to innovation?",
+        description: "How does your company typically adopt new solutions?",
+        options: [
+          { value: "analytical", label: "Data-driven - Extensive analysis and proof of concept required" },
+          { value: "creative", label: "Innovation labs - Dedicated teams for experimentation" },
+          { value: "practical", label: "Incremental - Gradual improvements to existing systems" },
+          { value: "collaborative", label: "Partnership-focused - Work with vendors and consultants" },
+        ],
+        field: "problemSolving" as const,
+        type: "radio" as const,
+      },
+      {
+        title: "What matters most for your enterprise solution?",
+        description: "Select your primary evaluation criteria",
+        options: [
+          { value: "impact", label: "ROI and measurable business impact" },
+          { value: "innovation", label: "Competitive advantage and market differentiation" },
+          { value: "freedom", label: "Scalability and enterprise-grade reliability" },
+          { value: "growth", label: "Compliance and security requirements" },
+        ],
+        field: "values" as const,
+        type: "radio" as const,
+      },
+      {
+        title: "What's your team's technical capability?",
+        description: "This helps us suggest appropriately complex solutions",
+        options: [
+          { value: "beginner", label: "Limited - Will need external implementation support" },
+          { value: "intermediate", label: "Moderate - Can customize with guidance" },
+          { value: "advanced", label: "Strong - Full in-house development capability" },
+          { value: "expert", label: "Expert - Dedicated product and engineering teams" },
+        ],
+        field: "experience" as const,
+        type: "radio" as const,
+      },
+      {
+        title: "What's your expected timeline for initial deployment?",
+        description: "When do you need the solution operational?",
+        options: [
+          { value: "5-10", label: "3-6 months - Quick pilot needed" },
+          { value: "10-20", label: "6-12 months - Standard enterprise timeline" },
+          { value: "20-40", label: "12-18 months - Complex integration required" },
+          { value: "40+", label: "18+ months - Multi-phase transformation" },
+        ],
+        field: "timeCommitment" as const,
+        type: "radio" as const,
+      },
+      {
+        title: "What's your budget range for this initiative?",
+        description: "Including development, licensing, and implementation",
+        options: [
+          { value: "0-1000", label: "$50K-100K - Pilot/proof of concept" },
+          { value: "1000-5000", label: "$100K-500K - Departmental solution" },
+          { value: "5000-20000", label: "$500K-2M - Enterprise-wide deployment" },
+          { value: "20000+", label: "$2M+ - Strategic transformation program" },
+        ],
+        field: "budget" as const,
+        type: "radio" as const,
+      },
+    ],
+    agency: [
+      {
+        title: "What type of services does your agency primarily offer?",
+        description: "Tell us about your agency's focus areas",
+        placeholder: "e.g., Digital marketing, web development, branding, UX/UI design, consulting...",
+        field: "passions" as const,
+        type: "textarea" as const,
+      },
+      {
+        title: "Describe your typical client engagement",
+        description: "Help us understand your workflow and client relationships",
+        placeholder: "e.g., We work with mid-size e-commerce brands on 3-6 month retainers, handling their full digital presence...",
+        field: "dailyLife" as const,
+        type: "textarea" as const,
+      },
+      {
+        title: "How does your agency approach new projects?",
+        description: "What's your typical project methodology?",
+        options: [
+          { value: "analytical", label: "Research-first - Deep discovery and strategy phases" },
+          { value: "creative", label: "Design-led - Visual concepts drive the process" },
+          { value: "practical", label: "Agile sprints - Rapid iteration with client feedback" },
+          { value: "collaborative", label: "Co-creation - Close partnership with client teams" },
+        ],
+        field: "problemSolving" as const,
+        type: "radio" as const,
+      },
+      {
+        title: "What does your agency value most?",
+        description: "Select what drives your business decisions",
+        options: [
+          { value: "impact", label: "Client results and measurable outcomes" },
+          { value: "innovation", label: "Creative excellence and award-winning work" },
+          { value: "freedom", label: "Recurring revenue and scalable services" },
+          { value: "growth", label: "Team growth and capability building" },
+        ],
+        field: "values" as const,
+        type: "radio" as const,
+      },
+      {
+        title: "What's your agency's current size?",
+        description: "This helps us suggest ideas matching your capacity",
+        options: [
+          { value: "beginner", label: "Boutique - 2-5 people" },
+          { value: "intermediate", label: "Small - 6-15 people" },
+          { value: "advanced", label: "Mid-size - 16-50 people" },
+          { value: "expert", label: "Large - 50+ people" },
+        ],
+        field: "experience" as const,
+        type: "radio" as const,
+      },
+      {
+        title: "How much time can your team dedicate to a new product/tool?",
+        description: "Be realistic about bandwidth alongside client work",
+        options: [
+          { value: "5-10", label: "5-10 hours/week - Side initiative" },
+          { value: "10-20", label: "10-20 hours/week - Dedicated resource" },
+          { value: "20-40", label: "20-40 hours/week - Small team focus" },
+          { value: "40+", label: "40+ hours/week - Major strategic investment" },
+        ],
+        field: "timeCommitment" as const,
+        type: "radio" as const,
+      },
+      {
+        title: "What's your investment capacity for internal tools/products?",
+        description: "For development, design, and launch",
+        options: [
+          { value: "0-1000", label: "$0-5K - Bootstrap with existing team" },
+          { value: "1000-5000", label: "$5K-25K - Modest dedicated budget" },
+          { value: "5000-20000", label: "$25K-100K - Serious internal investment" },
+          { value: "20000+", label: "$100K+ - Major product initiative" },
+        ],
+        field: "budget" as const,
+        type: "radio" as const,
+      },
+    ],
+    solo: [
+      {
+        title: "What are you most passionate about?",
+        description: "Tell us about topics that genuinely excite you and you could talk about for hours",
+        placeholder: "e.g., I'm fascinated by AI and how it can make healthcare more accessible. I also love sustainable living and finding ways to reduce waste...",
+        field: "passions" as const,
+        type: "textarea" as const,
+      },
+      {
+        title: "Describe your typical day or work style",
+        description: "Help us understand your lifestyle and how you prefer to work",
+        placeholder: "e.g., I work remotely as a designer, usually start late morning, take breaks for exercise. I prefer focused work blocks over meetings...",
+        field: "dailyLife" as const,
+        type: "textarea" as const,
+      },
+      {
+        title: "How do you approach problem-solving?",
+        description: "What's your thinking style when facing challenges?",
+        options: [
+          { value: "analytical", label: "Analytical - I love data and systematic approaches" },
+          { value: "creative", label: "Creative - I prefer brainstorming and innovative solutions" },
+          { value: "practical", label: "Practical - I focus on what works quickly" },
+          { value: "collaborative", label: "Collaborative - I work best with others" },
+        ],
+        field: "problemSolving" as const,
+        type: "radio" as const,
+      },
+      {
+        title: "What values matter most in your work?",
+        description: "Select what drives your decisions",
+        options: [
+          { value: "impact", label: "Making a positive impact on people's lives" },
+          { value: "innovation", label: "Creating something new and innovative" },
+          { value: "freedom", label: "Independence and flexibility" },
+          { value: "growth", label: "Learning and personal growth" },
+        ],
+        field: "values" as const,
+        type: "radio" as const,
+      },
+      {
+        title: "What's your experience level with building products?",
+        description: "This helps us suggest ideas matching your skills",
+        options: [
+          { value: "beginner", label: "Beginner - Just starting out" },
+          { value: "intermediate", label: "Intermediate - Built a few things" },
+          { value: "advanced", label: "Advanced - Multiple successful launches" },
+          { value: "expert", label: "Expert - Serial entrepreneur" },
+        ],
+        field: "experience" as const,
+        type: "radio" as const,
+      },
+      {
+        title: "How much time can you dedicate weekly?",
+        description: "Be realistic about your availability",
+        options: [
+          { value: "5-10", label: "5-10 hours - Side project" },
+          { value: "10-20", label: "10-20 hours - Serious side hustle" },
+          { value: "20-40", label: "20-40 hours - Part-time focus" },
+          { value: "40+", label: "40+ hours - Full-time commitment" },
+        ],
+        field: "timeCommitment" as const,
+        type: "radio" as const,
+      },
+      {
+        title: "What's your initial budget range?",
+        description: "For tools, development, marketing, etc.",
+        options: [
+          { value: "0-1000", label: "$0-1,000 - Bootstrap mode" },
+          { value: "1000-5000", label: "$1,000-5,000 - Modest investment" },
+          { value: "5000-20000", label: "$5,000-20,000 - Serious investment" },
+          { value: "20000+", label: "$20,000+ - Well-funded" },
+        ],
+        field: "budget" as const,
+        type: "radio" as const,
+      },
+    ],
+  };
+
+  const QUIZ_QUESTIONS = QUIZ_QUESTIONS_BY_PERSONA[persona];
 
   const currentQuestion = QUIZ_QUESTIONS[quizStep];
   const isQuizStepValid = currentQuestion?.type === "radio" 
