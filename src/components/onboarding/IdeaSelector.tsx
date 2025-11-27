@@ -24,20 +24,50 @@ interface IdeaSelectorProps {
   persona?: PersonaType;
 }
 
-const INTEREST_OPTIONS = [
-  "AI & Machine Learning",
-  "Productivity Tools",
-  "E-commerce",
-  "Healthcare",
-  "Education",
-  "Finance",
-  "Social Impact",
-  "Content Creation",
-  "Gaming",
-  "Sustainability",
-  "Remote Work",
-  "Developer Tools",
-];
+const INTEREST_OPTIONS_BY_PERSONA = {
+  enterprise: [
+    "AI & Automation",
+    "Compliance & Governance",
+    "Supply Chain & Logistics",
+    "Data Analytics & BI",
+    "Cybersecurity",
+    "HR & Workforce Management",
+    "Customer Experience",
+    "Digital Transformation",
+    "Financial Operations",
+    "Enterprise Integration",
+    "Process Automation",
+    "Risk Management",
+  ],
+  agency: [
+    "Client Management",
+    "Project Delivery",
+    "Creative Workflows",
+    "Marketing Automation",
+    "Content & Media",
+    "Analytics & Reporting",
+    "White-Label Solutions",
+    "Team Collaboration",
+    "Proposal & Invoicing",
+    "Resource Planning",
+    "Brand Management",
+    "Client Communication",
+  ],
+  solo: [
+    "AI & Machine Learning",
+    "Productivity Tools",
+    "E-commerce",
+    "Healthcare",
+    "Education",
+    "Finance",
+    "Social Impact",
+    "Content Creation",
+    "Gaming",
+    "Sustainability",
+    "Remote Work",
+    "Developer Tools",
+  ],
+};
 
 export const IdeaSelector = ({ onIdeaSelect, onCancel, persona = "solo" }: IdeaSelectorProps) => {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
@@ -502,7 +532,7 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel, persona = "solo" }: IdeaS
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {INTEREST_OPTIONS.map((interest) => (
+            {INTEREST_OPTIONS_BY_PERSONA[persona].map((interest) => (
               <Badge
                 key={interest}
                 variant={
