@@ -147,15 +147,26 @@ const Onboarding = () => {
                 />
               </div>
 
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setShowIdeaSelector(true)}
-                className="text-primary hover:text-primary/80 mb-4"
-              >
-                <Lightbulb className="w-4 h-4 mr-2" />
-                Help me with idea
-              </Button>
+              <div className="flex items-center gap-4 mb-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowIdeaSelector(true)}
+                  className="text-primary hover:text-primary/80"
+                >
+                  <Lightbulb className="w-4 h-4 mr-2" />
+                  Help me with idea
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowIdeaSelector(true)}
+                  className="border-primary text-primary hover:bg-primary/10"
+                >
+                  <Target className="w-4 h-4 mr-2" />
+                  Take a quiz
+                </Button>
+              </div>
 
               <div className="pt-4">
                 <Button
