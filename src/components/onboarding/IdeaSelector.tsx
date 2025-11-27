@@ -525,9 +525,19 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel, persona = "solo" }: IdeaS
       ) : ideas.length === 0 ? (
         <>
           <div className="text-center">
-            <h3 className="text-xl font-semibold mb-2">What interests you?</h3>
+            <h3 className="text-xl font-semibold mb-2">
+              {persona === 'enterprise' 
+                ? "What areas does your organization focus on?" 
+                : persona === 'agency' 
+                  ? "What services does your agency specialize in?" 
+                  : "What interests you?"}
+            </h3>
             <p className="text-sm text-muted-foreground">
-              Select areas that excite you, and we'll suggest product ideas
+              {persona === 'enterprise'
+                ? "Select focus areas, and we'll suggest enterprise solutions"
+                : persona === 'agency'
+                  ? "Select your expertise areas, and we'll suggest agency products"
+                  : "Select areas that excite you, and we'll suggest product ideas"}
             </p>
           </div>
 
