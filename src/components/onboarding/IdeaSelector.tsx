@@ -80,7 +80,7 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel, persona = "solo" }: IdeaS
       const { data, error } = await supabase.functions.invoke(
         "generate-product-ideas",
         {
-          body: { interests: selectedInterests, refinement },
+          body: { interests: selectedInterests, refinement, persona },
         }
       );
 
@@ -122,7 +122,7 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel, persona = "solo" }: IdeaS
       const { data, error } = await supabase.functions.invoke(
         "generate-product-ideas",
         {
-          body: { interests: selectedInterests, refinement: quizAnswers, regenerate: true },
+          body: { interests: selectedInterests, refinement: quizAnswers, regenerate: true, persona },
         }
       );
 
