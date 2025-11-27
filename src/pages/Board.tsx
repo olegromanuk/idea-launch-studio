@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Trash2, Plus, Save, FileDown, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 import jsPDF from "jspdf";
 import { cn } from "@/lib/utils";
-import { BoardMinimap } from "@/components/board/BoardMinimap";
 
 interface BoardElement {
   id: string;
@@ -219,12 +218,6 @@ const Board = () => {
     setZoom(1);
   };
 
-  const handleMinimapNavigate = (x: number, y: number) => {
-    if (boardRef.current) {
-      boardRef.current.scrollTo({ left: x, top: y, behavior: 'smooth' });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -384,14 +377,6 @@ const Board = () => {
           </Card>
         ))}
         </div>
-
-        {/* Minimap Navigator */}
-        <BoardMinimap
-          elements={elements}
-          zoom={zoom}
-          boardRef={boardRef}
-          onNavigate={handleMinimapNavigate}
-        />
       </div>
     </div>
   );
