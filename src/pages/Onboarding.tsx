@@ -93,6 +93,7 @@ const Onboarding = () => {
             <IdeaSelector
               onIdeaSelect={handleIdeaSelect}
               onCancel={() => setShowIdeaSelector(false)}
+              persona={selectedPersona}
             />
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
