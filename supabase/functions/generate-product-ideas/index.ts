@@ -42,14 +42,14 @@ serve(async (req) => {
   }
 
   try {
-    const { interests, refinement, regenerate, persona = 'solo', visionContext } = await req.json();
+    const { interests, refinement, regenerate, persona = 'solo' } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('Generating ideas for persona:', persona, 'with interests:', interests, 'visionContext:', !!visionContext);
+    console.log('Generating ideas for persona:', persona, 'with interests:', interests);
 
     const validPersona = persona as keyof typeof PERSONA_CONTEXTS;
     const personaContext = PERSONA_CONTEXTS[validPersona] || PERSONA_CONTEXTS.solo;
@@ -58,38 +58,7 @@ serve(async (req) => {
 
     let userPrompt = '';
     
-    // Handle enterprise vision builder flow
-    if (visionContext) {
-      systemPrompt = `You are an expert enterprise product strategist and solution architect.
-Your task is to synthesize a detailed enterprise product vision based on the organization's specific challenges, stakeholders, desired outcomes, and constraints.
-Create a comprehensive, actionable product vision that addresses their unique needs and can be presented to executive leadership.`;
-
-      userPrompt = `Based on the following enterprise context, generate a single, comprehensive product vision:
-
-BUSINESS CHALLENGE:
-${visionContext.challenge}
-
-KEY STAKEHOLDERS:
-${visionContext.stakeholders}
-
-DESIRED OUTCOMES & SUCCESS METRICS:
-${visionContext.outcome}
-
-CONSTRAINTS & REQUIREMENTS:
-${visionContext.constraints}
-
-Generate 1 highly specific enterprise product vision that directly addresses these inputs. The solution should:
-1. Directly solve the stated business challenge
-2. Serve the identified stakeholders
-3. Enable measurable achievement of the desired outcomes
-4. Work within the stated constraints
-
-Provide:
-- Title: A compelling, professional product name (max 8 words)
-- Description: Clear enterprise value proposition (max 25 words)
-- Audience: Specific stakeholder roles who will use this (max 20 words)
-- Problem: The core business challenge this solves (max 25 words)`;
-    } else if (refinement && Object.keys(refinement).length > 0) {
+    if (refinement && Object.keys(refinement).length > 0) {
       const regenerateNote = regenerate ? '\n\nIMPORTANT: Generate completely NEW ideas different from previous suggestions.' : '';
       
       systemPrompt += `\n\nAnalyze the user's complete profile to generate ideas that authentically match WHO they are and their ${personaContext.name} context.

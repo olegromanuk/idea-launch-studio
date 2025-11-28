@@ -3,16 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Rocket, Target, Users, Lightbulb, ArrowLeft, Eye } from "lucide-react";
+import { Sparkles, Rocket, Target, Users, Lightbulb, ArrowLeft } from "lucide-react";
 import { IdeaSelector } from "@/components/onboarding/IdeaSelector";
 import { PersonaSelector, PersonaType } from "@/components/onboarding/PersonaSelector";
-import { VisionBuilder } from "@/components/onboarding/VisionBuilder";
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(null);
   const [showIdeaSelector, setShowIdeaSelector] = useState(false);
-  const [showVisionBuilder, setShowVisionBuilder] = useState(false);
   const [formData, setFormData] = useState({
     idea: "",
     audience: "",
@@ -91,11 +89,6 @@ const Onboarding = () => {
         <Card className="p-8 glass hover-lift">
           {!selectedPersona ? (
             <PersonaSelector onPersonaSelect={handlePersonaSelect} />
-          ) : showVisionBuilder ? (
-            <VisionBuilder
-              onVisionComplete={handleIdeaSelect}
-              onCancel={() => setShowVisionBuilder(false)}
-            />
           ) : showIdeaSelector ? (
             <IdeaSelector
               onIdeaSelect={handleIdeaSelect}
@@ -156,38 +149,24 @@ const Onboarding = () => {
               </div>
 
               <div className="flex items-center gap-4 mb-4">
-                {selectedPersona === 'enterprise' ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowVisionBuilder(true)}
-                    className="border-primary text-primary hover:bg-primary/10"
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Help with product vision
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => setShowIdeaSelector(true)}
-                      className="text-primary hover:text-primary/80"
-                    >
-                      <Lightbulb className="w-4 h-4 mr-2" />
-                      Help me with idea
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowIdeaSelector(true)}
-                      className="border-primary text-primary hover:bg-primary/10"
-                    >
-                      <Target className="w-4 h-4 mr-2" />
-                      Take a quiz
-                    </Button>
-                  </>
-                )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowIdeaSelector(true)}
+                  className="text-primary hover:text-primary/80"
+                >
+                  <Lightbulb className="w-4 h-4 mr-2" />
+                  Help me with idea
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowIdeaSelector(true)}
+                  className="border-primary text-primary hover:bg-primary/10"
+                >
+                  <Target className="w-4 h-4 mr-2" />
+                  Take a quiz
+                </Button>
               </div>
 
               <div className="pt-4">
