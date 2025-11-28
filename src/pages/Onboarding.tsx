@@ -149,24 +149,38 @@ const Onboarding = () => {
               </div>
 
               <div className="flex items-center gap-4 mb-4">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setShowIdeaSelector(true)}
-                  className="text-primary hover:text-primary/80"
-                >
-                  <Lightbulb className="w-4 h-4 mr-2" />
-                  Help me with idea
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowIdeaSelector(true)}
-                  className="border-primary text-primary hover:bg-primary/10"
-                >
-                  <Target className="w-4 h-4 mr-2" />
-                  Take a quiz
-                </Button>
+                {selectedPersona === 'solo' ? (
+                  <>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setShowIdeaSelector(true)}
+                      className="text-primary hover:text-primary/80"
+                    >
+                      <Lightbulb className="w-4 h-4 mr-2" />
+                      Help me with idea
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowIdeaSelector(true)}
+                      className="border-primary text-primary hover:bg-primary/10"
+                    >
+                      <Target className="w-4 h-4 mr-2" />
+                      Take a quiz
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowIdeaSelector(true)}
+                    className="border-primary text-primary hover:bg-primary/10"
+                  >
+                    <Lightbulb className="w-4 h-4 mr-2" />
+                    Help with product vision
+                  </Button>
+                )}
               </div>
 
               <div className="pt-4">
