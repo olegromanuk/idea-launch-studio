@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Rocket, Target, Users, Lightbulb, ArrowLeft } from "lucide-react";
+import { Sparkles, Rocket, Target, Users, Lightbulb, ArrowLeft, Building2 } from "lucide-react";
 import { IdeaSelector } from "@/components/onboarding/IdeaSelector";
 import { PersonaSelector, PersonaType } from "@/components/onboarding/PersonaSelector";
 
@@ -12,6 +12,7 @@ const Onboarding = () => {
   const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(null);
   const [showIdeaSelector, setShowIdeaSelector] = useState(false);
   const [formData, setFormData] = useState({
+    business: "",
     idea: "",
     audience: "",
     problem: "",
@@ -19,6 +20,8 @@ const Onboarding = () => {
 
   const personaConfig = {
     enterprise: {
+      businessLabel: "What is your business?",
+      businessPlaceholder: "e.g., We are a Fortune 500 financial services company with 10,000+ employees, specializing in wealth management and investment banking...",
       ideaLabel: "What's your product vision?",
       ideaPlaceholder: "e.g., An enterprise-grade AI platform for automated compliance monitoring and risk assessment across multiple regulatory frameworks...",
       audienceLabel: "Who are your target users?",
@@ -27,6 +30,8 @@ const Onboarding = () => {
       problemPlaceholder: "e.g., Manual compliance processes are error-prone, time-consuming, and don't scale with growing regulatory complexity..."
     },
     agency: {
+      businessLabel: "",
+      businessPlaceholder: "",
       ideaLabel: "What's your product concept?",
       ideaPlaceholder: "e.g., A white-label client portal that agencies can customize with their branding to deliver projects and collect feedback...",
       audienceLabel: "Who will use this?",
@@ -35,6 +40,8 @@ const Onboarding = () => {
       problemPlaceholder: "e.g., Scattered communication across email, Slack, and other tools makes client collaboration chaotic and unprofessional..."
     },
     solo: {
+      businessLabel: "",
+      businessPlaceholder: "",
       ideaLabel: "What's your product idea?",
       ideaPlaceholder: "e.g., A mobile app that helps freelancers track their time and generate invoices automatically...",
       audienceLabel: "Who is it for?",
@@ -62,6 +69,7 @@ const Onboarding = () => {
 
   const handleIdeaSelect = (idea: any) => {
     setFormData({
+      ...formData,
       idea: idea.title,
       audience: idea.audience,
       problem: idea.problem,
@@ -69,7 +77,7 @@ const Onboarding = () => {
     setShowIdeaSelector(false);
   };
 
-  const isFormValid = formData.idea && formData.audience && formData.problem;
+  const isFormValid = formData.idea && formData.audience && formData.problem && (selectedPersona !== 'enterprise' || formData.business);
 
   return (
     <div className="min-h-screen gradient-subtle flex items-center justify-center p-4">
@@ -107,6 +115,23 @@ const Onboarding = () => {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Change persona
               </Button>
+              {selectedPersona === 'enterprise' && (
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                    <Building2 className="w-4 h-4 text-primary" />
+                    {config.businessLabel}
+                  </label>
+                  <Textarea
+                    placeholder={config.businessPlaceholder}
+                    value={formData.business}
+                    onChange={(e) =>
+                      setFormData({ ...formData, business: e.target.value })
+                    }
+                    className="min-h-[80px] resize-none"
+                  />
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
                   <Rocket className="w-4 h-4 text-primary" />
