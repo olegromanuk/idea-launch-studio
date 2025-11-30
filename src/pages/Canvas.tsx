@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,13 +9,15 @@ import { TeamChat } from "@/components/canvas/TeamChat";
 import { AIChat } from "@/components/canvas/AIChat";
 import { CelebrationModal } from "@/components/canvas/CelebrationModal";
 import { ValidationModal } from "@/components/canvas/ValidationModal";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File } from "lucide-react";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Save, Cloud } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportToText, exportToPDF } from "@/lib/exportUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/useAuth";
+import { useProject } from "@/hooks/useProject";
 
 interface CanvasSection {
   key: string;
@@ -32,7 +34,11 @@ interface CanvasTab {
 
 const Canvas = () => {
   const navigate = useNavigate();
+  const { projectId } = useParams();
+  const { user } = useAuth();
+  const { project, saveProject, saving } = useProject(projectId);
   const { toast } = useToast();
+  
   const [projectData, setProjectData] = useState<any>(null);
   const [loadingSection, setLoadingSection] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -114,47 +120,80 @@ const Canvas = () => {
     },
   ];
 
+  // Load project data from database or localStorage
   useEffect(() => {
-    const data = localStorage.getItem("productIdea");
-    if (!data) {
-      navigate("/");
-      return;
-    }
-    setProjectData(JSON.parse(data));
-    
-    // Load saved canvas data if exists
-    const savedCanvas = localStorage.getItem("multiCanvas");
-    if (savedCanvas) {
-      setCanvasData(JSON.parse(savedCanvas));
-    }
+    if (projectId && project) {
+      // Authenticated mode - load from project
+      setProjectData({
+        idea: project.product_idea,
+        audience: project.target_audience,
+        problem: project.key_problem,
+        persona: project.persona,
+      });
+      
+      // Load canvas data from project
+      if (project.canvas_data && Object.keys(project.canvas_data).length > 0) {
+        setCanvasData(prev => ({ ...prev, ...project.canvas_data }));
+      }
+      
+      // Load validated blocks
+      if (project.validated_blocks?.length > 0) {
+        setValidatedBlocks(new Set(project.validated_blocks));
+      }
+    } else if (!projectId) {
+      // Guest mode - load from localStorage
+      const data = localStorage.getItem("productIdea");
+      if (!data) {
+        navigate("/");
+        return;
+      }
+      setProjectData(JSON.parse(data));
+      
+      const savedCanvas = localStorage.getItem("multiCanvas");
+      if (savedCanvas) {
+        setCanvasData(JSON.parse(savedCanvas));
+      }
 
-    // Load completed blocks
-    const savedCompletions = localStorage.getItem("completedBlocks");
-    if (savedCompletions) {
-      setCompletedBlocks(new Set(JSON.parse(savedCompletions)));
-    }
+      const savedCompletions = localStorage.getItem("completedBlocks");
+      if (savedCompletions) {
+        setCompletedBlocks(new Set(JSON.parse(savedCompletions)));
+      }
 
-    // Load validated blocks
-    const savedValidations = localStorage.getItem("validatedBlocks");
-    if (savedValidations) {
-      setValidatedBlocks(new Set(JSON.parse(savedValidations)));
+      const savedValidations = localStorage.getItem("validatedBlocks");
+      if (savedValidations) {
+        setValidatedBlocks(new Set(JSON.parse(savedValidations)));
+      }
     }
-  }, [navigate]);
+  }, [navigate, projectId, project]);
+
+  // Auto-save canvas data
+  const autoSave = useCallback(() => {
+    if (projectId && user) {
+      // Save to database
+      saveProject({
+        canvas_data: canvasData,
+        validated_blocks: Array.from(validatedBlocks),
+      });
+    } else {
+      // Save to localStorage for guests
+      localStorage.setItem("multiCanvas", JSON.stringify(canvasData));
+    }
+  }, [projectId, user, canvasData, validatedBlocks, saveProject]);
 
   useEffect(() => {
-    // Auto-save canvas data
-    localStorage.setItem("multiCanvas", JSON.stringify(canvasData));
+    autoSave();
 
     // Check for newly completed blocks
     canvasTabs.forEach((tab) => {
       const progress = calculateCanvasProgress(tab.id);
       if (progress === 100 && !completedBlocks.has(tab.id)) {
-        // Block just completed!
         setCelebrationBlock({ id: tab.id, title: tab.title });
         const newCompleted = new Set(completedBlocks);
         newCompleted.add(tab.id);
         setCompletedBlocks(newCompleted);
-        localStorage.setItem("completedBlocks", JSON.stringify([...newCompleted]));
+        if (!projectId) {
+          localStorage.setItem("completedBlocks", JSON.stringify([...newCompleted]));
+        }
       }
     });
   }, [canvasData]);
@@ -255,7 +294,10 @@ const Canvas = () => {
     const newValidated = new Set(validatedBlocks);
     newValidated.add(blockId);
     setValidatedBlocks(newValidated);
-    localStorage.setItem("validatedBlocks", JSON.stringify([...newValidated]));
+    
+    if (!projectId) {
+      localStorage.setItem("validatedBlocks", JSON.stringify([...newValidated]));
+    }
     
     // Check if this unlocks the next block
     let nextBlock: string | null = null;
@@ -266,11 +308,9 @@ const Canvas = () => {
     }
     
     if (nextBlock) {
-      // Trigger unlock animation
       setUnlockedBlock(nextBlock);
       setTimeout(() => setUnlockedBlock(null), 2000);
       
-      // Show unlock notification
       setTimeout(() => {
         const nextBlockTitle = canvasTabs.find(t => t.id === nextBlock)?.title;
         toast({
@@ -307,25 +347,37 @@ const Canvas = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate("/")}
+                onClick={() => navigate(projectId ? "/projects" : "/")}
                 className="hover-scale"
               >
                 <Home className="w-5 h-5" />
               </Button>
               <div>
                 <h2 className="font-semibold text-foreground">
-                  {projectData?.idea || "Your Product Journey"}
+                  {project?.name || projectData?.idea || "Your Product Journey"}
                 </h2>
-                <p className="text-sm text-muted-foreground">
-                  {Math.round(overallProgress)}% complete across all canvases
-                </p>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>{Math.round(overallProgress)}% complete across all canvases</span>
+                  {saving && (
+                    <span className="flex items-center gap-1 text-primary">
+                      <Cloud className="w-3 h-3 animate-pulse" />
+                      Saving...
+                    </span>
+                  )}
+                  {user && !saving && projectId && (
+                    <span className="flex items-center gap-1 text-green-500">
+                      <Save className="w-3 h-3" />
+                      Saved
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate(projectId ? `/dashboard/${projectId}` : "/dashboard")}
                 className="hover-lift"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -334,7 +386,7 @@ const Canvas = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate("/board")}
+                onClick={() => navigate(projectId ? `/board/${projectId}` : "/board")}
                 className="hover-lift"
               >
                 <Briefcase className="w-4 h-4 mr-2" />
@@ -493,7 +545,6 @@ const Canvas = () => {
                         </p>
                       </div>
                       
-                      {/* Unlock Requirements */}
                       <div className="glass-dark p-4 rounded-lg max-w-lg mx-auto text-left space-y-3">
                         <h5 className="font-semibold text-foreground text-sm">How to unlock this block:</h5>
                         <div className="space-y-2 text-sm">

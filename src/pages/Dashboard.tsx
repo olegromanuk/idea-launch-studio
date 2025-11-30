@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Briefcase, Code, Megaphone, ChevronRight, Trophy } from "lucide-react";
+import { ArrowLeft, Briefcase, Code, Megaphone, ChevronRight, Trophy, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useProject } from "@/hooks/useProject";
 
 interface CanvasBlock {
   id: string;
@@ -41,27 +43,25 @@ const canvasBlocks: CanvasBlock[] = [
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { projectId } = useParams();
+  const { user } = useAuth();
+  const { project } = useProject(projectId);
   const { toast } = useToast();
   const [projectData, setProjectData] = useState<any>(null);
   const [completedBlocks, setCompletedBlocks] = useState<Set<string>>(new Set());
   const [canvasData, setCanvasData] = useState({
-    // Business Logic
     problem: "",
     targetAudience: "",
     uniqueValueProposition: "",
     revenueModel: "",
     marketTrends: "",
     successMetrics: "",
-    
-    // Development
     coreFeatures: "",
     userFlow: "",
     techStack: "",
     dataRequirements: "",
     integrations: "",
     securityConsiderations: "",
-    
-    // Go-to-Market
     positioning: "",
     acquisitionChannels: "",
     pricingModel: "",
@@ -71,25 +71,38 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    const data = localStorage.getItem("productIdea");
-    if (!data) {
-      navigate("/");
-      return;
-    }
-    setProjectData(JSON.parse(data));
-    
-    // Load saved canvas data if exists
-    const savedCanvas = localStorage.getItem("multiCanvas");
-    if (savedCanvas) {
-      setCanvasData(JSON.parse(savedCanvas));
-    }
+    if (projectId && project) {
+      // Authenticated mode
+      setProjectData({
+        idea: project.product_idea,
+        audience: project.target_audience,
+        problem: project.key_problem,
+        persona: project.persona,
+      });
+      
+      if (project.canvas_data && Object.keys(project.canvas_data).length > 0) {
+        setCanvasData(prev => ({ ...prev, ...project.canvas_data }));
+      }
+    } else if (!projectId) {
+      // Guest mode
+      const data = localStorage.getItem("productIdea");
+      if (!data) {
+        navigate("/");
+        return;
+      }
+      setProjectData(JSON.parse(data));
+      
+      const savedCanvas = localStorage.getItem("multiCanvas");
+      if (savedCanvas) {
+        setCanvasData(JSON.parse(savedCanvas));
+      }
 
-    // Load completed blocks
-    const savedCompletions = localStorage.getItem("completedBlocks");
-    if (savedCompletions) {
-      setCompletedBlocks(new Set(JSON.parse(savedCompletions)));
+      const savedCompletions = localStorage.getItem("completedBlocks");
+      if (savedCompletions) {
+        setCompletedBlocks(new Set(JSON.parse(savedCompletions)));
+      }
     }
-  }, [navigate]);
+  }, [navigate, projectId, project]);
 
   const calculateBlockProgress = (sections: string[]): number => {
     const filledSections = sections.filter(section => {
@@ -108,6 +121,8 @@ const Dashboard = () => {
   if (!projectData) return null;
 
   const overallProgress = calculateOverallProgress();
+  const canvasRoute = projectId ? `/canvas/${projectId}` : "/canvas";
+  const homeRoute = projectId ? "/projects" : "/";
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
@@ -118,14 +133,16 @@ const Dashboard = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate("/")}
+              onClick={() => navigate(homeRoute)}
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Home
+              <Home className="w-4 h-4 mr-2" />
+              {projectId ? "Projects" : "Home"}
             </Button>
             <div>
               <h1 className="text-3xl font-bold">Product Development Dashboard</h1>
-              <p className="text-sm text-muted-foreground">{projectData.idea}</p>
+              <p className="text-sm text-muted-foreground">
+                {project?.name || projectData.idea}
+              </p>
             </div>
           </div>
         </div>
@@ -161,9 +178,8 @@ const Dashboard = () => {
               <Card
                 key={block.id}
                 className="p-6 cursor-pointer hover-lift hover:border-primary/50 transition-all relative overflow-hidden"
-                onClick={() => navigate("/canvas")}
+                onClick={() => navigate(canvasRoute)}
               >
-                {/* Completion Badge Overlay */}
                 {completedBlocks.has(block.id) && (
                   <div className="absolute top-4 right-4 z-10">
                     <Badge className="bg-success text-success-foreground shadow-lg">
@@ -208,7 +224,7 @@ const Dashboard = () => {
 
         {/* Quick Actions */}
         <div className="flex justify-center gap-4">
-          <Button onClick={() => navigate("/canvas")} size="lg">
+          <Button onClick={() => navigate(canvasRoute)} size="lg">
             Continue Working on Canvas
           </Button>
         </div>
