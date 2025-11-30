@@ -77,6 +77,7 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel, persona = "solo" }: IdeaS
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizStep, setQuizStep] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState({
+    businessDescription: "",
     passions: "",
     dailyLife: "",
     problemSolving: "",
@@ -139,7 +140,8 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel, persona = "solo" }: IdeaS
   };
 
   const handleQuizNext = () => {
-    if (quizStep < 6) {
+    const questions = QUIZ_QUESTIONS_BY_PERSONA[persona];
+    if (quizStep < questions.length - 1) {
       setQuizStep(quizStep + 1);
     } else {
       generateIdeas(quizAnswers);
@@ -198,6 +200,13 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel, persona = "solo" }: IdeaS
 
   const QUIZ_QUESTIONS_BY_PERSONA = {
     enterprise: [
+      {
+        title: "What is your business?",
+        description: "Give us a brief overview of your organization",
+        placeholder: "e.g., We are a Fortune 500 retail company with 500+ stores globally, specializing in consumer electronics...",
+        field: "businessDescription" as const,
+        type: "textarea" as const,
+      },
       {
         title: "What industry does your organization operate in?",
         description: "Help us understand your business context",
