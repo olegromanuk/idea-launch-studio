@@ -123,6 +123,12 @@ const Canvas = () => {
   // Load project data from database or localStorage
   useEffect(() => {
     if (projectId && project) {
+      // Check if project has required data, redirect to onboarding if not
+      if (!project.product_idea) {
+        navigate(`/onboarding/${projectId}`);
+        return;
+      }
+      
       // Authenticated mode - load from project
       setProjectData({
         idea: project.product_idea,

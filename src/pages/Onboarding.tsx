@@ -13,7 +13,7 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const { projectId } = useParams();
   const { user } = useAuth();
-  const { project, saveProject } = useProject(projectId);
+  const { project, saveProjectNow } = useProject(projectId);
   
   const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(null);
   const [showIdeaSelector, setShowIdeaSelector] = useState(false);
@@ -103,14 +103,17 @@ const Onboarding = () => {
     e.preventDefault();
     
     if (projectId && user) {
-      // Save to database for authenticated users
-      await saveProject({
+      // Save to database for authenticated users (immediate save, not debounced)
+      const success = await saveProjectNow({
         persona: selectedPersona,
         product_idea: formData.idea,
         target_audience: formData.audience,
         key_problem: formData.problem,
-      });
-      navigate(`/canvas/${projectId}`);
+      }, projectId);
+      
+      if (success) {
+        navigate(`/canvas/${projectId}`);
+      }
     } else {
       // Guest mode - save to localStorage
       localStorage.setItem("productIdea", JSON.stringify({

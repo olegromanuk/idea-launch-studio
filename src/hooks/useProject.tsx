@@ -142,8 +142,9 @@ export const useProject = (projectId?: string) => {
   };
 
   // Auto-save project with debounce
-  const saveProject = useCallback(async (updates: Partial<Project>) => {
-    if (!user || !project) return;
+  const saveProject = useCallback(async (updates: Partial<Project>, targetProjectId?: string) => {
+    const idToSave = targetProjectId || project?.id;
+    if (!user || !idToSave) return;
 
     // Clear existing timeout
     if (saveTimeoutRef.current) {
@@ -160,18 +161,55 @@ export const useProject = (projectId?: string) => {
             ...updates,
             updated_at: new Date().toISOString(),
           })
-          .eq('id', project.id)
+          .eq('id', idToSave)
           .eq('user_id', user.id);
 
         if (error) throw error;
 
-        setProject(prev => prev ? { ...prev, ...updates } : null);
+        if (project && project.id === idToSave) {
+          setProject(prev => prev ? { ...prev, ...updates } : null);
+        }
       } catch (error) {
         console.error('Error saving project:', error);
       } finally {
         setSaving(false);
       }
     }, 1000);
+  }, [user, project]);
+
+  // Immediate save without debounce (for form submissions)
+  const saveProjectNow = useCallback(async (updates: Partial<Project>, targetProjectId?: string) => {
+    const idToSave = targetProjectId || project?.id;
+    if (!user || !idToSave) return false;
+
+    // Clear any pending debounced save
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', idToSave)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      if (project && project.id === idToSave) {
+        setProject(prev => prev ? { ...prev, ...updates } : null);
+      }
+      return true;
+    } catch (error) {
+      console.error('Error saving project:', error);
+      return false;
+    } finally {
+      setSaving(false);
+    }
   }, [user, project]);
 
   // Delete project
@@ -226,6 +264,7 @@ export const useProject = (projectId?: string) => {
     saving,
     createProject,
     saveProject,
+    saveProjectNow,
     deleteProject,
     fetchProjects,
     setProject,
