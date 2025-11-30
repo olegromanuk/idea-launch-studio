@@ -163,11 +163,34 @@ Generate 3-4 suggestions for Launch & Marketing. Include:
 
     // Original canvas section suggestions
     const sectionPrompts: Record<string, string> = {
+      // Business Logic sections
       problem: `List 2-3 top problems that ${productIdea.audience} face related to: ${productIdea.problem}. Be specific and actionable.`,
+      targetAudience: `Define the target audience for ${productIdea.idea}. Include: 1) Primary user segment with demographics and behaviors, 2) Their specific pain points and needs, 3) What motivates them to seek solutions. Target audience: ${productIdea.audience}`,
+      uniqueValueProposition: `Create a single, clear, compelling message (1-2 sentences) that explains why ${productIdea.idea} is different and worth attention for ${productIdea.audience}.`,
+      revenueModel: `List 2-4 potential revenue streams for ${productIdea.idea}. Consider subscriptions, freemium, one-time fees, usage-based pricing, licensing, etc. Include pricing strategy recommendations.`,
+      marketTrends: `Analyze market trends and validation signals for ${productIdea.idea}. Include: 1) Current market trends supporting this idea, 2) Market size indicators, 3) Validation signals to look for.`,
+      successMetrics: `List 4-5 key success metrics for ${productIdea.idea}. Include both leading indicators (early signals) and lagging indicators (outcome metrics) like user engagement, conversion rates, retention, revenue, etc.`,
+      
+      // Development sections
+      coreFeatures: `List 5-7 must-have core features for the MVP of ${productIdea.idea}. Prioritize features that directly address ${productIdea.problem}. Format as bullet points with brief descriptions.`,
+      userFlow: `Outline the main user flow for ${productIdea.idea}. Describe 4-6 key steps from user onboarding to achieving their main goal. Focus on the critical path.`,
+      techStack: `Recommend a tech stack for ${productIdea.idea}. Include frontend, backend, database, hosting, and any specialized tools. Consider scalability and team expertise.`,
+      dataRequirements: `List the key data requirements for ${productIdea.idea}. Include: 1) What user data needs to be collected, 2) Data storage needs, 3) Analytics requirements, 4) Any third-party data integrations.`,
+      integrations: `List 3-5 important third-party integrations for ${productIdea.idea}. Consider payment processors, authentication, analytics, communication tools, and industry-specific services.`,
+      securityConsiderations: `Outline 4-5 key security considerations for ${productIdea.idea}. Include data protection, authentication, authorization, compliance requirements, and infrastructure security.`,
+      
+      // Go-to-Market sections
+      positioning: `Create positioning and messaging for ${productIdea.idea}. Include: 1) Positioning statement, 2) Key messaging pillars (3-4), 3) Tagline suggestions. Target audience: ${productIdea.audience}`,
+      acquisitionChannels: `List 4-5 customer acquisition channels for ${productIdea.idea}. Mix organic (content, SEO, community) and paid (ads, partnerships) approaches. Include estimated effectiveness for ${productIdea.audience}.`,
+      pricingModel: `Recommend a pricing model for ${productIdea.idea}. Include: 1) Pricing strategy (freemium, tiered, etc.), 2) Suggested price points, 3) Competitive positioning rationale.`,
+      launchPlan: `Create a launch plan for ${productIdea.idea}. Include: 1) Pre-launch activities, 2) Launch day strategy, 3) Post-launch follow-up. Focus on building momentum with ${productIdea.audience}.`,
+      contentStrategy: `Outline a content strategy for ${productIdea.idea}. Include: 1) Content types to create, 2) Key topics and themes, 3) Distribution channels, 4) Publishing cadence.`,
+      growthLoops: `Identify 2-3 growth loops for ${productIdea.idea}. Describe viral mechanics, referral opportunities, and network effects that could drive organic growth.`,
+      
+      // Legacy Lean Canvas sections
       existingAlternatives: `List 2-3 existing ways people currently solve these problems: ${productIdea.problem}. Include both direct competitors and workarounds.`,
       solution: `Outline 2-3 possible solutions for ${productIdea.idea}. Keep each solution concise and focused on how it addresses the problem.`,
       keyMetrics: `List 3-4 key numbers/metrics that would tell if ${productIdea.idea} is succeeding. Focus on actionable metrics like user engagement, conversion rates, etc.`,
-      uniqueValueProposition: `Create a single, clear, compelling message (1-2 sentences) that explains why ${productIdea.idea} is different and worth attention for ${productIdea.audience}.`,
       highLevelConcept: `Create an "X for Y" analogy for ${productIdea.idea}. Example: "YouTube = Flickr for videos". Be creative but clear.`,
       unfairAdvantage: `Suggest 2-3 potential unfair advantages for ${productIdea.idea} - things that cannot easily be bought or copied (network effects, insider information, existing audience, etc.).`,
       channels: `List 3-4 effective channels to reach ${productIdea.audience} for ${productIdea.idea}. Mix inbound (content, SEO) and outbound (ads, partnerships) approaches.`,
