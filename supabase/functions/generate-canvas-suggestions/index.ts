@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { section, productIdea, stepId } = await req.json();
+    const { section, productIdea, stepId, variantCount = 3 } = await req.json();
     
     if (!section || !productIdea) {
       return new Response(
@@ -161,7 +161,7 @@ Generate 3-4 suggestions for Launch & Marketing. Include:
       }
     }
 
-    // Original canvas section suggestions
+    // Original canvas section suggestions - now generates multiple variants
     const sectionPrompts: Record<string, string> = {
       // Business Logic sections
       problem: `List 2-3 top problems that ${productIdea.audience} face related to: ${productIdea.problem}. Be specific and actionable.`,
@@ -200,10 +200,11 @@ Generate 3-4 suggestions for Launch & Marketing. Include:
       revenueStreams: `List 2-4 potential revenue sources for ${productIdea.idea}. Consider subscriptions, one-time fees, usage-based pricing, etc.`,
     };
 
-    const prompt = sectionPrompts[section] || `Provide suggestions for the ${section} section of a Lean Canvas for: ${productIdea.idea}`;
+    const basePrompt = sectionPrompts[section] || `Provide suggestions for the ${section} section of a Lean Canvas for: ${productIdea.idea}`;
 
-    console.log(`Generating suggestions for section: ${section}`);
+    console.log(`Generating ${variantCount} variants for section: ${section}`);
 
+    // Generate multiple variants with different approaches
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -215,34 +216,61 @@ Generate 3-4 suggestions for Launch & Marketing. Include:
         messages: [
           {
             role: 'system',
-            content: 'You are an expert product strategist helping entrepreneurs fill out their Lean Canvas. Provide practical, specific, and actionable suggestions. Format as bullet points for easy reading.'
+            content: `You are an expert product strategist helping entrepreneurs fill out their Lean Canvas. 
+Generate ${variantCount} DISTINCT and DIFFERENT variants/approaches for the requested section.
+Each variant should take a unique angle or perspective:
+- Variant 1: Conservative/Traditional approach
+- Variant 2: Innovative/Bold approach  
+- Variant 3: Balanced/Hybrid approach
+
+Make each variant genuinely different in content, tone, and strategy - not just rephrased versions of the same ideas.
+Format each variant as bullet points for easy reading.`
           },
           {
             role: 'user',
-            content: prompt
+            content: basePrompt
           }
         ],
         tools: [
           {
             type: 'function',
             function: {
-              name: 'provide_suggestions',
-              description: 'Provide suggestions for a Lean Canvas section',
+              name: 'provide_variants',
+              description: 'Provide multiple distinct variants for a Lean Canvas section',
               parameters: {
                 type: 'object',
                 properties: {
-                  suggestions: {
-                    type: 'string',
-                    description: 'Formatted suggestions as bullet points'
+                  variants: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        label: {
+                          type: 'string',
+                          description: 'Short label for this variant (e.g., "Conservative", "Bold", "Balanced")'
+                        },
+                        description: {
+                          type: 'string', 
+                          description: 'One-line description of this approach'
+                        },
+                        content: {
+                          type: 'string',
+                          description: 'The actual suggestion content as bullet points'
+                        }
+                      },
+                      required: ['label', 'description', 'content']
+                    },
+                    minItems: 3,
+                    maxItems: 3
                   }
                 },
-                required: ['suggestions'],
+                required: ['variants'],
                 additionalProperties: false
               }
             }
           }
         ],
-        tool_choice: { type: 'function', function: { name: 'provide_suggestions' } }
+        tool_choice: { type: 'function', function: { name: 'provide_variants' } }
       }),
     });
 
@@ -275,7 +303,7 @@ Generate 3-4 suggestions for Launch & Marketing. Include:
     const result = JSON.parse(toolCall.function.arguments);
     
     return new Response(
-      JSON.stringify({ suggestions: result.suggestions }),
+      JSON.stringify({ variants: result.variants }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
