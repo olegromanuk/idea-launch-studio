@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Trash2, Plus, FileDown, ZoomIn, ZoomOut, Maximize2, Grid3X3, Map } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, FileDown, ZoomIn, ZoomOut, Maximize2, Grid3X3, Map, Link2, LinkIcon } from "lucide-react";
 import jsPDF from "jspdf";
 import { cn } from "@/lib/utils";
+import { ConnectionLayer } from "@/components/board/ConnectionLayer";
+import { Connection } from "@/components/board/BoardConnector";
 
 interface BoardElement {
   id: string;
@@ -46,6 +48,11 @@ const Board = () => {
   // Settings
   const [snapToGrid, setSnapToGrid] = useState(true);
   const [showMinimap, setShowMinimap] = useState(true);
+  
+  // Connection state
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [connectMode, setConnectMode] = useState(false);
+  const [drawingConnection, setDrawingConnection] = useState<{ fromId: string; toX: number; toY: number } | null>(null);
 
   // Board dimensions for minimap
   const BOARD_WIDTH = 3000;
@@ -59,7 +66,20 @@ const Board = () => {
     }
     setUserId(sessionUserId);
     loadElements(sessionUserId);
+    loadConnections(sessionUserId);
   }, []);
+
+  const loadConnections = (uid: string) => {
+    const saved = localStorage.getItem(`board_connections_${uid}`);
+    if (saved) {
+      setConnections(JSON.parse(saved));
+    }
+  };
+
+  const saveConnections = (newConnections: Connection[]) => {
+    setConnections(newConnections);
+    localStorage.setItem(`board_connections_${userId}`, JSON.stringify(newConnections));
+  };
 
   // Keyboard controls
   useEffect(() => {
@@ -185,7 +205,7 @@ const Board = () => {
 
   const handleMouseDown = (e: React.MouseEvent, elementId?: string) => {
     // Pan mode (space + drag or middle click)
-    if (spacePressed || e.button === 1 || (!elementId && e.button === 0)) {
+    if (spacePressed || e.button === 1 || (!elementId && e.button === 0 && !connectMode)) {
       e.preventDefault();
       setIsPanning(true);
       setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
@@ -194,6 +214,18 @@ const Board = () => {
 
     if (!elementId) return;
     if ((e.target as HTMLElement).classList.contains('delete-btn')) return;
+    if ((e.target as HTMLElement).classList.contains('connect-btn')) return;
+
+    // Connect mode - start drawing a connection
+    if (connectMode && elementId) {
+      const boardRect = boardRef.current?.getBoundingClientRect();
+      if (boardRect) {
+        const mouseX = (e.clientX - boardRect.left - pan.x) / zoom;
+        const mouseY = (e.clientY - boardRect.top - pan.y) / zoom;
+        setDrawingConnection({ fromId: elementId, toX: mouseX, toY: mouseY });
+      }
+      return;
+    }
     
     const element = elements.find(el => el.id === elementId);
     if (!element) return;
@@ -216,6 +248,15 @@ const Board = () => {
       return;
     }
 
+    // Drawing connection line
+    if (drawingConnection && boardRef.current) {
+      const boardRect = boardRef.current.getBoundingClientRect();
+      const mouseX = (e.clientX - boardRect.left - pan.x) / zoom;
+      const mouseY = (e.clientY - boardRect.top - pan.y) / zoom;
+      setDrawingConnection(prev => prev ? { ...prev, toX: mouseX, toY: mouseY } : null);
+      return;
+    }
+
     // Element dragging
     if (!draggingElement || !boardRef.current) return;
 
@@ -235,11 +276,34 @@ const Board = () => {
     );
   };
 
-  const handleMouseUp = async () => {
+  const handleMouseUp = async (e: React.MouseEvent, elementId?: string) => {
     if (isPanning) {
       setIsPanning(false);
       return;
     }
+
+    // Complete connection if in connect mode
+    if (drawingConnection && elementId && elementId !== drawingConnection.fromId) {
+      // Check if connection already exists
+      const exists = connections.some(
+        c => (c.fromId === drawingConnection.fromId && c.toId === elementId) ||
+             (c.fromId === elementId && c.toId === drawingConnection.fromId)
+      );
+      
+      if (!exists) {
+        const newConnection: Connection = {
+          id: `conn_${Date.now()}`,
+          fromId: drawingConnection.fromId,
+          toId: elementId,
+        };
+        saveConnections([...connections, newConnection]);
+        toast({
+          title: "Connection created",
+          description: "Elements have been linked",
+        });
+      }
+    }
+    setDrawingConnection(null);
 
     if (!draggingElement) return;
 
@@ -255,6 +319,14 @@ const Board = () => {
     }
 
     setDraggingElement(null);
+  };
+
+  const handleDeleteConnection = (connectionId: string) => {
+    saveConnections(connections.filter(c => c.id !== connectionId));
+    toast({
+      title: "Connection removed",
+      description: "The link has been deleted",
+    });
   };
 
   const handleDelete = async (elementId: string) => {
@@ -421,6 +493,20 @@ const Board = () => {
               <Map className="w-4 h-4 mr-2" />
               Map
             </Button>
+            
+            {/* Connect mode toggle */}
+            <Button
+              variant={connectMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setConnectMode(!connectMode);
+                setDrawingConnection(null);
+              }}
+              title="Draw connections between elements"
+            >
+              <Link2 className="w-4 h-4 mr-2" />
+              Connect
+            </Button>
 
             {/* Zoom controls */}
             <div className="flex items-center gap-1 border border-border rounded-md p-1 ml-2">
@@ -471,13 +557,13 @@ const Board = () => {
         ref={containerRef}
         className={cn(
           "relative flex-1 overflow-hidden bg-muted/20",
-          isPanning || spacePressed ? "cursor-grab" : "cursor-default",
+          isPanning || spacePressed ? "cursor-grab" : connectMode ? "cursor-crosshair" : "cursor-default",
           isPanning && "cursor-grabbing"
         )}
         onMouseDown={(e) => handleMouseDown(e)}
         onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onMouseUp={(e) => handleMouseUp(e)}
+        onMouseLeave={(e) => handleMouseUp(e)}
       >
         {/* Transformed board content */}
         <div
@@ -512,12 +598,24 @@ const Board = () => {
             </div>
           )}
 
+          {/* Connection lines layer */}
+          <ConnectionLayer
+            connections={connections}
+            elements={elements}
+            onDeleteConnection={handleDeleteConnection}
+            drawingConnection={drawingConnection}
+            boardWidth={BOARD_WIDTH}
+            boardHeight={BOARD_HEIGHT}
+          />
+
           {elements.map((element) => (
             <Card
               key={element.id}
               className={cn(
-                "absolute cursor-move transition-shadow hover:shadow-xl select-none",
-                draggingElement === element.id && "shadow-2xl z-50 ring-2 ring-primary"
+                "absolute transition-shadow hover:shadow-xl select-none",
+                connectMode ? "cursor-crosshair" : "cursor-move",
+                draggingElement === element.id && "shadow-2xl z-50 ring-2 ring-primary",
+                connectMode && drawingConnection?.fromId === element.id && "ring-2 ring-primary"
               )}
               style={{
                 left: `${element.position_x}px`,
@@ -529,6 +627,10 @@ const Board = () => {
               onMouseDown={(e) => {
                 e.stopPropagation();
                 handleMouseDown(e, element.id);
+              }}
+              onMouseUp={(e) => {
+                e.stopPropagation();
+                handleMouseUp(e, element.id);
               }}
             >
               <div className="p-4 space-y-2">
@@ -616,11 +718,12 @@ const Board = () => {
 
         {/* Keyboard shortcuts hint */}
         <div className="absolute bottom-4 left-4 text-xs text-muted-foreground bg-card/80 backdrop-blur px-3 py-2 rounded-md border border-border">
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
             <span>🖱️ Scroll: Pan</span>
             <span>⌘/Ctrl + Scroll: Zoom</span>
             <span>Space + Drag: Pan</span>
             <span>Arrows: Navigate</span>
+            {connectMode && <span className="text-primary font-medium">🔗 Click element → drag to another to connect</span>}
           </div>
         </div>
       </div>
