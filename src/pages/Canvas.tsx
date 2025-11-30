@@ -9,6 +9,7 @@ import { TeamChat } from "@/components/canvas/TeamChat";
 import { AIChat } from "@/components/canvas/AIChat";
 import { CelebrationModal } from "@/components/canvas/CelebrationModal";
 import { ValidationModal } from "@/components/canvas/ValidationModal";
+import { VariantSelector, Variant } from "@/components/canvas/VariantSelector";
 import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Save, Cloud } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportToText, exportToPDF } from "@/lib/exportUtils";
@@ -51,6 +52,12 @@ const Canvas = () => {
   const [validationBlock, setValidationBlock] = useState<{ id: string; title: string } | null>(null);
   const [validatedBlocks, setValidatedBlocks] = useState<Set<string>>(new Set());
   const [unlockedBlock, setUnlockedBlock] = useState<string | null>(null);
+  
+  // Variant selector state
+  const [variantSelectorOpen, setVariantSelectorOpen] = useState(false);
+  const [variantSelectorSection, setVariantSelectorSection] = useState<string | null>(null);
+  const [variants, setVariants] = useState<Variant[]>([]);
+  const [variantSectionTitle, setVariantSectionTitle] = useState("");
   
   const [canvasData, setCanvasData] = useState({
     // Business Logic
@@ -225,10 +232,17 @@ const Canvas = () => {
   };
 
   const generateSuggestions = async (section: string) => {
+    // Find section title for the variant selector
+    const sectionInfo = canvasTabs.flatMap(tab => tab.sections).find(s => s.key === section);
+    const sectionTitle = sectionInfo?.title || section;
+    
     setLoadingSection(section);
+    setVariantSelectorSection(section);
+    setVariantSectionTitle(sectionTitle);
+    
     try {
       const { data, error } = await supabase.functions.invoke('generate-canvas-suggestions', {
-        body: { section, productIdea: projectData }
+        body: { section, productIdea: projectData, variantCount: 3 }
       });
 
       if (error) {
@@ -241,10 +255,15 @@ const Canvas = () => {
           description: data.error,
           variant: "destructive",
         });
+        setLoadingSection(null);
         return;
       }
 
-      if (data?.suggestions) {
+      if (data?.variants && data.variants.length > 0) {
+        setVariants(data.variants);
+        setVariantSelectorOpen(true);
+      } else if (data?.suggestions) {
+        // Fallback for old format
         handleCanvasChange(section, data.suggestions);
         toast({
           title: "Suggestions generated!",
@@ -261,6 +280,32 @@ const Canvas = () => {
     } finally {
       setLoadingSection(null);
     }
+  };
+
+  const handleVariantSelect = (content: string) => {
+    if (variantSelectorSection) {
+      handleCanvasChange(variantSelectorSection, content);
+      setVariantSelectorOpen(false);
+      setVariants([]);
+      setVariantSelectorSection(null);
+      toast({
+        title: "Variant applied!",
+        description: "Your selected variant has been added to the section.",
+      });
+    }
+  };
+
+  const handleVariantRegenerate = () => {
+    if (variantSelectorSection) {
+      setVariantSelectorOpen(false);
+      generateSuggestions(variantSelectorSection);
+    }
+  };
+
+  const handleVariantClose = () => {
+    setVariantSelectorOpen(false);
+    setVariants([]);
+    setVariantSelectorSection(null);
   };
 
   const handleExpandSection = (sectionKey: string) => {
@@ -695,6 +740,18 @@ const Canvas = () => {
         progress={validationBlock ? calculateCanvasProgress(validationBlock.id) : 0}
         onValidate={() => validationBlock && handleValidateBlock(validationBlock.id)}
       />
+
+      {/* Variant Selector Modal */}
+      {variantSelectorOpen && variants.length > 0 && (
+        <VariantSelector
+          variants={variants}
+          onSelect={handleVariantSelect}
+          onRegenerate={handleVariantRegenerate}
+          onClose={handleVariantClose}
+          isLoading={loadingSection !== null}
+          sectionTitle={variantSectionTitle}
+        />
+      )}
     </div>
   );
 };
