@@ -1,20 +1,14 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Rocket, Target, Users, Lightbulb, ArrowLeft, Building2, LogIn } from "lucide-react";
+import { Sparkles, Rocket, Target, Users, Lightbulb, ArrowLeft, Building2 } from "lucide-react";
 import { IdeaSelector } from "@/components/onboarding/IdeaSelector";
 import { PersonaSelector, PersonaType } from "@/components/onboarding/PersonaSelector";
-import { useAuth } from "@/hooks/useAuth";
-import { useProject } from "@/hooks/useProject";
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { projectId } = useParams();
-  const { user } = useAuth();
-  const { project, saveProjectNow } = useProject(projectId);
-  
   const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(null);
   const [showIdeaSelector, setShowIdeaSelector] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,39 +17,6 @@ const Onboarding = () => {
     audience: "",
     problem: "",
   });
-
-  // Load project data if editing existing project
-  useEffect(() => {
-    if (project) {
-      setSelectedPersona((project.persona as PersonaType) || null);
-      setFormData({
-        business: "",
-        idea: project.product_idea || "",
-        audience: project.target_audience || "",
-        problem: project.key_problem || "",
-      });
-    }
-  }, [project]);
-
-  // Load from localStorage for guest mode
-  useEffect(() => {
-    if (!projectId && !user) {
-      const savedPersona = localStorage.getItem("userPersona") as PersonaType;
-      if (savedPersona) {
-        setSelectedPersona(savedPersona);
-      }
-      const savedIdea = localStorage.getItem("productIdea");
-      if (savedIdea) {
-        const parsed = JSON.parse(savedIdea);
-        setFormData({
-          business: parsed.business || "",
-          idea: parsed.idea || "",
-          audience: parsed.audience || "",
-          problem: parsed.problem || "",
-        });
-      }
-    }
-  }, [projectId, user]);
 
   const personaConfig = {
     enterprise: {
@@ -94,34 +55,16 @@ const Onboarding = () => {
 
   const handlePersonaSelect = (persona: PersonaType) => {
     setSelectedPersona(persona);
-    if (!projectId) {
-      localStorage.setItem("userPersona", persona);
-    }
+    localStorage.setItem("userPersona", persona);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (projectId && user) {
-      // Save to database for authenticated users (immediate save, not debounced)
-      const success = await saveProjectNow({
-        persona: selectedPersona,
-        product_idea: formData.idea,
-        target_audience: formData.audience,
-        key_problem: formData.problem,
-      }, projectId);
-      
-      if (success) {
-        navigate(`/canvas/${projectId}`);
-      }
-    } else {
-      // Guest mode - save to localStorage
-      localStorage.setItem("productIdea", JSON.stringify({
-        ...formData,
-        persona: selectedPersona
-      }));
-      navigate("/canvas");
-    }
+    localStorage.setItem("productIdea", JSON.stringify({
+      ...formData,
+      persona: selectedPersona
+    }));
+    navigate("/canvas");
   };
 
   const handleIdeaSelect = (idea: any) => {
@@ -279,30 +222,10 @@ const Onboarding = () => {
           )}
         </Card>
 
-        <div className="mt-8 text-center space-y-2">
-          {!user ? (
-            <>
-              <p className="text-sm text-muted-foreground">
-                Want to save your progress?
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => navigate('/auth')}
-                className="text-primary"
-              >
-                <LogIn className="w-4 h-4 mr-2" />
-                Sign in to save
-              </Button>
-            </>
-          ) : (
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/projects')}
-              className="text-muted-foreground"
-            >
-              ← Back to projects
-            </Button>
-          )}
+        <div className="mt-8 text-center">
+          <p className="text-sm text-muted-foreground">
+            No login required • Free to explore • AI-powered guidance
+          </p>
         </div>
       </div>
     </div>

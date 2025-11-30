@@ -98,114 +98,15 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string
-          display_name: string | null
-          id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      projects: {
-        Row: {
-          canvas_data: Json | null
-          created_at: string
-          id: string
-          key_problem: string | null
-          last_accessed_at: string | null
-          name: string
-          persona: string | null
-          product_idea: string | null
-          progress: Json | null
-          target_audience: string | null
-          updated_at: string
-          user_id: string
-          validated_blocks: string[] | null
-        }
-        Insert: {
-          canvas_data?: Json | null
-          created_at?: string
-          id?: string
-          key_problem?: string | null
-          last_accessed_at?: string | null
-          name?: string
-          persona?: string | null
-          product_idea?: string | null
-          progress?: Json | null
-          target_audience?: string | null
-          updated_at?: string
-          user_id: string
-          validated_blocks?: string[] | null
-        }
-        Update: {
-          canvas_data?: Json | null
-          created_at?: string
-          id?: string
-          key_problem?: string | null
-          last_accessed_at?: string | null
-          name?: string
-          persona?: string | null
-          product_idea?: string | null
-          progress?: Json | null
-          target_audience?: string | null
-          updated_at?: string
-          user_id?: string
-          validated_blocks?: string[] | null
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "admin" | "user"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -332,8 +233,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "user"],
-    },
+    Enums: {},
   },
 } as const
