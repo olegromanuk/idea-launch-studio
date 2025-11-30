@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      board_connections: {
+        Row: {
+          created_at: string
+          from_element_id: string
+          id: string
+          to_element_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_element_id: string
+          id?: string
+          to_element_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_element_id?: string
+          id?: string
+          to_element_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_connections_from_element_id_fkey"
+            columns: ["from_element_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_elements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_connections_to_element_id_fkey"
+            columns: ["to_element_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_elements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dashboard_elements: {
         Row: {
           color: string

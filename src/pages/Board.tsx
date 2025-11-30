@@ -69,16 +69,70 @@ const Board = () => {
     loadConnections(sessionUserId);
   }, []);
 
-  const loadConnections = (uid: string) => {
-    const saved = localStorage.getItem(`board_connections_${uid}`);
-    if (saved) {
-      setConnections(JSON.parse(saved));
+  const loadConnections = async (uid: string) => {
+    const { data, error } = await supabase
+      .from("board_connections")
+      .select("*")
+      .eq("user_id", uid);
+
+    if (error) {
+      console.error("Error loading connections:", error);
+      return;
+    }
+
+    if (data) {
+      setConnections(data.map(c => ({
+        id: c.id,
+        fromId: c.from_element_id,
+        toId: c.to_element_id,
+      })));
     }
   };
 
-  const saveConnections = (newConnections: Connection[]) => {
-    setConnections(newConnections);
-    localStorage.setItem(`board_connections_${userId}`, JSON.stringify(newConnections));
+  const saveConnection = async (fromId: string, toId: string): Promise<Connection | null> => {
+    const { data, error } = await supabase
+      .from("board_connections")
+      .insert({
+        user_id: userId,
+        from_element_id: fromId,
+        to_element_id: toId,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error saving connection:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save connection",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    return {
+      id: data.id,
+      fromId: data.from_element_id,
+      toId: data.to_element_id,
+    };
+  };
+
+  const deleteConnection = async (connectionId: string) => {
+    const { error } = await supabase
+      .from("board_connections")
+      .delete()
+      .eq("id", connectionId);
+
+    if (error) {
+      console.error("Error deleting connection:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete connection",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
   };
 
   // Keyboard controls
@@ -291,16 +345,14 @@ const Board = () => {
       );
       
       if (!exists) {
-        const newConnection: Connection = {
-          id: `conn_${Date.now()}`,
-          fromId: drawingConnection.fromId,
-          toId: elementId,
-        };
-        saveConnections([...connections, newConnection]);
-        toast({
-          title: "Connection created",
-          description: "Elements have been linked",
-        });
+        const newConnection = await saveConnection(drawingConnection.fromId, elementId);
+        if (newConnection) {
+          setConnections(prev => [...prev, newConnection]);
+          toast({
+            title: "Connection created",
+            description: "Elements have been linked",
+          });
+        }
       }
     }
     setDrawingConnection(null);
@@ -321,12 +373,15 @@ const Board = () => {
     setDraggingElement(null);
   };
 
-  const handleDeleteConnection = (connectionId: string) => {
-    saveConnections(connections.filter(c => c.id !== connectionId));
-    toast({
-      title: "Connection removed",
-      description: "The link has been deleted",
-    });
+  const handleDeleteConnection = async (connectionId: string) => {
+    const success = await deleteConnection(connectionId);
+    if (success) {
+      setConnections(prev => prev.filter(c => c.id !== connectionId));
+      toast({
+        title: "Connection removed",
+        description: "The link has been deleted",
+      });
+    }
   };
 
   const handleDelete = async (elementId: string) => {
