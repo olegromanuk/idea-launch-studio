@@ -10,6 +10,12 @@ import { AIChat } from "@/components/canvas/AIChat";
 import { CelebrationModal } from "@/components/canvas/CelebrationModal";
 import { ValidationModal } from "@/components/canvas/ValidationModal";
 import { Roadmap } from "@/components/canvas/Roadmap";
+import { UserStoriesList } from "@/components/canvas/scope/UserStoriesList";
+import { FeatureScope } from "@/components/canvas/scope/FeatureScope";
+import { TasksMilestones } from "@/components/canvas/scope/TasksMilestones";
+import { TimelineEstimates } from "@/components/canvas/scope/TimelineEstimates";
+import { RisksConstraints } from "@/components/canvas/scope/RisksConstraints";
+import { TechnicalSolution } from "@/components/canvas/scope/TechnicalSolution";
 import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportToText, exportToPDF } from "@/lib/exportUtils";
@@ -56,14 +62,6 @@ const Canvas = () => {
     marketTrends: "",
     successMetrics: "",
     
-    // Scope & Planning
-    userStories: "",
-    featureScope: "",
-    taskBreakdown: "",
-    technicalSolution: "",
-    risksConstraints: "",
-    timeline: "",
-    
     // Development
     coreFeatures: "",
     userFlow: "",
@@ -79,6 +77,16 @@ const Canvas = () => {
     launchPlan: "",
     contentStrategy: "",
     growthLoops: "",
+  });
+
+  // Scope data with structured formats
+  const [scopeData, setScopeData] = useState({
+    userStories: [] as any[],
+    features: [] as any[],
+    milestones: [] as any[],
+    timeline: [] as any[],
+    risks: [] as any[],
+    technicalSolution: "",
   });
 
   const canvasTabs: CanvasTab[] = [
@@ -150,6 +158,12 @@ const Canvas = () => {
       setCanvasData(JSON.parse(savedCanvas));
     }
 
+    // Load saved scope data
+    const savedScope = localStorage.getItem("scopeData");
+    if (savedScope) {
+      setScopeData(JSON.parse(savedScope));
+    }
+
     // Load completed blocks
     const savedCompletions = localStorage.getItem("completedBlocks");
     if (savedCompletions) {
@@ -162,6 +176,11 @@ const Canvas = () => {
       setValidatedBlocks(new Set(JSON.parse(savedValidations)));
     }
   }, [navigate]);
+
+  // Save scope data
+  useEffect(() => {
+    localStorage.setItem("scopeData", JSON.stringify(scopeData));
+  }, [scopeData]);
 
   useEffect(() => {
     // Auto-save canvas data
@@ -625,6 +644,52 @@ const Canvas = () => {
                         >
                           Go to {previousBlockName}
                         </Button>
+                      </div>
+                    </div>
+                  ) : tab.id === "scope" ? (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <UserStoriesList
+                          stories={scopeData.userStories}
+                          onChange={(stories) => setScopeData({ ...scopeData, userStories: stories })}
+                          onAIGenerate={() => generateSuggestions("userStories")}
+                          isGenerating={loadingSection === "userStories"}
+                          projectContext={projectData}
+                        />
+                        <FeatureScope
+                          features={scopeData.features}
+                          onChange={(features) => setScopeData({ ...scopeData, features })}
+                          onAIGenerate={() => generateSuggestions("featureScope")}
+                          isGenerating={loadingSection === "featureScope"}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <TasksMilestones
+                          milestones={scopeData.milestones}
+                          onChange={(milestones) => setScopeData({ ...scopeData, milestones })}
+                          onAIGenerate={() => generateSuggestions("taskBreakdown")}
+                          isGenerating={loadingSection === "taskBreakdown"}
+                        />
+                        <TimelineEstimates
+                          phases={scopeData.timeline}
+                          onChange={(timeline) => setScopeData({ ...scopeData, timeline })}
+                          onAIGenerate={() => generateSuggestions("timeline")}
+                          isGenerating={loadingSection === "timeline"}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <TechnicalSolution
+                          value={scopeData.technicalSolution}
+                          onChange={(value) => setScopeData({ ...scopeData, technicalSolution: value })}
+                          onAIGenerate={() => generateSuggestions("technicalSolution")}
+                          isGenerating={loadingSection === "technicalSolution"}
+                        />
+                        <RisksConstraints
+                          items={scopeData.risks}
+                          onChange={(risks) => setScopeData({ ...scopeData, risks })}
+                          onAIGenerate={() => generateSuggestions("risksConstraints")}
+                          isGenerating={loadingSection === "risksConstraints"}
+                        />
                       </div>
                     </div>
                   ) : (
