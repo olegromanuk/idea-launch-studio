@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Sparkles, Rocket, Target, Users, Lightbulb, ArrowLeft, Building2, Layers, Monitor, Upload, X } from "lucide-react";
 import { IdeaSelector } from "@/components/onboarding/IdeaSelector";
 import { PersonaSelector, PersonaType } from "@/components/onboarding/PersonaSelector";
+import { JourneyInfographic } from "@/components/onboarding/JourneyInfographic";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -30,6 +31,7 @@ const Onboarding = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(null);
   const [showIdeaSelector, setShowIdeaSelector] = useState(false);
+  const [showJourneyInfographic, setShowJourneyInfographic] = useState(false);
   const [formData, setFormData] = useState({
     business: "",
     idea: "",
@@ -85,8 +87,16 @@ const Onboarding = () => {
     localStorage.setItem("productIdea", JSON.stringify({
       ...formData,
       persona: selectedPersona,
-      wireframeFiles: formData.wireframeFiles.map(f => f.name), // Store file names only
+      wireframeFiles: formData.wireframeFiles.map(f => f.name),
     }));
+    setShowJourneyInfographic(true);
+  };
+
+  const handleJourneyContinue = () => {
+    navigate("/canvas");
+  };
+
+  const handleJourneySkip = () => {
     navigate("/canvas");
   };
 
@@ -127,6 +137,17 @@ const Onboarding = () => {
   const isFormValid = formData.idea && formData.audience && formData.problem && 
     formData.stage && formData.platforms.length > 0 &&
     (selectedPersona !== 'enterprise' || formData.business);
+
+  if (showJourneyInfographic) {
+    return (
+      <JourneyInfographic
+        onContinue={handleJourneyContinue}
+        onSkip={handleJourneySkip}
+        platforms={formData.platforms}
+        productIdea={formData.idea}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen gradient-subtle flex items-center justify-center p-4">
