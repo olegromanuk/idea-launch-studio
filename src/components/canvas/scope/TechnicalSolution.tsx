@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -5,9 +6,12 @@ import {
   Sparkles,
   Cpu,
   CheckCircle2,
-  Circle
+  Circle,
+  Edit3,
+  Eye
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
 
 interface TechnicalSolutionProps {
   value: string;
@@ -22,6 +26,7 @@ export const TechnicalSolution = ({
   onAIGenerate, 
   isGenerating 
 }: TechnicalSolutionProps) => {
+  const [isEditing, setIsEditing] = useState(false);
   const hasContent = value && value.trim().length > 0;
 
   return (
@@ -55,6 +60,25 @@ export const TechnicalSolution = ({
                 Pending
               </span>
             )}
+            {hasContent && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(!isEditing)}
+              >
+                {isEditing ? (
+                  <>
+                    <Eye className="w-4 h-4 mr-1" />
+                    Preview
+                  </>
+                ) : (
+                  <>
+                    <Edit3 className="w-4 h-4 mr-1" />
+                    Edit
+                  </>
+                )}
+              </Button>
+            )}
             <Button
               size="sm"
               onClick={onAIGenerate}
@@ -67,15 +91,40 @@ export const TechnicalSolution = ({
           </div>
         </div>
 
-        <Textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Describe your technical architecture, tech stack choices, infrastructure decisions, and key technical considerations..."
-          className="min-h-[200px] resize-none"
-        />
+        {isEditing || !hasContent ? (
+          <Textarea
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="Describe your technical architecture, tech stack choices, infrastructure decisions, and key technical considerations..."
+            className="min-h-[200px] resize-none font-mono text-sm"
+          />
+        ) : (
+          <div className="min-h-[200px] p-4 rounded-lg bg-muted/30 border border-border prose prose-sm dark:prose-invert max-w-none">
+            <ReactMarkdown
+              components={{
+                h1: ({ children }) => <h1 className="text-xl font-bold text-foreground mt-4 mb-2 first:mt-0">{children}</h1>,
+                h2: ({ children }) => <h2 className="text-lg font-semibold text-foreground mt-4 mb-2">{children}</h2>,
+                h3: ({ children }) => <h3 className="text-base font-semibold text-foreground mt-3 mb-1">{children}</h3>,
+                p: ({ children }) => <p className="text-sm text-foreground mb-2">{children}</p>,
+                ul: ({ children }) => <ul className="list-disc list-inside text-sm text-foreground mb-2 space-y-1">{children}</ul>,
+                ol: ({ children }) => <ol className="list-decimal list-inside text-sm text-foreground mb-2 space-y-1">{children}</ol>,
+                li: ({ children }) => <li className="text-sm text-foreground">{children}</li>,
+                code: ({ children }) => <code className="px-1.5 py-0.5 rounded bg-muted text-sm font-mono text-foreground">{children}</code>,
+                pre: ({ children }) => <pre className="p-3 rounded-lg bg-muted overflow-x-auto text-sm mb-2">{children}</pre>,
+                strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                em: ({ children }) => <em className="italic">{children}</em>,
+              }}
+            >
+              {value}
+            </ReactMarkdown>
+          </div>
+        )}
         
         <p className="text-xs text-muted-foreground mt-2">
-          Include: Tech stack, architecture pattern, hosting/infrastructure, key libraries, and technical trade-offs
+          {isEditing || !hasContent 
+            ? "Include: Tech stack, architecture pattern, hosting/infrastructure, key libraries, and technical trade-offs"
+            : "Click Edit to modify the technical solution"
+          }
         </p>
       </div>
     </Card>
