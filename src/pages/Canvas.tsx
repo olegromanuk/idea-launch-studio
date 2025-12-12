@@ -10,7 +10,7 @@ import { AIChat } from "@/components/canvas/AIChat";
 import { CelebrationModal } from "@/components/canvas/CelebrationModal";
 import { ValidationModal } from "@/components/canvas/ValidationModal";
 import { Roadmap } from "@/components/canvas/Roadmap";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File } from "lucide-react";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportToText, exportToPDF } from "@/lib/exportUtils";
 import { supabase } from "@/integrations/supabase/client";
@@ -456,86 +456,142 @@ const Canvas = () => {
                 const previousBlockName = tab.id === "development" ? "Business Logic" : "Development";
                 
                 return (
-                <TabsContent key={tab.id} value={tab.id} className="space-y-6">
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-2xl font-bold text-foreground">
-                        {tab.title}
-                      </h3>
-                      {!isLocked && (
-                        <Button
-                          onClick={() => setValidationBlock({ id: tab.id, title: tab.title })}
-                          className="gradient-accent text-white hover-accent-glow"
-                        >
-                          <CheckCircle2 className="w-4 h-4 mr-2" />
-                          Validate
-                        </Button>
-                      )}
+                <TabsContent key={tab.id} value={tab.id} className="space-y-8">
+                  {/* Tab Header with premium styling */}
+                  <div className="relative overflow-hidden rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6">
+                    {/* Background decoration */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    
+                    <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className={cn(
+                          "w-14 h-14 rounded-xl flex items-center justify-center",
+                          "bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/30"
+                        )}>
+                          <tab.icon className="w-7 h-7 text-primary-foreground" />
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-bold text-foreground mb-1">
+                            {tab.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            Complete all {tab.sections.length} sections to proceed
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        {/* Progress circle */}
+                        <div className="relative w-16 h-16">
+                          <svg className="w-16 h-16 -rotate-90">
+                            <circle
+                              cx="32"
+                              cy="32"
+                              r="28"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                              className="text-muted"
+                            />
+                            <circle
+                              cx="32"
+                              cy="32"
+                              r="28"
+                              stroke="url(#progressGradient)"
+                              strokeWidth="4"
+                              fill="none"
+                              strokeLinecap="round"
+                              strokeDasharray={`${calculateCanvasProgress(tab.id) * 1.76} 176`}
+                              className="transition-all duration-500"
+                            />
+                            <defs>
+                              <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor="hsl(var(--primary))" />
+                                <stop offset="100%" stopColor="hsl(var(--accent))" />
+                              </linearGradient>
+                            </defs>
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-sm font-bold text-foreground">
+                              {Math.round(calculateCanvasProgress(tab.id))}%
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {!isLocked && (
+                          <Button
+                            onClick={() => setValidationBlock({ id: tab.id, title: tab.title })}
+                            className="bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all"
+                          >
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            Validate
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <Progress
-                      value={calculateCanvasProgress(tab.id)}
-                      className="h-2"
-                    />
                   </div>
 
                   {isLocked ? (
-                    <div className="glass p-8 rounded-lg text-center space-y-6">
-                      <div className="flex justify-center">
-                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Lock className="w-8 h-8 text-primary" />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <h4 className="text-xl font-semibold text-foreground">
-                          This Section is Locked
-                        </h4>
-                        <p className="text-muted-foreground max-w-md mx-auto">
-                          Before you can access the <strong>{tab.title}</strong> canvas, you must complete and validate the <strong>{previousBlockName}</strong> block.
-                        </p>
-                      </div>
+                    <div className="relative overflow-hidden rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-8 text-center space-y-6">
+                      {/* Background effects */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-muted/50 via-transparent to-muted/50" />
                       
-                      {/* Unlock Requirements */}
-                      <div className="glass-dark p-4 rounded-lg max-w-lg mx-auto text-left space-y-3">
-                        <h5 className="font-semibold text-foreground text-sm">How to unlock this block:</h5>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-start gap-2">
-                            <span className="text-primary mt-0.5">1.</span>
-                            <span className="text-muted-foreground">
-                              Complete all sections in the <strong className="text-foreground">{previousBlockName}</strong> canvas
-                            </span>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <span className="text-primary mt-0.5">2.</span>
-                            <span className="text-muted-foreground">
-                              Click the <strong className="text-foreground">"Validate"</strong> button to submit your canvas for review
-                            </span>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <span className="text-primary mt-0.5">3.</span>
-                            <span className="text-muted-foreground">
-                              Once validated, the <strong className="text-foreground">{tab.title}</strong> block will automatically unlock
-                            </span>
+                      <div className="relative">
+                        <div className="flex justify-center mb-6">
+                          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center border border-border/50 shadow-lg">
+                            <Lock className="w-10 h-10 text-muted-foreground" />
                           </div>
                         </div>
-                      </div>
+                        <div className="space-y-2 mb-6">
+                          <h4 className="text-2xl font-bold text-foreground">
+                            This Section is Locked
+                          </h4>
+                          <p className="text-muted-foreground max-w-md mx-auto">
+                            Complete and validate <span className="font-semibold text-foreground">{previousBlockName}</span> to unlock
+                          </p>
+                        </div>
+                        
+                        {/* Unlock Requirements - Premium Card */}
+                        <div className="max-w-lg mx-auto rounded-xl bg-card border border-border/50 p-6 text-left shadow-lg">
+                          <h5 className="font-bold text-foreground text-sm mb-4 flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-primary" />
+                            How to unlock
+                          </h5>
+                          <div className="space-y-3">
+                            {[
+                              `Complete all sections in ${previousBlockName}`,
+                              `Click "Validate" to submit for review`,
+                              `${tab.title} will unlock automatically`
+                            ].map((step, i) => (
+                              <div key={i} className="flex items-start gap-3">
+                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 text-xs font-bold text-primary-foreground">
+                                  {i + 1}
+                                </div>
+                                <span className="text-sm text-muted-foreground pt-0.5">{step}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
 
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          if (tab.id === "development") {
-                            setActiveTab("business");
-                          } else if (tab.id === "gtm") {
-                            setActiveTab("development");
-                          }
-                        }}
-                        className="mt-4"
-                      >
-                        Go to {previousBlockName}
-                      </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            if (tab.id === "development") {
+                              setActiveTab("business");
+                            } else if (tab.id === "gtm") {
+                              setActiveTab("development");
+                            }
+                          }}
+                          className="mt-6"
+                        >
+                          Go to {previousBlockName}
+                        </Button>
+                      </div>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {tab.sections.map((section) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {tab.sections.map((section, index) => (
                         <CanvasCell
                           key={section.key}
                           title={section.title}
@@ -545,6 +601,7 @@ const Canvas = () => {
                           onAIGenerate={() => generateSuggestions(section.key)}
                           onExpand={() => handleExpandSection(section.key)}
                           isGenerating={loadingSection === section.key}
+                          index={index}
                         />
                       ))}
                     </div>
