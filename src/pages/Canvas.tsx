@@ -10,7 +10,7 @@ import { AIChat } from "@/components/canvas/AIChat";
 import { CelebrationModal } from "@/components/canvas/CelebrationModal";
 import { ValidationModal } from "@/components/canvas/ValidationModal";
 import { Roadmap } from "@/components/canvas/Roadmap";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles } from "lucide-react";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportToText, exportToPDF } from "@/lib/exportUtils";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +56,14 @@ const Canvas = () => {
     marketTrends: "",
     successMetrics: "",
     
+    // Scope & Planning
+    userStories: "",
+    featureScope: "",
+    taskBreakdown: "",
+    technicalSolution: "",
+    risksConstraints: "",
+    timeline: "",
+    
     // Development
     coreFeatures: "",
     userFlow: "",
@@ -85,6 +93,19 @@ const Canvas = () => {
         { key: "revenueModel", title: "Revenue Model / Monetization", subtitle: "How will you make money?" },
         { key: "marketTrends", title: "Market Trends & Validation", subtitle: "What market signals support this?" },
         { key: "successMetrics", title: "Success Metrics", subtitle: "How will you measure success?" },
+      ],
+    },
+    {
+      id: "scope",
+      title: "Scope & Planning",
+      icon: ClipboardList,
+      sections: [
+        { key: "userStories", title: "User Stories", subtitle: "High-level user journey and acceptance criteria" },
+        { key: "featureScope", title: "Scope of Features", subtitle: "Define MVP features vs nice-to-haves" },
+        { key: "taskBreakdown", title: "Tasks & Milestones", subtitle: "Break down work into actionable tasks" },
+        { key: "technicalSolution", title: "Technical Solution", subtitle: "Architecture and technology decisions" },
+        { key: "risksConstraints", title: "Risks & Constraints", subtitle: "Identify blockers and mitigation plans" },
+        { key: "timeline", title: "Timeline & Estimates", subtitle: "Project phases and delivery schedule" },
       ],
     },
     {
@@ -261,6 +282,8 @@ const Canvas = () => {
     // Check if this unlocks the next block
     let nextBlock: string | null = null;
     if (blockId === "business") {
+      nextBlock = "scope";
+    } else if (blockId === "scope") {
       nextBlock = "development";
     } else if (blockId === "development") {
       nextBlock = "gtm";
@@ -289,7 +312,8 @@ const Canvas = () => {
 
   const isBlockLocked = (blockId: string) => {
     if (blockId === "business") return false;
-    if (blockId === "development") return !validatedBlocks.has("business");
+    if (blockId === "scope") return !validatedBlocks.has("business");
+    if (blockId === "development") return !validatedBlocks.has("scope");
     if (blockId === "gtm") return !validatedBlocks.has("development");
     return false;
   };
@@ -381,13 +405,19 @@ const Canvas = () => {
         <div className="max-w-7xl mx-auto">
           <TooltipProvider>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-8">
+              <TabsList className="grid w-full grid-cols-4 mb-8">
                 {canvasTabs.map((tab) => {
                   const Icon = tab.icon;
                   const progress = calculateCanvasProgress(tab.id);
                   const isLocked = isBlockLocked(tab.id);
                   const isUnlocking = unlockedBlock === tab.id;
-                  const previousBlockName = tab.id === "development" ? "Business Logic" : "Development";
+                  const getPreviousBlockName = (tabId: string) => {
+                    if (tabId === "scope") return "Business Logic";
+                    if (tabId === "development") return "Scope & Planning";
+                    if (tabId === "gtm") return "Development";
+                    return "";
+                  };
+                  const previousBlockName = getPreviousBlockName(tab.id);
                   
                     return (
                      <TabsTrigger
@@ -577,8 +607,10 @@ const Canvas = () => {
                         <Button
                           variant="outline"
                           onClick={() => {
-                            if (tab.id === "development") {
+                            if (tab.id === "scope") {
                               setActiveTab("business");
+                            } else if (tab.id === "development") {
+                              setActiveTab("scope");
                             } else if (tab.id === "gtm") {
                               setActiveTab("development");
                             }
