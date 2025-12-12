@@ -241,7 +241,69 @@ const Canvas = () => {
       }
 
       if (data?.suggestions) {
-        handleCanvasChange(section, data.suggestions);
+        // Handle structured scope data
+        const scopeSections = ['userStories', 'featureScope', 'taskBreakdown', 'technicalSolution', 'risksConstraints', 'timeline'];
+        
+        if (scopeSections.includes(section)) {
+          const suggestions = data.suggestions;
+          
+          if (section === 'userStories' && suggestions.stories) {
+            const stories = suggestions.stories.map((s: any) => ({
+              id: crypto.randomUUID(),
+              persona: s.persona,
+              action: s.action,
+              benefit: s.benefit,
+              priority: s.priority,
+              completed: false,
+            }));
+            setScopeData(prev => ({ ...prev, userStories: stories }));
+          } else if (section === 'featureScope' && suggestions.features) {
+            const features = suggestions.features.map((f: any) => ({
+              id: crypto.randomUUID(),
+              name: f.name,
+              description: f.description,
+              category: f.category,
+              effort: f.effort,
+            }));
+            setScopeData(prev => ({ ...prev, features }));
+          } else if (section === 'taskBreakdown' && suggestions.milestones) {
+            const milestones = suggestions.milestones.map((m: any) => ({
+              id: crypto.randomUUID(),
+              name: m.name,
+              isExpanded: true,
+              tasks: m.tasks.map((t: any) => ({
+                id: crypto.randomUUID(),
+                name: t.name,
+                status: t.status,
+              })),
+            }));
+            setScopeData(prev => ({ ...prev, milestones }));
+          } else if (section === 'timeline' && suggestions.phases) {
+            const timeline = suggestions.phases.map((p: any) => ({
+              id: crypto.randomUUID(),
+              name: p.name,
+              duration: p.duration,
+              color: p.color,
+            }));
+            setScopeData(prev => ({ ...prev, timeline }));
+          } else if (section === 'risksConstraints' && suggestions.items) {
+            const risks = suggestions.items.map((r: any) => ({
+              id: crypto.randomUUID(),
+              type: r.type,
+              title: r.title,
+              description: r.description,
+              impact: r.impact,
+              likelihood: r.likelihood,
+              mitigation: r.mitigation,
+            }));
+            setScopeData(prev => ({ ...prev, risks }));
+          } else if (section === 'technicalSolution' && suggestions.solution) {
+            setScopeData(prev => ({ ...prev, technicalSolution: suggestions.solution }));
+          }
+        } else {
+          handleCanvasChange(section, data.suggestions);
+        }
+        
         toast({
           title: "Suggestions generated!",
           description: "AI suggestions have been added to the section.",

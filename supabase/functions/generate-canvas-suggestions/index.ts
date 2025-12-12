@@ -161,6 +161,243 @@ Generate 3-4 suggestions for Launch & Marketing. Include:
       }
     }
 
+    // Handle scope section suggestions with structured output
+    const scopeSections = ['userStories', 'featureScope', 'taskBreakdown', 'technicalSolution', 'risksConstraints', 'timeline'];
+    
+    if (scopeSections.includes(section)) {
+      const scopePrompts: Record<string, { prompt: string; tool: any }> = {
+        userStories: {
+          prompt: `Based on this product idea: "${productIdea.idea}" for audience "${productIdea.audience}" solving problem "${productIdea.problem}".
+Generate 4-5 user stories in the format: As a [persona], I want to [action], so that [benefit].
+Each story should have a priority (high, medium, or low).`,
+          tool: {
+            type: 'function',
+            function: {
+              name: 'provide_user_stories',
+              description: 'Provide user stories',
+              parameters: {
+                type: 'object',
+                properties: {
+                  stories: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        persona: { type: 'string', description: 'The user persona (e.g., busy professional, first-time user)' },
+                        action: { type: 'string', description: 'What they want to do' },
+                        benefit: { type: 'string', description: 'The benefit they get' },
+                        priority: { type: 'string', enum: ['high', 'medium', 'low'] }
+                      },
+                      required: ['persona', 'action', 'benefit', 'priority']
+                    }
+                  }
+                },
+                required: ['stories']
+              }
+            }
+          }
+        },
+        featureScope: {
+          prompt: `Based on this product idea: "${productIdea.idea}" for audience "${productIdea.audience}".
+Generate 5-7 features categorized as MVP (must-have), Future (nice-to-have later), or Nice-to-have (optional).
+Include effort estimate for each (low, medium, high).`,
+          tool: {
+            type: 'function',
+            function: {
+              name: 'provide_features',
+              description: 'Provide feature scope',
+              parameters: {
+                type: 'object',
+                properties: {
+                  features: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: { type: 'string' },
+                        description: { type: 'string' },
+                        category: { type: 'string', enum: ['mvp', 'future', 'nice-to-have'] },
+                        effort: { type: 'string', enum: ['low', 'medium', 'high'] }
+                      },
+                      required: ['name', 'description', 'category', 'effort']
+                    }
+                  }
+                },
+                required: ['features']
+              }
+            }
+          }
+        },
+        taskBreakdown: {
+          prompt: `Based on this product idea: "${productIdea.idea}".
+Create 3 milestones with 2-4 tasks each. Include status and due dates.`,
+          tool: {
+            type: 'function',
+            function: {
+              name: 'provide_milestones',
+              description: 'Provide milestones and tasks',
+              parameters: {
+                type: 'object',
+                properties: {
+                  milestones: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: { type: 'string' },
+                        tasks: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              name: { type: 'string' },
+                              status: { type: 'string', enum: ['todo', 'in-progress', 'done'] }
+                            },
+                            required: ['name', 'status']
+                          }
+                        }
+                      },
+                      required: ['name', 'tasks']
+                    }
+                  }
+                },
+                required: ['milestones']
+              }
+            }
+          }
+        },
+        timeline: {
+          prompt: `Based on this product idea: "${productIdea.idea}".
+Create a 4-phase timeline with duration in weeks for each phase.`,
+          tool: {
+            type: 'function',
+            function: {
+              name: 'provide_timeline',
+              description: 'Provide timeline phases',
+              parameters: {
+                type: 'object',
+                properties: {
+                  phases: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: { type: 'string' },
+                        duration: { type: 'number', description: 'Duration in weeks' },
+                        color: { type: 'string', enum: ['violet', 'blue', 'green', 'amber'] }
+                      },
+                      required: ['name', 'duration', 'color']
+                    }
+                  }
+                },
+                required: ['phases']
+              }
+            }
+          }
+        },
+        risksConstraints: {
+          prompt: `Based on this product idea: "${productIdea.idea}".
+Identify 4-5 risks and constraints with impact, likelihood, and mitigation strategies.`,
+          tool: {
+            type: 'function',
+            function: {
+              name: 'provide_risks',
+              description: 'Provide risks and constraints',
+              parameters: {
+                type: 'object',
+                properties: {
+                  items: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        type: { type: 'string', enum: ['risk', 'constraint'] },
+                        title: { type: 'string' },
+                        description: { type: 'string' },
+                        impact: { type: 'string', enum: ['high', 'medium', 'low'] },
+                        likelihood: { type: 'string', enum: ['high', 'medium', 'low'] },
+                        mitigation: { type: 'string' }
+                      },
+                      required: ['type', 'title', 'description', 'impact', 'likelihood', 'mitigation']
+                    }
+                  }
+                },
+                required: ['items']
+              }
+            }
+          }
+        },
+        technicalSolution: {
+          prompt: `Based on this product idea: "${productIdea.idea}".
+Provide a technical architecture overview including frontend, backend, database, and key integrations.`,
+          tool: {
+            type: 'function',
+            function: {
+              name: 'provide_technical',
+              description: 'Provide technical solution',
+              parameters: {
+                type: 'object',
+                properties: {
+                  solution: { type: 'string', description: 'Markdown formatted technical solution' }
+                },
+                required: ['solution']
+              }
+            }
+          }
+        }
+      };
+
+      const scopeConfig = scopePrompts[section];
+      console.log(`Generating structured suggestions for scope section: ${section}`);
+
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: 'You are an expert product strategist helping create structured project documentation.' },
+            { role: 'user', content: scopeConfig.prompt }
+          ],
+          tools: [scopeConfig.tool],
+          tool_choice: { type: 'function', function: { name: scopeConfig.tool.function.name } }
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        if (response.status === 402) {
+          return new Response(
+            JSON.stringify({ error: 'AI usage limit reached. Please add credits to continue.' }),
+            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const errorText = await response.text();
+        console.error('AI Gateway error:', response.status, errorText);
+        throw new Error(`AI Gateway returned ${response.status}`);
+      }
+
+      const aiData = await response.json();
+      console.log('AI Response for scope:', JSON.stringify(aiData));
+      
+      const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+      if (toolCall?.function?.arguments) {
+        const result = JSON.parse(toolCall.function.arguments);
+        return new Response(
+          JSON.stringify({ suggestions: result, section }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     // Original canvas section suggestions
     const sectionPrompts: Record<string, string> = {
       problem: `List 2-3 top problems that ${productIdea.audience} face related to: ${productIdea.problem}. Be specific and actionable.`,
