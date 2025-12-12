@@ -272,11 +272,12 @@ const Canvas = () => {
             const milestones = suggestions.milestones.map((m: any) => ({
               id: crypto.randomUUID(),
               name: m.name,
-              isExpanded: true,
+              collapsed: false,
               tasks: m.tasks.map((t: any) => ({
                 id: crypto.randomUUID(),
-                name: t.name,
-                status: t.status,
+                title: t.name,
+                status: t.status || 'todo',
+                priority: 'medium' as const,
               })),
             }));
             setScopeData(prev => ({ ...prev, milestones }));
