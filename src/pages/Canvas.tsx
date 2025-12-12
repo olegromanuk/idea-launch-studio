@@ -258,12 +258,14 @@ const Canvas = () => {
             }));
             setScopeData(prev => ({ ...prev, userStories: stories }));
           } else if (section === 'featureScope' && suggestions.features) {
+            // Map effort values from AI (low/medium/high) to component (small/medium/large)
+            const effortMap: Record<string, string> = { low: 'small', medium: 'medium', high: 'large' };
             const features = suggestions.features.map((f: any) => ({
               id: crypto.randomUUID(),
               name: f.name,
               description: f.description,
               category: f.category,
-              effort: f.effort,
+              effort: effortMap[f.effort] || 'medium',
             }));
             setScopeData(prev => ({ ...prev, features }));
           } else if (section === 'taskBreakdown' && suggestions.milestones) {
