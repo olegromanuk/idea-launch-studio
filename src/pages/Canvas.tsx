@@ -9,6 +9,7 @@ import { TeamChat } from "@/components/canvas/TeamChat";
 import { AIChat } from "@/components/canvas/AIChat";
 import { CelebrationModal } from "@/components/canvas/CelebrationModal";
 import { ValidationModal } from "@/components/canvas/ValidationModal";
+import { Roadmap } from "@/components/canvas/Roadmap";
 import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportToText, exportToPDF } from "@/lib/exportUtils";
@@ -546,6 +547,23 @@ const Canvas = () => {
                           isGenerating={loadingSection === section.key}
                         />
                       ))}
+                    </div>
+                  )}
+
+                  {/* Show Roadmap after Business Analysis is validated */}
+                  {tab.id === "business" && validatedBlocks.has("business") && (
+                    <div className="mt-8">
+                      <Roadmap
+                        projectData={projectData}
+                        businessAnalysisComplete={true}
+                        onPhaseClick={(phaseId) => {
+                          if (phaseId === "mvp") {
+                            setActiveTab("development");
+                          } else if (phaseId === "launch" || phaseId === "growth") {
+                            setActiveTab("gtm");
+                          }
+                        }}
+                      />
                     </div>
                   )}
                 </TabsContent>
