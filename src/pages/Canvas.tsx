@@ -483,7 +483,13 @@ const Canvas = () => {
 
               {canvasTabs.map((tab) => {
                 const isLocked = isBlockLocked(tab.id);
-                const previousBlockName = tab.id === "development" ? "Business Logic" : "Development";
+                const getPreviousBlockNameForContent = (tabId: string) => {
+                  if (tabId === "scope") return "Business Logic";
+                  if (tabId === "development") return "Scope & Planning";
+                  if (tabId === "gtm") return "Development";
+                  return "";
+                };
+                const previousBlockName = getPreviousBlockNameForContent(tab.id);
                 
                 return (
                 <TabsContent key={tab.id} value={tab.id} className="space-y-8">
@@ -639,18 +645,14 @@ const Canvas = () => {
                     </div>
                   )}
 
-                  {/* Show Roadmap after Business Analysis is validated */}
+                  {/* Show Roadmap after any block is validated */}
                   {tab.id === "business" && validatedBlocks.has("business") && (
                     <div className="mt-8">
                       <Roadmap
                         projectData={projectData}
-                        businessAnalysisComplete={true}
-                        onPhaseClick={(phaseId) => {
-                          if (phaseId === "mvp") {
-                            setActiveTab("development");
-                          } else if (phaseId === "launch" || phaseId === "growth") {
-                            setActiveTab("gtm");
-                          }
+                        validatedBlocks={validatedBlocks}
+                        onPhaseClick={(tabId) => {
+                          setActiveTab(tabId);
                         }}
                       />
                     </div>
