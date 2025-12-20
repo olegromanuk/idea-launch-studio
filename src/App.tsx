@@ -11,6 +11,8 @@ import Onboarding from "./pages/Onboarding";
 import Canvas from "./pages/Canvas";
 import Dashboard from "./pages/Dashboard";
 import Board from "./pages/Board";
+import MySubmissions from "./pages/MySubmissions";
+import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,8 @@ const App = () => (
             <Route path="/canvas" element={<Canvas />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/board" element={<Board />} />
+            <Route path="/my-submissions" element={<MySubmissions />} />
+            <Route path="/admin" element={<AdminPanel />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
