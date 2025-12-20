@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, Send, Bot, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { MarkdownContent } from "./MarkdownContent";
 
 interface Message {
   id: string;
@@ -218,7 +219,11 @@ export const AIChat = ({ isOpen, onClose, canvasContext, embedded = false }: AIC
                     : "bg-gradient-to-br from-muted to-muted/80 text-foreground border border-border/50"
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                {message.sender === "user" ? (
+                  <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                ) : (
+                  <MarkdownContent content={message.text} />
+                )}
                 <span className="text-xs opacity-70 mt-1 block">
                   {message.timestamp.toLocaleTimeString([], {
                     hour: "2-digit",
