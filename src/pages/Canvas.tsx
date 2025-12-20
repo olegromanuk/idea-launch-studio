@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -16,13 +16,14 @@ import { TasksMilestones } from "@/components/canvas/scope/TasksMilestones";
 import { TimelineEstimates } from "@/components/canvas/scope/TimelineEstimates";
 import { RisksConstraints } from "@/components/canvas/scope/RisksConstraints";
 import { TechnicalSolution } from "@/components/canvas/scope/TechnicalSolution";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList } from "lucide-react";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportToText, exportToPDF } from "@/lib/exportUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CanvasSection {
   key: string;
@@ -40,6 +41,8 @@ interface CanvasTab {
 const Canvas = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [projectId, setProjectId] = useState<string | null>(null);
   const [projectData, setProjectData] = useState<any>(null);
   const [loadingSection, setLoadingSection] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -145,11 +148,15 @@ const Canvas = () => {
   ];
 
   useEffect(() => {
+    const storedProjectId = localStorage.getItem("currentProjectId");
     const data = localStorage.getItem("productIdea");
+    
     if (!data) {
-      navigate("/");
+      navigate("/projects");
       return;
     }
+    
+    setProjectId(storedProjectId);
     setProjectData(JSON.parse(data));
     
     // Load saved canvas data if exists
@@ -177,20 +184,35 @@ const Canvas = () => {
     }
   }, [navigate]);
 
-  // Save scope data
+  // Save scope data locally and to DB
   useEffect(() => {
     localStorage.setItem("scopeData", JSON.stringify(scopeData));
   }, [scopeData]);
 
+  // Save canvas data locally and to database
   useEffect(() => {
-    // Auto-save canvas data
     localStorage.setItem("multiCanvas", JSON.stringify(canvasData));
+
+    // Save to database if we have a project ID and user
+    if (projectId && user) {
+      const saveToDb = async () => {
+        await supabase
+          .from("projects")
+          .update({ 
+            canvas_data: { ...canvasData, scopeData },
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", projectId);
+      };
+      // Debounce the save
+      const timeout = setTimeout(saveToDb, 1000);
+      return () => clearTimeout(timeout);
+    }
 
     // Check for newly completed blocks
     canvasTabs.forEach((tab) => {
       const progress = calculateCanvasProgress(tab.id);
       if (progress === 100 && !completedBlocks.has(tab.id)) {
-        // Block just completed!
         setCelebrationBlock({ id: tab.id, title: tab.title });
         const newCompleted = new Set(completedBlocks);
         newCompleted.add(tab.id);
@@ -198,7 +220,7 @@ const Canvas = () => {
         localStorage.setItem("completedBlocks", JSON.stringify([...newCompleted]));
       }
     });
-  }, [canvasData]);
+  }, [canvasData, scopeData, projectId, user]);
 
   const handleExportPDF = () => {
     exportToPDF(canvasData, canvasTabs, projectData?.idea || "Product Canvas");
@@ -416,10 +438,10 @@ const Canvas = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/projects")}
                 className="hover-scale"
               >
-                <Home className="w-5 h-5" />
+                <FolderOpen className="w-5 h-5" />
               </Button>
               <div>
                 <h2 className="font-semibold text-foreground">

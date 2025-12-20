@@ -1,15 +1,18 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Rocket, Target, Users, Lightbulb, ArrowLeft, Building2, Layers, Monitor, Upload, X } from "lucide-react";
+import { Sparkles, Rocket, Target, Users, Lightbulb, ArrowLeft, Building2, Layers, Monitor, Upload, X, Loader2 } from "lucide-react";
 import { IdeaSelector } from "@/components/onboarding/IdeaSelector";
 import { PersonaSelector, PersonaType } from "@/components/onboarding/PersonaSelector";
 import { JourneyInfographic } from "@/components/onboarding/JourneyInfographic";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 type IdeaStage = "new" | "existing" | "wireframes";
 type Platform = "web" | "mobile" | "desktop";
@@ -28,10 +31,13 @@ const PLATFORM_OPTIONS = [
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(null);
   const [showIdeaSelector, setShowIdeaSelector] = useState(false);
   const [showJourneyInfographic, setShowJourneyInfographic] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
     business: "",
     idea: "",
@@ -41,6 +47,13 @@ const Onboarding = () => {
     platforms: [] as Platform[],
     wireframeFiles: [] as File[],
   });
+
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
 
   const personaConfig = {
     enterprise: {
@@ -82,14 +95,54 @@ const Onboarding = () => {
     localStorage.setItem("userPersona", persona);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem("productIdea", JSON.stringify({
-      ...formData,
-      persona: selectedPersona,
-      wireframeFiles: formData.wireframeFiles.map(f => f.name),
-    }));
-    setShowJourneyInfographic(true);
+    
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    setIsCreating(true);
+    
+    try {
+      // Create project in database
+      const { data: project, error } = await supabase
+        .from("projects")
+        .insert({
+          user_id: user.id,
+          name: formData.idea.substring(0, 50) || "Untitled Project",
+          product_idea: formData.idea,
+          persona: selectedPersona,
+          target_audience: formData.audience,
+          key_problem: formData.problem,
+          canvas_data: {},
+          progress: {},
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Store in localStorage for Canvas page compatibility
+      localStorage.setItem("currentProjectId", project.id);
+      localStorage.setItem("productIdea", JSON.stringify({
+        ...formData,
+        persona: selectedPersona,
+        wireframeFiles: formData.wireframeFiles.map(f => f.name),
+      }));
+      
+      setShowJourneyInfographic(true);
+    } catch (error) {
+      console.error("Error creating project:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create project. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleJourneyContinue = () => {
@@ -384,22 +437,25 @@ const Onboarding = () => {
               <div className="pt-4">
                 <Button
                   type="submit"
-                  disabled={!isFormValid}
+                  disabled={!isFormValid || isCreating}
                   className="w-full h-12 gradient-primary text-white font-semibold hover-glow"
                 >
-                  Start Building
-                  <Sparkles className="ml-2 w-4 h-4" />
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                      Creating Project...
+                    </>
+                  ) : (
+                    <>
+                      Start Building
+                      <Sparkles className="ml-2 w-4 h-4" />
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
           )}
         </Card>
-
-        <div className="mt-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            No login required • Free to explore • AI-powered guidance
-          </p>
-        </div>
       </div>
     </div>
   );
