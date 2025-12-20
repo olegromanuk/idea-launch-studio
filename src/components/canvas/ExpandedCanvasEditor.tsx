@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { TeamChat } from "./TeamChat";
 import { AIChat } from "./AIChat";
+import { MarkdownContent } from "./MarkdownContent";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -179,9 +180,7 @@ export const ExpandedCanvasEditor = ({
                       </Badge>
                     </div>
                     <div className="bg-muted/50 rounded-lg p-4 border border-border space-y-3">
-                      <div className="text-sm text-foreground whitespace-pre-wrap">
-                        {aiSuggestion}
-                      </div>
+                      <MarkdownContent content={aiSuggestion} />
                       <div className="flex gap-2">
                         <Button
                           size="sm"
