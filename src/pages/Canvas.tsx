@@ -274,28 +274,34 @@ const Canvas = () => {
           const suggestions = data.suggestions;
           
           if (section === 'userStories' && suggestions.stories) {
-            const stories = suggestions.stories.map((s: any) => ({
+            const newStories = suggestions.stories.map((s: any) => ({
               id: crypto.randomUUID(),
               persona: s.persona,
               action: s.action,
               benefit: s.benefit,
               priority: s.priority,
               completed: false,
+              status: "backlog" as const,
+              acceptanceCriteria: [],
+              labels: [],
+              storyPoints: 0,
             }));
-            setScopeData(prev => ({ ...prev, userStories: stories }));
+            // APPEND to existing stories instead of replacing
+            setScopeData(prev => ({ ...prev, userStories: [...prev.userStories, ...newStories] }));
           } else if (section === 'featureScope' && suggestions.features) {
             // Map effort values from AI (low/medium/high) to component (small/medium/large)
             const effortMap: Record<string, string> = { low: 'small', medium: 'medium', high: 'large' };
-            const features = suggestions.features.map((f: any) => ({
+            const newFeatures = suggestions.features.map((f: any) => ({
               id: crypto.randomUUID(),
               name: f.name,
               description: f.description,
               category: f.category,
               effort: effortMap[f.effort] || 'medium',
             }));
-            setScopeData(prev => ({ ...prev, features }));
+            // APPEND to existing features instead of replacing
+            setScopeData(prev => ({ ...prev, features: [...prev.features, ...newFeatures] }));
           } else if (section === 'taskBreakdown' && suggestions.milestones) {
-            const milestones = suggestions.milestones.map((m: any) => ({
+            const newMilestones = suggestions.milestones.map((m: any) => ({
               id: crypto.randomUUID(),
               name: m.name,
               collapsed: false,
@@ -306,17 +312,19 @@ const Canvas = () => {
                 priority: 'medium' as const,
               })),
             }));
-            setScopeData(prev => ({ ...prev, milestones }));
+            // APPEND to existing milestones instead of replacing
+            setScopeData(prev => ({ ...prev, milestones: [...prev.milestones, ...newMilestones] }));
           } else if (section === 'timeline' && suggestions.phases) {
-            const timeline = suggestions.phases.map((p: any) => ({
+            const newTimeline = suggestions.phases.map((p: any) => ({
               id: crypto.randomUUID(),
               name: p.name,
               duration: p.duration,
               color: p.color,
             }));
-            setScopeData(prev => ({ ...prev, timeline }));
+            // APPEND to existing timeline instead of replacing
+            setScopeData(prev => ({ ...prev, timeline: [...prev.timeline, ...newTimeline] }));
           } else if (section === 'risksConstraints' && suggestions.items) {
-            const risks = suggestions.items.map((r: any) => ({
+            const newRisks = suggestions.items.map((r: any) => ({
               id: crypto.randomUUID(),
               type: r.type,
               title: r.title,
@@ -325,7 +333,8 @@ const Canvas = () => {
               likelihood: r.likelihood,
               mitigation: r.mitigation,
             }));
-            setScopeData(prev => ({ ...prev, risks }));
+            // APPEND to existing risks instead of replacing
+            setScopeData(prev => ({ ...prev, risks: [...prev.risks, ...newRisks] }));
           } else if (section === 'technicalSolution' && suggestions.solution) {
             setScopeData(prev => ({ ...prev, technicalSolution: suggestions.solution }));
           }
