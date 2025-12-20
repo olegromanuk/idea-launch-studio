@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { AuthButton } from "@/components/auth/AuthButton";
+import { AuthPromptModal } from "@/components/auth/AuthPromptModal";
 
 type IdeaStage = "new" | "existing" | "wireframes";
 type Platform = "web" | "mobile" | "desktop";
@@ -31,13 +33,15 @@ const PLATFORM_OPTIONS = [
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(null);
   const [showIdeaSelector, setShowIdeaSelector] = useState(false);
   const [showJourneyInfographic, setShowJourneyInfographic] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [pendingProjectData, setPendingProjectData] = useState<any>(null);
   const [formData, setFormData] = useState({
     business: "",
     idea: "",
@@ -47,13 +51,6 @@ const Onboarding = () => {
     platforms: [] as Platform[],
     wireframeFiles: [] as File[],
   });
-
-  // Redirect to auth if not logged in
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/auth");
-    }
-  }, [user, authLoading, navigate]);
 
   const personaConfig = {
     enterprise: {
@@ -95,43 +92,57 @@ const Onboarding = () => {
     localStorage.setItem("userPersona", persona);
   };
 
+  const saveProjectToDatabase = async (userId: string) => {
+    const projectDataToSave = pendingProjectData || {
+      ...formData,
+      persona: selectedPersona,
+      wireframeFiles: formData.wireframeFiles.map(f => f.name),
+    };
+
+    const { data: project, error } = await supabase
+      .from("projects")
+      .insert({
+        user_id: userId,
+        name: projectDataToSave.idea?.substring(0, 50) || "Untitled Project",
+        product_idea: projectDataToSave.idea,
+        persona: projectDataToSave.persona || selectedPersona,
+        target_audience: projectDataToSave.audience,
+        key_problem: projectDataToSave.problem,
+        canvas_data: {},
+        progress: {},
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    localStorage.setItem("currentProjectId", project.id);
+    return project;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const projectDataForStorage = {
+      ...formData,
+      persona: selectedPersona,
+      wireframeFiles: formData.wireframeFiles.map(f => f.name),
+    };
+
+    // Store locally for Canvas page
+    localStorage.setItem("productIdea", JSON.stringify(projectDataForStorage));
+
     if (!user) {
-      navigate("/auth");
+      // Store pending data and show auth prompt
+      setPendingProjectData(projectDataForStorage);
+      setShowAuthPrompt(true);
       return;
     }
 
     setIsCreating(true);
     
     try {
-      // Create project in database
-      const { data: project, error } = await supabase
-        .from("projects")
-        .insert({
-          user_id: user.id,
-          name: formData.idea.substring(0, 50) || "Untitled Project",
-          product_idea: formData.idea,
-          persona: selectedPersona,
-          target_audience: formData.audience,
-          key_problem: formData.problem,
-          canvas_data: {},
-          progress: {},
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Store in localStorage for Canvas page compatibility
-      localStorage.setItem("currentProjectId", project.id);
-      localStorage.setItem("productIdea", JSON.stringify({
-        ...formData,
-        persona: selectedPersona,
-        wireframeFiles: formData.wireframeFiles.map(f => f.name),
-      }));
-      
+      await saveProjectToDatabase(user.id);
       setShowJourneyInfographic(true);
     } catch (error) {
       console.error("Error creating project:", error);
@@ -143,6 +154,39 @@ const Onboarding = () => {
     } finally {
       setIsCreating(false);
     }
+  };
+
+  const handleAuthSuccess = async () => {
+    setShowAuthPrompt(false);
+    
+    // Wait a moment for the auth state to update
+    setTimeout(async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      if (currentUser && pendingProjectData) {
+        setIsCreating(true);
+        try {
+          await saveProjectToDatabase(currentUser.id);
+          toast({
+            title: "Project saved!",
+            description: "Your project has been saved to your account.",
+          });
+        } catch (error) {
+          console.error("Error saving project:", error);
+        } finally {
+          setIsCreating(false);
+        }
+      }
+      
+      setShowJourneyInfographic(true);
+    }, 500);
+  };
+
+  const handleSkipAuth = () => {
+    setShowAuthPrompt(false);
+    // Continue without saving to database - just use localStorage
+    localStorage.removeItem("currentProjectId"); // Ensure no stale project ID
+    setShowJourneyInfographic(true);
   };
 
   const handleJourneyContinue = () => {
@@ -203,14 +247,28 @@ const Onboarding = () => {
   }
 
   return (
-    <div className="min-h-screen gradient-subtle flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl animate-fade-in-up">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary mb-4 animate-pulse-glow">
-            <Sparkles className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Welcome to Your AI Product Studio
+    <>
+      <AuthPromptModal
+        open={showAuthPrompt}
+        onOpenChange={setShowAuthPrompt}
+        onSuccess={handleAuthSuccess}
+        title="Save Your Project Vision"
+        description="Create an account to save your project and continue later. Don't lose your work!"
+      />
+      
+      <div className="min-h-screen gradient-subtle flex items-center justify-center p-4">
+        {/* Auth button in top right */}
+        <div className="fixed top-4 right-4 z-50">
+          <AuthButton />
+        </div>
+
+        <div className="w-full max-w-3xl animate-fade-in-up">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary mb-4 animate-pulse-glow">
+              <Sparkles className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Welcome to Your AI Product Studio
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Transform your idea into a working product with our guided AI-powered canvas
@@ -458,6 +516,7 @@ const Onboarding = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 

@@ -16,9 +16,10 @@ import { TasksMilestones } from "@/components/canvas/scope/TasksMilestones";
 import { TimelineEstimates } from "@/components/canvas/scope/TimelineEstimates";
 import { RisksConstraints } from "@/components/canvas/scope/RisksConstraints";
 import { TechnicalSolution } from "@/components/canvas/scope/TechnicalSolution";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen } from "lucide-react";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen, LogIn } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportToText, exportToPDF } from "@/lib/exportUtils";
+import { AuthButton } from "@/components/auth/AuthButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -152,7 +153,7 @@ const Canvas = () => {
     const data = localStorage.getItem("productIdea");
     
     if (!data) {
-      navigate("/projects");
+      navigate("/onboarding");
       return;
     }
     
@@ -438,8 +439,9 @@ const Canvas = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate("/projects")}
+                onClick={() => user ? navigate("/projects") : navigate("/onboarding")}
                 className="hover-scale"
+                title={user ? "My Projects" : "New Project"}
               >
                 <FolderOpen className="w-5 h-5" />
               </Button>
@@ -449,10 +451,12 @@ const Canvas = () => {
                 </h2>
                 <p className="text-sm text-muted-foreground">
                   {Math.round(overallProgress)}% complete across all canvases
+                  {!user && <span className="ml-2 text-amber-500">(Not saved)</span>}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
+              <AuthButton />
               <Button
                 variant="outline"
                 size="sm"
