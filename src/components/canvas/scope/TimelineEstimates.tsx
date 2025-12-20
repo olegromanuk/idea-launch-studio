@@ -19,6 +19,7 @@ interface TimelinePhase {
   name: string;
   weeks: number;
   color: string;
+  duration?: number; // Legacy field from AI
 }
 
 interface TimelineEstimatesProps {
@@ -38,7 +39,7 @@ const COLORS = [
 ];
 
 export const TimelineEstimates = ({ 
-  phases, 
+  phases: rawPhases, 
   onChange, 
   onAIGenerate, 
   isGenerating 
@@ -46,7 +47,14 @@ export const TimelineEstimates = ({
   const [isAdding, setIsAdding] = useState(false);
   const [newPhase, setNewPhase] = useState({ name: "", weeks: 2 });
 
-  const totalWeeks = phases.reduce((acc, p) => acc + p.weeks, 0);
+  // Normalize phases to ensure weeks is always a valid number
+  const phases = rawPhases.map(p => ({
+    ...p,
+    weeks: typeof p.weeks === 'number' && !isNaN(p.weeks) ? p.weeks : 
+           (typeof (p as any).duration === 'number' && !isNaN((p as any).duration) ? (p as any).duration : 2)
+  }));
+
+  const totalWeeks = phases.reduce((acc, p) => acc + (p.weeks || 0), 0);
   const totalMonths = Math.ceil(totalWeeks / 4);
 
   const addPhase = () => {
