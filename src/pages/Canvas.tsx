@@ -391,6 +391,27 @@ const Canvas = () => {
     const tab = canvasTabs.find(t => t.id === tabId);
     if (!tab) return 0;
     
+    // Special handling for Scope tab which uses scopeData instead of canvasData
+    if (tabId === "scope") {
+      const scopeFields = [
+        { key: "userStories", data: scopeData.userStories },
+        { key: "featureScope", data: scopeData.features },
+        { key: "taskBreakdown", data: scopeData.milestones },
+        { key: "technicalSolution", data: scopeData.technicalSolution },
+        { key: "risksConstraints", data: scopeData.risks },
+        { key: "timeline", data: scopeData.timeline },
+      ];
+      
+      const filledSections = scopeFields.filter(field => {
+        if (typeof field.data === 'string') {
+          return field.data.trim().length > 0;
+        }
+        return Array.isArray(field.data) && field.data.length > 0;
+      });
+      
+      return (filledSections.length / scopeFields.length) * 100;
+    }
+    
     const filledSections = tab.sections.filter(section => {
       const value = canvasData[section.key as keyof typeof canvasData];
       return value && value.trim().length > 0;
@@ -400,12 +421,39 @@ const Canvas = () => {
   };
 
   const calculateOverallProgress = () => {
-    const allSections = canvasTabs.flatMap(tab => tab.sections);
-    const filledSections = allSections.filter(section => {
-      const value = canvasData[section.key as keyof typeof canvasData];
-      return value && value.trim().length > 0;
+    // Calculate progress for each tab type
+    let totalSections = 0;
+    let filledSections = 0;
+    
+    canvasTabs.forEach(tab => {
+      if (tab.id === "scope") {
+        // Scope tab uses scopeData
+        const scopeFields = [
+          scopeData.userStories,
+          scopeData.features,
+          scopeData.milestones,
+          scopeData.technicalSolution,
+          scopeData.risks,
+          scopeData.timeline,
+        ];
+        totalSections += scopeFields.length;
+        filledSections += scopeFields.filter(field => {
+          if (typeof field === 'string') return field.trim().length > 0;
+          return Array.isArray(field) && field.length > 0;
+        }).length;
+      } else {
+        // Other tabs use canvasData
+        tab.sections.forEach(section => {
+          totalSections++;
+          const value = canvasData[section.key as keyof typeof canvasData];
+          if (value && value.trim().length > 0) {
+            filledSections++;
+          }
+        });
+      }
     });
-    return (filledSections.length / allSections.length) * 100;
+    
+    return totalSections > 0 ? (filledSections / totalSections) * 100 : 0;
   };
 
   const handleValidateBlock = (blockId: string) => {
