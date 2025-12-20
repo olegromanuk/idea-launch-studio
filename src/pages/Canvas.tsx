@@ -16,7 +16,8 @@ import { TasksMilestones } from "@/components/canvas/scope/TasksMilestones";
 import { TimelineEstimates } from "@/components/canvas/scope/TimelineEstimates";
 import { RisksConstraints } from "@/components/canvas/scope/RisksConstraints";
 import { TechnicalSolution } from "@/components/canvas/scope/TechnicalSolution";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen, LogIn } from "lucide-react";
+import { ScopeBlockCard } from "@/components/canvas/scope/ScopeBlockCard";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen, LogIn, Users, Layers, ListTodo, Clock, AlertTriangle, Cpu } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportToText, exportToPDF } from "@/lib/exportUtils";
 import { AuthButton } from "@/components/auth/AuthButton";
@@ -738,8 +739,30 @@ const Canvas = () => {
                       </div>
                     </div>
                   ) : tab.id === "scope" ? (
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      {/* User Stories Block */}
+                      <ScopeBlockCard
+                        title="User Stories"
+                        subtitle="High-level user journey and acceptance criteria"
+                        icon={Users}
+                        gradient="from-blue-500 to-cyan-500"
+                        itemCount={scopeData.userStories.length}
+                        completedCount={scopeData.userStories.filter(s => s.completed).length}
+                        onAIGenerate={() => generateSuggestions("userStories")}
+                        isGenerating={loadingSection === "userStories"}
+                        summaryContent={
+                          <div className="space-y-1">
+                            {scopeData.userStories.slice(0, 3).map((story, i) => (
+                              <p key={i} className="text-sm text-muted-foreground truncate">
+                                <span className="font-medium text-foreground">As a {story.persona}</span>, I want to {story.action}
+                              </p>
+                            ))}
+                            {scopeData.userStories.length > 3 && (
+                              <p className="text-xs text-primary">+{scopeData.userStories.length - 3} more stories</p>
+                            )}
+                          </div>
+                        }
+                      >
                         <UserStoriesList
                           stories={scopeData.userStories}
                           onChange={(stories) => setScopeData({ ...scopeData, userStories: stories })}
@@ -747,41 +770,158 @@ const Canvas = () => {
                           isGenerating={loadingSection === "userStories"}
                           projectContext={projectData}
                         />
+                      </ScopeBlockCard>
+
+                      {/* Feature Scope Block */}
+                      <ScopeBlockCard
+                        title="Scope of Features"
+                        subtitle="Define MVP features vs nice-to-haves"
+                        icon={Layers}
+                        gradient="from-emerald-500 to-teal-500"
+                        itemCount={scopeData.features.length}
+                        completedCount={scopeData.features.filter(f => f.category === "mvp").length}
+                        onAIGenerate={() => generateSuggestions("featureScope")}
+                        isGenerating={loadingSection === "featureScope"}
+                        summaryContent={
+                          <div className="flex flex-wrap gap-2">
+                            {scopeData.features.slice(0, 5).map((feature, i) => (
+                              <span key={i} className="inline-flex items-center px-2 py-1 rounded-md bg-background text-xs font-medium">
+                                {feature.name}
+                              </span>
+                            ))}
+                            {scopeData.features.length > 5 && (
+                              <span className="text-xs text-primary">+{scopeData.features.length - 5} more</span>
+                            )}
+                          </div>
+                        }
+                      >
                         <FeatureScope
                           features={scopeData.features}
                           onChange={(features) => setScopeData({ ...scopeData, features })}
                           onAIGenerate={() => generateSuggestions("featureScope")}
                           isGenerating={loadingSection === "featureScope"}
                         />
-                      </div>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      </ScopeBlockCard>
+
+                      {/* Tasks & Milestones Block */}
+                      <ScopeBlockCard
+                        title="Tasks & Milestones"
+                        subtitle="Break down work into actionable tasks"
+                        icon={ListTodo}
+                        gradient="from-violet-500 to-purple-500"
+                        itemCount={scopeData.milestones.length}
+                        completedCount={scopeData.milestones.filter(m => m.tasks?.every((t: any) => t.status === "done")).length}
+                        onAIGenerate={() => generateSuggestions("taskBreakdown")}
+                        isGenerating={loadingSection === "taskBreakdown"}
+                        summaryContent={
+                          <div className="space-y-1">
+                            {scopeData.milestones.slice(0, 3).map((milestone, i) => (
+                              <div key={i} className="flex items-center justify-between text-sm">
+                                <span className="font-medium text-foreground">{milestone.name}</span>
+                                <span className="text-muted-foreground text-xs">{milestone.tasks?.length || 0} tasks</span>
+                              </div>
+                            ))}
+                            {scopeData.milestones.length > 3 && (
+                              <p className="text-xs text-primary">+{scopeData.milestones.length - 3} more milestones</p>
+                            )}
+                          </div>
+                        }
+                      >
                         <TasksMilestones
                           milestones={scopeData.milestones}
                           onChange={(milestones) => setScopeData({ ...scopeData, milestones })}
                           onAIGenerate={() => generateSuggestions("taskBreakdown")}
                           isGenerating={loadingSection === "taskBreakdown"}
                         />
-                        <TimelineEstimates
-                          phases={scopeData.timeline}
-                          onChange={(timeline) => setScopeData({ ...scopeData, timeline })}
-                          onAIGenerate={() => generateSuggestions("timeline")}
-                          isGenerating={loadingSection === "timeline"}
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      </ScopeBlockCard>
+
+                      {/* Technical Solution Block */}
+                      <ScopeBlockCard
+                        title="Technical Solution"
+                        subtitle="Architecture and technology decisions"
+                        icon={Cpu}
+                        gradient="from-slate-500 to-zinc-600"
+                        itemCount={scopeData.technicalSolution ? 1 : 0}
+                        completedCount={scopeData.technicalSolution ? 1 : 0}
+                        onAIGenerate={() => generateSuggestions("technicalSolution")}
+                        isGenerating={loadingSection === "technicalSolution"}
+                        summaryContent={
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {scopeData.technicalSolution || "No technical solution defined yet"}
+                          </p>
+                        }
+                      >
                         <TechnicalSolution
                           value={scopeData.technicalSolution}
                           onChange={(value) => setScopeData({ ...scopeData, technicalSolution: value })}
                           onAIGenerate={() => generateSuggestions("technicalSolution")}
                           isGenerating={loadingSection === "technicalSolution"}
                         />
+                      </ScopeBlockCard>
+
+                      {/* Risks & Constraints Block */}
+                      <ScopeBlockCard
+                        title="Risks & Constraints"
+                        subtitle="Identify blockers and mitigation plans"
+                        icon={AlertTriangle}
+                        gradient="from-amber-500 to-orange-500"
+                        itemCount={scopeData.risks.length}
+                        completedCount={scopeData.risks.filter(r => r.mitigation).length}
+                        onAIGenerate={() => generateSuggestions("risksConstraints")}
+                        isGenerating={loadingSection === "risksConstraints"}
+                        summaryContent={
+                          <div className="space-y-1">
+                            {scopeData.risks.slice(0, 3).map((risk, i) => (
+                              <div key={i} className="flex items-center gap-2 text-sm">
+                                <span className={`w-2 h-2 rounded-full ${risk.impact === "high" ? "bg-red-500" : risk.impact === "medium" ? "bg-amber-500" : "bg-green-500"}`} />
+                                <span className="text-muted-foreground truncate">{risk.title}</span>
+                              </div>
+                            ))}
+                            {scopeData.risks.length > 3 && (
+                              <p className="text-xs text-primary">+{scopeData.risks.length - 3} more items</p>
+                            )}
+                          </div>
+                        }
+                      >
                         <RisksConstraints
                           items={scopeData.risks}
                           onChange={(risks) => setScopeData({ ...scopeData, risks })}
                           onAIGenerate={() => generateSuggestions("risksConstraints")}
                           isGenerating={loadingSection === "risksConstraints"}
                         />
-                      </div>
+                      </ScopeBlockCard>
+
+                      {/* Timeline & Estimates Block */}
+                      <ScopeBlockCard
+                        title="Timeline & Estimates"
+                        subtitle="Project phases and delivery schedule"
+                        icon={Clock}
+                        gradient="from-rose-500 to-pink-500"
+                        itemCount={scopeData.timeline.length}
+                        completedCount={scopeData.timeline.length}
+                        onAIGenerate={() => generateSuggestions("timeline")}
+                        isGenerating={loadingSection === "timeline"}
+                        summaryContent={
+                          <div className="flex items-center gap-2">
+                            {scopeData.timeline.slice(0, 4).map((phase, i) => (
+                              <div key={i} className="flex items-center gap-1 px-2 py-1 rounded-md bg-background text-xs">
+                                <span className="font-medium">{phase.name}</span>
+                                <span className="text-muted-foreground">({phase.duration})</span>
+                              </div>
+                            ))}
+                            {scopeData.timeline.length > 4 && (
+                              <span className="text-xs text-primary">+{scopeData.timeline.length - 4} more</span>
+                            )}
+                          </div>
+                        }
+                      >
+                        <TimelineEstimates
+                          phases={scopeData.timeline}
+                          onChange={(timeline) => setScopeData({ ...scopeData, timeline })}
+                          onAIGenerate={() => generateSuggestions("timeline")}
+                          isGenerating={loadingSection === "timeline"}
+                        />
+                      </ScopeBlockCard>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
