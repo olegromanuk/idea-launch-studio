@@ -18,7 +18,8 @@ import { RisksConstraints } from "@/components/canvas/scope/RisksConstraints";
 import { TechnicalSolution } from "@/components/canvas/scope/TechnicalSolution";
 import { ScopeBlockCard } from "@/components/canvas/scope/ScopeBlockCard";
 import { ScopeEditorDrawer } from "@/components/canvas/scope/ScopeEditorDrawer";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen, LogIn, Users, Layers, ListTodo, Clock, AlertTriangle, Cpu } from "lucide-react";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen, LogIn, Users, Layers, ListTodo, Clock, AlertTriangle, Cpu, Map } from "lucide-react";
+import { HorizontalRoadmap } from "@/components/canvas/HorizontalRoadmap";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportToText, exportToPDF } from "@/lib/exportUtils";
 import { AuthButton } from "@/components/auth/AuthButton";
@@ -59,6 +60,7 @@ const Canvas = () => {
   const [validatedBlocks, setValidatedBlocks] = useState<Set<string>>(new Set());
   const [unlockedBlock, setUnlockedBlock] = useState<string | null>(null);
   const [openScopeDrawer, setOpenScopeDrawer] = useState<string | null>(null);
+  const [isRoadmapOpen, setIsRoadmapOpen] = useState(false);
   
   const [canvasData, setCanvasData] = useState({
     // Business Logic
@@ -477,6 +479,15 @@ const Canvas = () => {
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">Dashboard</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsRoadmapOpen(true)}
+                className="hover-lift"
+              >
+                <Map className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Roadmap</span>
               </Button>
               <Button
                 variant="outline"
@@ -1120,6 +1131,15 @@ const Canvas = () => {
         blockTitle={validationBlock?.title || ""}
         progress={validationBlock ? calculateCanvasProgress(validationBlock.id) : 0}
         onValidate={() => validationBlock && handleValidateBlock(validationBlock.id)}
+      />
+
+      {/* Horizontal Roadmap */}
+      <HorizontalRoadmap
+        open={isRoadmapOpen}
+        onOpenChange={setIsRoadmapOpen}
+        projectData={projectData}
+        validatedBlocks={validatedBlocks}
+        onPhaseClick={(tabId) => setActiveTab(tabId)}
       />
     </div>
   );
