@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "@/components/ui/drawer";
-import { Sparkles, X, Check, Trash2, Headphones, MessageSquare, Upload } from "lucide-react";
+import { Sparkles, X, Check, Trash2, Headphones, MessageSquare, Upload, Eye, Edit3 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { TeamChat } from "./TeamChat";
 import { AIChat } from "./AIChat";
@@ -145,12 +146,19 @@ export const ExpandedCanvasEditor = ({
             {/* Main Editor Section */}
             <ScrollArea className={`${activeChatPanel ? 'flex-1' : 'w-full'} transition-all`}>
               <div className="space-y-8 pr-4">
-                {/* Main Editor */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-foreground">
-                      Your Content
-                    </label>
+                {/* Main Editor with Edit/Preview Tabs */}
+                <Tabs defaultValue="edit" className="w-full">
+                  <div className="flex items-center justify-between mb-2">
+                    <TabsList className="grid w-[200px] grid-cols-2">
+                      <TabsTrigger value="edit" className="gap-2">
+                        <Edit3 className="w-3.5 h-3.5" />
+                        Edit
+                      </TabsTrigger>
+                      <TabsTrigger value="preview" className="gap-2">
+                        <Eye className="w-3.5 h-3.5" />
+                        Preview
+                      </TabsTrigger>
+                    </TabsList>
                     <Button
                       variant="outline"
                       size="sm"
@@ -162,13 +170,36 @@ export const ExpandedCanvasEditor = ({
                       {isGenerating ? "Generating..." : "Generate with AI"}
                     </Button>
                   </div>
-                  <Textarea
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-                    placeholder="Type your content here or generate AI suggestions..."
-                    className="min-h-[200px] text-base resize-none"
-                  />
-                </div>
+                  
+                  <TabsContent value="edit" className="mt-0">
+                    <Textarea
+                      value={value}
+                      onChange={(e) => onChange(e.target.value)}
+                      placeholder="Type your content here using Markdown formatting...
+
+**Bold text** with double asterisks
+*Italic text* with single asterisks
+- Bullet points with dashes
+1. Numbered lists
+
+# Heading 1
+## Heading 2"
+                      className="min-h-[300px] text-sm font-mono resize-none"
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="preview" className="mt-0">
+                    <div className="min-h-[300px] p-4 rounded-md border bg-muted/30">
+                      {value ? (
+                        <MarkdownContent content={value} />
+                      ) : (
+                        <p className="text-muted-foreground text-sm italic">
+                          Nothing to preview yet. Switch to Edit tab to add content.
+                        </p>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
 
                 {/* AI Suggestion Section */}
                 {aiSuggestion && (

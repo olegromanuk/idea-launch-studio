@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Maximize2, CheckCircle2, Circle, Lightbulb } from "lucide-react";
+import { Sparkles, Maximize2, CheckCircle2, Circle, Lightbulb, Eye, Edit3 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MarkdownContent } from "./MarkdownContent";
 
 interface CanvasCellProps {
   title: string;
@@ -49,6 +50,7 @@ export const CanvasCell = ({
   index = 0
 }: CanvasCellProps) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const hasContent = value && value.trim().length > 0;
   const sectionKey = title.toLowerCase().replace(/[^a-z]/g, '');
   
@@ -118,6 +120,21 @@ export const CanvasCell = ({
             
             {/* Action buttons */}
             <div className="flex gap-1.5">
+              {hasContent && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsEditing(!isEditing)}
+                  className={cn(
+                    "h-8 w-8 p-0 rounded-lg transition-all duration-200",
+                    "hover:bg-muted",
+                    isEditing ? "bg-muted text-foreground" : "opacity-60 group-hover:opacity-100"
+                  )}
+                  title={isEditing ? "View formatted" : "Edit raw"}
+                >
+                  {isEditing ? <Eye className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -158,19 +175,32 @@ export const CanvasCell = ({
             "relative rounded-xl transition-all duration-300 overflow-hidden",
             isFocused ? "ring-2 ring-primary/30 ring-offset-2 ring-offset-card" : ""
           )}>
-            <Textarea
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholder="Type here or click ✨ for AI suggestions..."
-              className={cn(
-                "min-h-[120px] resize-none text-sm border-0",
-                "bg-muted/50 focus:bg-background",
-                "placeholder:text-muted-foreground/50",
-                "transition-all duration-300"
-              )}
-            />
+            {/* Show textarea when editing or no content, show markdown when viewing */}
+            {isEditing || !hasContent ? (
+              <Textarea
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                onFocus={() => {
+                  setIsFocused(true);
+                  setIsEditing(true);
+                }}
+                onBlur={() => setIsFocused(false)}
+                placeholder="Type here or click ✨ for AI suggestions..."
+                className={cn(
+                  "min-h-[120px] resize-none text-sm border-0",
+                  "bg-muted/50 focus:bg-background",
+                  "placeholder:text-muted-foreground/50",
+                  "transition-all duration-300"
+                )}
+              />
+            ) : (
+              <div 
+                className="min-h-[120px] p-3 bg-muted/30 rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => setIsEditing(true)}
+              >
+                <MarkdownContent content={value} className="line-clamp-6" />
+              </div>
+            )}
             
             {/* Empty state hint */}
             {!hasContent && !isFocused && (
