@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_domains: {
+        Row: {
+          created_at: string
+          domain: string
+          id: string
+          is_active: boolean
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          id?: string
+          is_active?: boolean
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          id?: string
+          is_active?: boolean
+        }
+        Relationships: []
+      }
       board_connections: {
         Row: {
           created_at: string
@@ -97,6 +118,154 @@ export type Database = {
           width?: number
         }
         Relationships: []
+      }
+      dev_submission_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_status: Database["public"]["Enums"]["dev_submission_status"]
+          notes: string | null
+          old_status:
+            | Database["public"]["Enums"]["dev_submission_status"]
+            | null
+          submission_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status: Database["public"]["Enums"]["dev_submission_status"]
+          notes?: string | null
+          old_status?:
+            | Database["public"]["Enums"]["dev_submission_status"]
+            | null
+          submission_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["dev_submission_status"]
+          notes?: string | null
+          old_status?:
+            | Database["public"]["Enums"]["dev_submission_status"]
+            | null
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_submission_status_history_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "dev_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_submissions: {
+        Row: {
+          additional_requirements: string | null
+          assigned_to: string | null
+          cicd_platform: string | null
+          completed_at: string | null
+          created_at: string
+          custom_domain: string | null
+          enable_cicd: boolean
+          enable_monitoring: boolean
+          enable_ssl: boolean
+          enable_testing: boolean
+          environment_type: string | null
+          estimated_completion: string | null
+          github_option: string
+          github_repo_url: string | null
+          github_username: string
+          hosting_notes: string | null
+          hosting_platform: Database["public"]["Enums"]["hosting_platform"]
+          id: string
+          priority: string | null
+          project_description: string | null
+          project_id: string | null
+          project_name: string
+          selected_scope: Json
+          started_at: string | null
+          status: Database["public"]["Enums"]["dev_submission_status"]
+          status_notes: string | null
+          submitted_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          additional_requirements?: string | null
+          assigned_to?: string | null
+          cicd_platform?: string | null
+          completed_at?: string | null
+          created_at?: string
+          custom_domain?: string | null
+          enable_cicd?: boolean
+          enable_monitoring?: boolean
+          enable_ssl?: boolean
+          enable_testing?: boolean
+          environment_type?: string | null
+          estimated_completion?: string | null
+          github_option: string
+          github_repo_url?: string | null
+          github_username: string
+          hosting_notes?: string | null
+          hosting_platform: Database["public"]["Enums"]["hosting_platform"]
+          id?: string
+          priority?: string | null
+          project_description?: string | null
+          project_id?: string | null
+          project_name: string
+          selected_scope?: Json
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["dev_submission_status"]
+          status_notes?: string | null
+          submitted_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          additional_requirements?: string | null
+          assigned_to?: string | null
+          cicd_platform?: string | null
+          completed_at?: string | null
+          created_at?: string
+          custom_domain?: string | null
+          enable_cicd?: boolean
+          enable_monitoring?: boolean
+          enable_ssl?: boolean
+          enable_testing?: boolean
+          environment_type?: string | null
+          estimated_completion?: string | null
+          github_option?: string
+          github_repo_url?: string | null
+          github_username?: string
+          hosting_notes?: string | null
+          hosting_platform?: Database["public"]["Enums"]["hosting_platform"]
+          id?: string
+          priority?: string | null
+          project_description?: string | null
+          project_id?: string | null
+          project_name?: string
+          selected_scope?: Json
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["dev_submission_status"]
+          status_notes?: string | null
+          submitted_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_submissions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -203,9 +372,30 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_by_domain: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
+      dev_submission_status:
+        | "submitted"
+        | "review"
+        | "development"
+        | "testing"
+        | "deployment"
+        | "completed"
+        | "on_hold"
+        | "cancelled"
+      hosting_platform:
+        | "vercel"
+        | "netlify"
+        | "aws"
+        | "azure"
+        | "gcp"
+        | "digitalocean"
+        | "docker"
+        | "kubernetes"
+        | "custom_server"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -334,6 +524,28 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      dev_submission_status: [
+        "submitted",
+        "review",
+        "development",
+        "testing",
+        "deployment",
+        "completed",
+        "on_hold",
+        "cancelled",
+      ],
+      hosting_platform: [
+        "vercel",
+        "netlify",
+        "aws",
+        "azure",
+        "gcp",
+        "digitalocean",
+        "docker",
+        "kubernetes",
+        "custom_server",
+        "other",
+      ],
     },
   },
 } as const
