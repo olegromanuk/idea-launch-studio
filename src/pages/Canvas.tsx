@@ -999,6 +999,7 @@ const Canvas = () => {
                           onChange={(features) => setScopeData({ ...scopeData, features })}
                           onAIGenerate={() => generateSuggestions("featureScope")}
                           isGenerating={loadingSection === "featureScope"}
+                          availableStories={scopeData.userStories}
                         />
                       </ScopeEditorDrawer>
 
