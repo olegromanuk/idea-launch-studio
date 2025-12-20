@@ -317,11 +317,25 @@ const Canvas = () => {
             // APPEND to existing milestones instead of replacing
             setScopeData(prev => ({ ...prev, milestones: [...prev.milestones, ...newMilestones] }));
           } else if (section === 'timeline' && suggestions.phases) {
-            const newTimeline = suggestions.phases.map((p: any) => ({
+            const colorMap: Record<string, string> = {
+              violet: 'from-violet-500 to-purple-500',
+              blue: 'from-blue-500 to-cyan-500',
+              green: 'from-emerald-500 to-teal-500',
+              amber: 'from-amber-500 to-orange-500',
+              rose: 'from-rose-500 to-pink-500',
+              indigo: 'from-indigo-500 to-blue-500',
+            };
+            const defaultColors = [
+              'from-violet-500 to-purple-500',
+              'from-blue-500 to-cyan-500',
+              'from-emerald-500 to-teal-500',
+              'from-amber-500 to-orange-500',
+            ];
+            const newTimeline = suggestions.phases.map((p: any, index: number) => ({
               id: crypto.randomUUID(),
               name: p.name,
-              duration: p.duration,
-              color: p.color,
+              weeks: typeof p.duration === 'number' ? p.duration : parseInt(p.duration) || 2,
+              color: colorMap[p.color] || defaultColors[index % defaultColors.length],
             }));
             // APPEND to existing timeline instead of replacing
             setScopeData(prev => ({ ...prev, timeline: [...prev.timeline, ...newTimeline] }));
