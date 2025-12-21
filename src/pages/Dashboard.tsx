@@ -94,14 +94,14 @@ const Dashboard = () => {
   const calculateBlockProgress = (sections: string[]): number => {
     const filledSections = sections.filter(section => {
       const value = canvasData[section as keyof typeof canvasData];
-      return value && value.trim().length > 0;
+      return typeof value === 'string' && value.trim().length > 0;
     });
     return Math.round((filledSections.length / sections.length) * 100);
   };
 
   const calculateOverallProgress = (): number => {
     const allFields = Object.values(canvasData);
-    const filledFields = allFields.filter(value => value && value.trim().length > 0);
+    const filledFields = allFields.filter(value => typeof value === 'string' && value.trim().length > 0);
     return Math.round((filledFields.length / allFields.length) * 100);
   };
 
@@ -153,9 +153,10 @@ const Dashboard = () => {
           {canvasBlocks.map((block) => {
             const progress = calculateBlockProgress(block.sections);
             const Icon = block.icon;
-            const filledSections = block.sections.filter(s => 
-              canvasData[s as keyof typeof canvasData]?.trim()
-            ).length;
+            const filledSections = block.sections.filter(s => {
+              const value = canvasData[s as keyof typeof canvasData];
+              return typeof value === 'string' && value.trim().length > 0;
+            }).length;
             
             return (
               <Card
