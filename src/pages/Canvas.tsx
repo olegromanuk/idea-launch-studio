@@ -18,7 +18,8 @@ import { RisksConstraints } from "@/components/canvas/scope/RisksConstraints";
 import { TechnicalSolution } from "@/components/canvas/scope/TechnicalSolution";
 import { ScopeBlockCard } from "@/components/canvas/scope/ScopeBlockCard";
 import { ScopeEditorDrawer } from "@/components/canvas/scope/ScopeEditorDrawer";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen, LogIn, Users, Layers, ListTodo, Clock, AlertTriangle, Cpu, Map } from "lucide-react";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen, LogIn, Users, Layers, ListTodo, Clock, AlertTriangle, Cpu, Map, Rocket } from "lucide-react";
+import { DevelopmentSubmissionForm } from "@/components/development/DevelopmentSubmissionForm";
 import { HorizontalRoadmap } from "@/components/canvas/HorizontalRoadmap";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportToText, exportToPDF } from "@/lib/exportUtils";
@@ -1074,6 +1075,33 @@ const Canvas = () => {
                           isGenerating={loadingSection === "timeline"}
                         />
                       </ScopeEditorDrawer>
+                    </div>
+                  ) : tab.id === "development" ? (
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30">
+                          <Rocket className="w-7 h-7 text-primary-foreground" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-foreground">Submit for Development</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Configure your project settings and submit for development
+                          </p>
+                        </div>
+                      </div>
+                      <DevelopmentSubmissionForm
+                        projectId={projectId}
+                        projectData={projectData || {}}
+                        scopeData={scopeData}
+                        canvasData={canvasData}
+                        onSubmitSuccess={() => {
+                          toast({
+                            title: "Submission successful!",
+                            description: "Your project has been submitted for development. You can track progress in My Submissions.",
+                          });
+                          navigate("/my-submissions");
+                        }}
+                      />
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
