@@ -194,11 +194,24 @@ const Projects = () => {
   };
 
   const calculateProgress = (project: Project) => {
-    const progress = project.progress as Record<string, number> | null;
-    if (!progress) return 0;
-    const values = Object.values(progress).filter(v => typeof v === "number");
-    if (values.length === 0) return 0;
-    return Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+    const canvasData = project.canvas_data as Record<string, any> | null;
+    if (!canvasData) return 0;
+    
+    // Define the fields that represent canvas progress (excluding scopeData which is an object)
+    const progressFields = [
+      'problem', 'targetAudience', 'uniqueValueProposition', 'coreFeatures',
+      'userFlow', 'techStack', 'dataRequirements', 'integrations',
+      'securityConsiderations', 'pricingModel', 'revenueModel', 'successMetrics',
+      'acquisitionChannels', 'growthLoops', 'contentStrategy', 'positioning',
+      'marketTrends', 'launchPlan'
+    ];
+    
+    const filledFields = progressFields.filter(field => {
+      const value = canvasData[field];
+      return typeof value === 'string' && value.trim().length > 0;
+    });
+    
+    return Math.round((filledFields.length / progressFields.length) * 100);
   };
 
   const formatDate = (dateString: string) => {
