@@ -43,7 +43,9 @@ import {
   User,
   Github,
   Cloud,
-  Settings
+  Settings,
+  XCircle,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -118,6 +120,7 @@ const AdminPanel = () => {
   const [selectedSubmission, setSelectedSubmission] = useState<DevSubmission | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
 
   // Edit form state
   const [editStatus, setEditStatus] = useState("");
@@ -177,6 +180,41 @@ const AdminPanel = () => {
 
   const handleOpenDetail = (submission: DevSubmission) => {
     navigate(`/admin-panel/submission/${submission.id}`);
+  };
+
+  const handleRejectSubmission = async (submission: DevSubmission, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (submission.status === "cancelled") return;
+    
+    setRejectingId(submission.id);
+    try {
+      const { error } = await supabase
+        .from("dev_submissions")
+        .update({
+          status: "cancelled",
+          status_notes: "Submission rejected/closed by admin",
+        })
+        .eq("id", submission.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Submission rejected",
+        description: `"${submission.project_name}" has been cancelled.`,
+      });
+
+      fetchSubmissions();
+    } catch (error: any) {
+      console.error("Reject error:", error);
+      toast({
+        title: "Failed to reject",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setRejectingId(null);
+    }
   };
 
   const handleUpdateSubmission = async () => {
@@ -402,14 +440,34 @@ const AdminPanel = () => {
                     {formatDate(submission.created_at)}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleOpenDetail(submission)}
-                    >
-                      <Eye className="w-4 h-4 mr-1" />
-                      View
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenDetail(submission)}
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
+                      </Button>
+                      {submission.status !== "cancelled" && submission.status !== "completed" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                          onClick={(e) => handleRejectSubmission(submission, e)}
+                          disabled={rejectingId === submission.id}
+                        >
+                          {rejectingId === submission.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <>
+                              <XCircle className="w-4 h-4 mr-1" />
+                              Reject
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
