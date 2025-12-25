@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { 
   Sparkles, 
   Plus, 
@@ -13,7 +14,9 @@ import {
   Edit2,
   LogOut,
   Loader2,
-  Search
+  Search,
+  Shield,
+  FileText
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +55,7 @@ const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; project: Project | null }>({
     open: false,
     project: null,
@@ -61,6 +65,24 @@ const Projects = () => {
     project: null,
     name: "",
   });
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase.rpc('is_admin_by_domain');
+        if (!error && data) {
+          setIsAdmin(true);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -254,10 +276,34 @@ const Projects = () => {
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
+            <div className="flex items-center gap-2">
+              {isAdmin && (
+                <>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => navigate('/admin-panel')}
+                    className="border-primary/50 text-primary hover:bg-primary/10"
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    Admin Panel
+                    <Badge variant="secondary" className="ml-2 text-xs">Admin</Badge>
+                  </Button>
+                </>
+              )}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/my-submissions')}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                My Submissions
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </header>
