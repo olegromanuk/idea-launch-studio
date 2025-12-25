@@ -239,6 +239,9 @@ const SubmissionDetail = () => {
         description: "Submission has been updated.",
       });
 
+      // Clear the notes field after successful update
+      setEditStatusNotes("");
+
       await fetchSubmission();
     } catch (error: any) {
       console.error("Update error:", error);
@@ -1039,15 +1042,36 @@ const SubmissionDetail = () => {
             </Card>
 
             {/* Status Notes History */}
-            {submission.status_notes && (
+            {(submission.status_notes || submission.assigned_to || submission.estimated_completion) && (
               <Card className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <FileText className="w-5 h-5 text-primary" />
                   <h2 className="text-lg font-semibold">Latest Notes</h2>
                 </div>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {submission.status_notes}
-                </p>
+                <div className="space-y-3">
+                  {submission.assigned_to && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Assigned to:</span>
+                      <span className="font-medium">{submission.assigned_to}</span>
+                    </div>
+                  )}
+                  {submission.estimated_completion && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Est. Completion:</span>
+                      <span className="font-medium">{formatShortDate(submission.estimated_completion)}</span>
+                    </div>
+                  )}
+                  {submission.status_notes && (
+                    <>
+                      {(submission.assigned_to || submission.estimated_completion) && <Separator />}
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {submission.status_notes}
+                      </p>
+                    </>
+                  )}
+                </div>
               </Card>
             )}
           </div>
