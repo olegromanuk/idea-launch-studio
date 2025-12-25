@@ -593,46 +593,88 @@ const SubmissionDetail = () => {
               
               {scope.userStories?.length > 0 ? (
                 <Accordion type="multiple" className="w-full">
-                  {scope.userStories.map((story: any, idx: number) => (
-                    <AccordionItem key={idx} value={`story-${idx}`}>
-                      <AccordionTrigger className="text-sm font-medium hover:no-underline text-left">
-                        <div className="flex items-start gap-2">
-                          <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center text-xs font-bold text-blue-500 shrink-0 mt-0.5">
-                            {idx + 1}
+                  {scope.userStories.map((story: any, idx: number) => {
+                    // Build the user story text from persona/action/benefit format
+                    const storyText = story.persona && story.action 
+                      ? `As a ${story.persona}, I want to ${story.action}${story.benefit ? `, so that ${story.benefit}` : ''}`
+                      : story.story || story.title || story.description || `Story ${idx + 1}`;
+                    
+                    return (
+                      <AccordionItem key={story.id || idx} value={`story-${idx}`}>
+                        <AccordionTrigger className="text-sm font-medium hover:no-underline text-left">
+                          <div className="flex items-start gap-2 w-full">
+                            <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center text-xs font-bold text-blue-500 shrink-0 mt-0.5">
+                              {idx + 1}
+                            </div>
+                            <span className="flex-1 text-left">{storyText}</span>
+                            {story.priority && (
+                              <Badge variant="outline" className="text-xs shrink-0 ml-2">
+                                {story.priority}
+                              </Badge>
+                            )}
                           </div>
-                          <span className="line-clamp-2">
-                            {story.story || story.title || story.description || `Story ${idx + 1}`}
-                          </span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="pl-8 space-y-3">
-                          {story.story && story.title && (
-                            <div>
-                              <Label className="text-muted-foreground text-xs">Full Story</Label>
-                              <p className="text-sm mt-1">{story.story}</p>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="pl-8 space-y-3">
+                            {story.persona && (
+                              <div>
+                                <Label className="text-muted-foreground text-xs">Persona</Label>
+                                <p className="text-sm mt-1">{story.persona}</p>
+                              </div>
+                            )}
+                            {story.action && (
+                              <div>
+                                <Label className="text-muted-foreground text-xs">Action</Label>
+                                <p className="text-sm mt-1">{story.action}</p>
+                              </div>
+                            )}
+                            {story.benefit && (
+                              <div>
+                                <Label className="text-muted-foreground text-xs">Benefit</Label>
+                                <p className="text-sm mt-1">{story.benefit}</p>
+                              </div>
+                            )}
+                            {story.acceptanceCriteria && Array.isArray(story.acceptanceCriteria) && story.acceptanceCriteria.length > 0 && (
+                              <div>
+                                <Label className="text-muted-foreground text-xs">Acceptance Criteria</Label>
+                                <ul className="mt-1 space-y-1">
+                                  {story.acceptanceCriteria.map((criteria: any, cIdx: number) => (
+                                    <li key={cIdx} className="text-sm flex items-start gap-2">
+                                      <CheckCircle2 className="w-3 h-3 text-muted-foreground mt-1 shrink-0" />
+                                      <span>{typeof criteria === 'string' ? criteria : criteria.text || criteria.description}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {story.acceptanceCriteria && typeof story.acceptanceCriteria === 'string' && (
+                              <div>
+                                <Label className="text-muted-foreground text-xs">Acceptance Criteria</Label>
+                                <p className="text-sm mt-1 whitespace-pre-wrap">{story.acceptanceCriteria}</p>
+                              </div>
+                            )}
+                            <div className="flex flex-wrap gap-2 pt-2">
+                              {story.status && (
+                                <Badge variant="outline" className="text-xs">
+                                  Status: {story.status}
+                                </Badge>
+                              )}
+                              {story.storyPoints > 0 && (
+                                <Badge variant="outline" className="text-xs">
+                                  Points: {story.storyPoints}
+                                </Badge>
+                              )}
+                              {story.labels && story.labels.length > 0 && story.labels.map((label: string, lIdx: number) => (
+                                <Badge key={lIdx} variant="secondary" className="text-xs">
+                                  {label}
+                                </Badge>
+                              ))}
                             </div>
-                          )}
-                          {story.acceptanceCriteria && (
-                            <div>
-                              <Label className="text-muted-foreground text-xs">Acceptance Criteria</Label>
-                              <p className="text-sm mt-1 whitespace-pre-wrap">{story.acceptanceCriteria}</p>
-                            </div>
-                          )}
-                          {story.priority && (
-                            <Badge variant="outline" className="text-xs">
-                              Priority: {story.priority}
-                            </Badge>
-                          )}
-                          {story.estimation && (
-                            <Badge variant="outline" className="text-xs ml-2">
-                              Estimation: {story.estimation}
-                            </Badge>
-                          )}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
                 </Accordion>
               ) : (
                 <p className="text-muted-foreground text-sm">No user stories defined</p>
