@@ -1443,7 +1443,7 @@ const Canvas = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-foreground truncate">{adSet.name || "Unnamed Ad Set"}</p>
-                              <p className="text-xs text-muted-foreground">{adSet.platform} • ${adSet.budget.amount || 0}/{adSet.budget.type}</p>
+                              <p className="text-xs text-muted-foreground">{adSet.platform} • ${adSet.budget?.amount || 0}/{adSet.budget?.type || 'daily'}</p>
                             </div>
                             <span className={cn(
                               "text-xs px-2 py-0.5 rounded capitalize",
