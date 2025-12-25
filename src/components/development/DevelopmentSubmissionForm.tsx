@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,12 +28,16 @@ import {
   Layers,
   ChevronRight,
   AlertCircle,
-  User
+  User,
+  ExternalLink,
+  Clock,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface ScopeData {
   userStories: any[];
@@ -54,6 +58,25 @@ interface DevelopmentSubmissionFormProps {
   canvasData: Record<string, string>;
   onSubmitSuccess: () => void;
 }
+
+interface ExistingSubmission {
+  id: string;
+  project_name: string;
+  status: string;
+  created_at: string;
+  submitted_at: string;
+}
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Clock }> = {
+  submitted: { label: "Submitted", color: "bg-blue-500", icon: Clock },
+  review: { label: "In Review", color: "bg-yellow-500", icon: Clock },
+  development: { label: "In Development", color: "bg-purple-500", icon: Code },
+  testing: { label: "Testing", color: "bg-orange-500", icon: Shield },
+  deployment: { label: "Deploying", color: "bg-cyan-500", icon: Rocket },
+  completed: { label: "Completed", color: "bg-green-500", icon: CheckCircle2 },
+  on_hold: { label: "On Hold", color: "bg-gray-500", icon: AlertCircle },
+  cancelled: { label: "Cancelled", color: "bg-red-500", icon: AlertCircle },
+};
 
 const HOSTING_PLATFORMS = [
   { id: "vercel", name: "Vercel", icon: "▲", description: "Fast edge deployment" },
@@ -87,7 +110,10 @@ export const DevelopmentSubmissionForm = ({
 }: DevelopmentSubmissionFormProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [existingSubmission, setExistingSubmission] = useState<ExistingSubmission | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   
   // Form state
@@ -109,6 +135,44 @@ export const DevelopmentSubmissionForm = ({
     priority: "normal" as "low" | "normal" | "high" | "urgent",
     additionalRequirements: "",
   });
+
+  // Check for existing submission on mount
+  useEffect(() => {
+    const checkExistingSubmission = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Check for existing submission for this project
+        const query = supabase
+          .from("dev_submissions")
+          .select("id, project_name, status, created_at, submitted_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+        
+        // If we have a project ID, filter by it; otherwise get most recent
+        if (projectId) {
+          query.eq("project_id", projectId);
+        }
+
+        const { data, error } = await query.limit(1).maybeSingle();
+
+        if (error) {
+          console.error("Error checking existing submission:", error);
+        } else if (data) {
+          setExistingSubmission(data);
+        }
+      } catch (err) {
+        console.error("Error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkExistingSubmission();
+  }, [user, projectId]);
 
   // Selected scope items
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>(
@@ -219,6 +283,111 @@ export const DevelopmentSubmissionForm = ({
     { id: 3, title: "Development Options", icon: Settings },
     { id: 4, title: "Review & Submit", icon: Rocket },
   ];
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+        <Loader2 className="w-8 h-8 animate-spin mb-4" />
+        <p>Checking submission status...</p>
+      </div>
+    );
+  }
+
+  // Show existing submission status
+  if (existingSubmission) {
+    const statusInfo = STATUS_CONFIG[existingSubmission.status] || STATUS_CONFIG.submitted;
+    const StatusIcon = statusInfo.icon;
+
+    return (
+      <div className="space-y-6">
+        <Card className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+          <div className="flex items-start gap-4">
+            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", statusInfo.color)}>
+              <StatusIcon className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-foreground mb-1">
+                Development Request {statusInfo.label}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Your project "<span className="font-medium text-foreground">{existingSubmission.project_name}</span>" 
+                was submitted on {formatDate(existingSubmission.submitted_at)}
+              </p>
+              
+              <div className="flex flex-wrap gap-3">
+                <Button 
+                  onClick={() => navigate("/my-submissions")}
+                  className="gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  View My Submissions
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setExistingSubmission(null)}
+                  className="gap-2"
+                >
+                  <Rocket className="w-4 h-4" />
+                  Submit New Request
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="p-4 bg-muted/50">
+          <h4 className="font-medium mb-3 flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Submission Timeline
+          </h4>
+          <div className="flex items-center gap-2">
+            {Object.entries(STATUS_CONFIG).slice(0, 6).map(([key, config], index) => {
+              const isActive = key === existingSubmission.status;
+              const isPast = Object.keys(STATUS_CONFIG).indexOf(existingSubmission.status) > index;
+              
+              return (
+                <div key={key} className="flex items-center gap-2">
+                  <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all",
+                    isActive && `${config.color} text-white ring-2 ring-offset-2 ring-offset-background`,
+                    isPast && "bg-green-500 text-white",
+                    !isActive && !isPast && "bg-muted text-muted-foreground"
+                  )}>
+                    {isPast ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
+                  </div>
+                  {index < 5 && (
+                    <div className={cn(
+                      "w-8 h-0.5",
+                      isPast ? "bg-green-500" : "bg-muted"
+                    )} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground mt-2">
+            <span>Submitted</span>
+            <span>Review</span>
+            <span>Development</span>
+            <span>Testing</span>
+            <span>Deploy</span>
+            <span>Done</span>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
