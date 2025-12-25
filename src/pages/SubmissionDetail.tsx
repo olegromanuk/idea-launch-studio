@@ -1044,9 +1044,14 @@ const SubmissionDetail = () => {
             {/* Status Notes History */}
             {(submission.status_notes || submission.assigned_to || submission.estimated_completion) && (
               <Card className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <FileText className="w-5 h-5 text-primary" />
-                  <h2 className="text-lg font-semibold">Latest Notes</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-primary" />
+                    <h2 className="text-lg font-semibold">Latest Notes</h2>
+                  </div>
+                  <Badge className={cn("border", STATUS_CONFIG[submission.status]?.color)}>
+                    {STATUS_CONFIG[submission.status]?.label}
+                  </Badge>
                 </div>
                 <div className="space-y-3">
                   {submission.assigned_to && (
