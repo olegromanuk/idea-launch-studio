@@ -351,38 +351,35 @@ export const DevelopmentSubmissionForm = ({
             <Clock className="w-4 h-4" />
             Submission Timeline
           </h4>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between w-full">
             {Object.entries(STATUS_CONFIG).slice(0, 6).map(([key, config], index) => {
               const isActive = key === existingSubmission.status;
               const isPast = Object.keys(STATUS_CONFIG).indexOf(existingSubmission.status) > index;
               
               return (
-                <div key={key} className="flex items-center gap-2">
-                  <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all",
-                    isActive && `${config.color} text-white ring-2 ring-offset-2 ring-offset-background`,
-                    isPast && "bg-green-500 text-white",
-                    !isActive && !isPast && "bg-muted text-muted-foreground"
-                  )}>
-                    {isPast ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
+                <div key={key} className="flex items-center flex-1">
+                  <div className="flex flex-col items-center">
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all",
+                      isActive && `${config.color} text-white ring-2 ring-offset-2 ring-offset-background`,
+                      isPast && "bg-green-500 text-white",
+                      !isActive && !isPast && "bg-muted text-muted-foreground"
+                    )}>
+                      {isPast ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
+                    </div>
+                    <span className="text-xs text-muted-foreground mt-2 text-center">
+                      {["Submitted", "Review", "Dev", "Test", "Deploy", "Done"][index]}
+                    </span>
                   </div>
                   {index < 5 && (
                     <div className={cn(
-                      "w-8 h-0.5",
+                      "flex-1 h-0.5 mx-1",
                       isPast ? "bg-green-500" : "bg-muted"
                     )} />
                   )}
                 </div>
               );
             })}
-          </div>
-          <div className="flex justify-between text-xs text-muted-foreground mt-2">
-            <span>Submitted</span>
-            <span>Review</span>
-            <span>Development</span>
-            <span>Testing</span>
-            <span>Deploy</span>
-            <span>Done</span>
           </div>
         </Card>
       </div>
