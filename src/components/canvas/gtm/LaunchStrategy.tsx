@@ -58,12 +58,15 @@ const DEFAULT_PHASES = [
 ];
 
 export const LaunchStrategy = ({
-  phases,
+  phases = [],
   onChange,
   onAIGenerate,
   isGenerating = false,
 }: LaunchStrategyProps) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  
+  // Ensure phases is always an array
+  const safePhases = Array.isArray(phases) ? phases : [];
 
   const addPhase = () => {
     const newPhase: LaunchPhase = {
@@ -77,20 +80,20 @@ export const LaunchStrategy = ({
       goals: [],
       channels: [],
     };
-    onChange([...phases, newPhase]);
+    onChange([...safePhases, newPhase]);
     setExpandedId(newPhase.id);
   };
 
   const updatePhase = (id: string, updates: Partial<LaunchPhase>) => {
-    onChange(phases.map(p => p.id === id ? { ...p, ...updates } : p));
+    onChange(safePhases.map(p => p.id === id ? { ...p, ...updates } : p));
   };
 
   const deletePhase = (id: string) => {
-    onChange(phases.filter(p => p.id !== id));
+    onChange(safePhases.filter(p => p.id !== id));
   };
 
   const addTask = (phaseId: string) => {
-    const phase = phases.find(p => p.id === phaseId);
+    const phase = safePhases.find(p => p.id === phaseId);
     if (phase) {
       updatePhase(phaseId, {
         tasks: [...phase.tasks, {
@@ -103,7 +106,7 @@ export const LaunchStrategy = ({
   };
 
   const updateTask = (phaseId: string, taskId: string, updates: Partial<LaunchPhase["tasks"][0]>) => {
-    const phase = phases.find(p => p.id === phaseId);
+    const phase = safePhases.find(p => p.id === phaseId);
     if (phase) {
       updatePhase(phaseId, {
         tasks: phase.tasks.map(t => t.id === taskId ? { ...t, ...updates } : t),
@@ -112,7 +115,7 @@ export const LaunchStrategy = ({
   };
 
   const deleteTask = (phaseId: string, taskId: string) => {
-    const phase = phases.find(p => p.id === phaseId);
+    const phase = safePhases.find(p => p.id === phaseId);
     if (phase) {
       updatePhase(phaseId, {
         tasks: phase.tasks.filter(t => t.id !== taskId),
@@ -121,7 +124,7 @@ export const LaunchStrategy = ({
   };
 
   const addGoal = (phaseId: string, goal: string) => {
-    const phase = phases.find(p => p.id === phaseId);
+    const phase = safePhases.find(p => p.id === phaseId);
     if (phase && goal.trim()) {
       updatePhase(phaseId, {
         goals: [...phase.goals, goal.trim()],
@@ -130,7 +133,7 @@ export const LaunchStrategy = ({
   };
 
   const removeGoal = (phaseId: string, index: number) => {
-    const phase = phases.find(p => p.id === phaseId);
+    const phase = safePhases.find(p => p.id === phaseId);
     if (phase) {
       updatePhase(phaseId, {
         goals: phase.goals.filter((_, i) => i !== index),
@@ -139,7 +142,7 @@ export const LaunchStrategy = ({
   };
 
   const addChannel = (phaseId: string, channel: string) => {
-    const phase = phases.find(p => p.id === phaseId);
+    const phase = safePhases.find(p => p.id === phaseId);
     if (phase && channel.trim()) {
       updatePhase(phaseId, {
         channels: [...phase.channels, channel.trim()],
@@ -148,7 +151,7 @@ export const LaunchStrategy = ({
   };
 
   const removeChannel = (phaseId: string, index: number) => {
-    const phase = phases.find(p => p.id === phaseId);
+    const phase = safePhases.find(p => p.id === phaseId);
     if (phase) {
       updatePhase(phaseId, {
         channels: phase.channels.filter((_, i) => i !== index),
@@ -157,8 +160,9 @@ export const LaunchStrategy = ({
   };
 
   const getPhaseProgress = (phase: LaunchPhase) => {
-    if (phase.tasks.length === 0) return 0;
-    return (phase.tasks.filter(t => t.completed).length / phase.tasks.length) * 100;
+    const tasks = phase.tasks || [];
+    if (tasks.length === 0) return 0;
+    return (tasks.filter(t => t.completed).length / tasks.length) * 100;
   };
 
   const getStatusColor = (status: LaunchPhase["status"]) => {
@@ -169,8 +173,8 @@ export const LaunchStrategy = ({
     }
   };
 
-  const overallProgress = phases.length > 0
-    ? phases.reduce((sum, p) => sum + getPhaseProgress(p), 0) / phases.length
+  const overallProgress = safePhases.length > 0
+    ? safePhases.reduce((sum, p) => sum + getPhaseProgress(p), 0) / safePhases.length
     : 0;
 
   return (
@@ -201,7 +205,7 @@ export const LaunchStrategy = ({
       </div>
 
       {/* Overall Progress */}
-      {phases.length > 0 && (
+      {safePhases.length > 0 && (
         <Card className="p-4">
           <div className="flex items-center justify-between mb-2">
             <h4 className="font-medium text-foreground flex items-center gap-2">
@@ -212,14 +216,14 @@ export const LaunchStrategy = ({
           </div>
           <Progress value={overallProgress} className="h-2" />
           <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-            <span>{phases.filter(p => p.status === "completed").length} of {phases.length} phases completed</span>
-            <span>{phases.reduce((sum, p) => sum + p.tasks.filter(t => t.completed).length, 0)} tasks done</span>
+            <span>{safePhases.filter(p => p.status === "completed").length} of {safePhases.length} phases completed</span>
+            <span>{safePhases.reduce((sum, p) => sum + (p.tasks || []).filter(t => t.completed).length, 0)} tasks done</span>
           </div>
         </Card>
       )}
 
       {/* Quick Add Default Phases */}
-      {phases.length === 0 && (
+      {safePhases.length === 0 && (
         <Card className="p-4">
           <h4 className="font-medium text-foreground mb-3">Quick Start: Add Common Phases</h4>
           <div className="flex flex-wrap gap-2">
@@ -240,7 +244,7 @@ export const LaunchStrategy = ({
                     goals: [],
                     channels: [],
                   };
-                  onChange([...phases, newPhase]);
+                  onChange([...safePhases, newPhase]);
                 }}
                 className="gap-2"
               >
@@ -254,7 +258,7 @@ export const LaunchStrategy = ({
 
       {/* Phases List */}
       <div className="space-y-4">
-        {phases.map((phase, index) => {
+        {safePhases.map((phase, index) => {
           const phaseInfo = DEFAULT_PHASES.find(p => phase.name.toLowerCase().includes(p.name.toLowerCase().split(" ")[0])) || DEFAULT_PHASES[0];
           const PhaseIcon = phaseInfo.icon;
           const progress = getPhaseProgress(phase);
@@ -297,7 +301,7 @@ export const LaunchStrategy = ({
                     <div className="flex items-center gap-4">
                       <Progress value={progress} className="flex-1 h-1.5" />
                       <span className="text-xs text-muted-foreground w-12">
-                        {phase.tasks.filter(t => t.completed).length}/{phase.tasks.length}
+                        {(phase.tasks || []).filter(t => t.completed).length}/{(phase.tasks || []).length}
                       </span>
                     </div>
                   </div>
@@ -394,7 +398,7 @@ export const LaunchStrategy = ({
                       </Button>
                     </div>
                     <div className="space-y-2">
-                      {phase.tasks.map((task) => (
+                      {(phase.tasks || []).map((task) => (
                         <div key={task.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
                           <Checkbox
                             checked={task.completed}
@@ -425,7 +429,7 @@ export const LaunchStrategy = ({
                           </Button>
                         </div>
                       ))}
-                      {phase.tasks.length === 0 && (
+                      {(phase.tasks || []).length === 0 && (
                         <p className="text-sm text-muted-foreground text-center py-4">
                           No tasks yet. Add tasks to track progress.
                         </p>
@@ -441,7 +445,7 @@ export const LaunchStrategy = ({
                         Goals
                       </h4>
                       <div className="flex flex-wrap gap-2 mb-2">
-                        {phase.goals.map((goal, i) => (
+                        {(phase.goals || []).map((goal, i) => (
                           <Badge
                             key={i}
                             variant="secondary"
@@ -469,7 +473,7 @@ export const LaunchStrategy = ({
                         Channels
                       </h4>
                       <div className="flex flex-wrap gap-2 mb-2">
-                        {phase.channels.map((channel, i) => (
+                        {(phase.channels || []).map((channel, i) => (
                           <Badge
                             key={i}
                             variant="secondary"
