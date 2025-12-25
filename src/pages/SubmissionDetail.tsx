@@ -94,6 +94,16 @@ interface ProjectData {
   canvas_data: any;
 }
 
+interface StatusHistoryEntry {
+  id: string;
+  submission_id: string;
+  old_status: string | null;
+  new_status: string;
+  notes: string | null;
+  changed_by: string | null;
+  created_at: string;
+}
+
 const STATUS_OPTIONS = [
   { value: "submitted", label: "Submitted" },
   { value: "review", label: "Under Review" },
@@ -131,6 +141,7 @@ const SubmissionDetail = () => {
   
   const [submission, setSubmission] = useState<DevSubmission | null>(null);
   const [project, setProject] = useState<ProjectData | null>(null);
+  const [statusHistory, setStatusHistory] = useState<StatusHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -194,6 +205,17 @@ const SubmissionDetail = () => {
           if (projectData) {
             setProject(projectData);
           }
+        }
+
+        // Fetch status history
+        const { data: historyData } = await supabase
+          .from("dev_submission_status_history")
+          .select("*")
+          .eq("submission_id", id)
+          .order("created_at", { ascending: false });
+        
+        if (historyData) {
+          setStatusHistory(historyData);
         }
       }
     } catch (error: any) {
@@ -1041,44 +1063,100 @@ const SubmissionDetail = () => {
               </div>
             </Card>
 
-            {/* Status Notes History */}
-            {(submission.status_notes || submission.assigned_to || submission.estimated_completion) && (
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-primary" />
-                    <h2 className="text-lg font-semibold">Latest Notes</h2>
+            {/* Status Notes & History */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" />
+                  <h2 className="text-lg font-semibold">Latest Notes</h2>
+                </div>
+                <Badge className={cn("border", STATUS_CONFIG[submission.status]?.color)}>
+                  {STATUS_CONFIG[submission.status]?.label}
+                </Badge>
+              </div>
+              
+              {/* Last Update Time */}
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                <Clock className="w-3 h-3" />
+                <span>Last updated: {formatDate(submission.updated_at)}</span>
+              </div>
+
+              <div className="space-y-3">
+                {submission.assigned_to && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Assigned to:</span>
+                    <span className="font-medium">{submission.assigned_to}</span>
                   </div>
-                  <Badge className={cn("border", STATUS_CONFIG[submission.status]?.color)}>
-                    {STATUS_CONFIG[submission.status]?.label}
-                  </Badge>
-                </div>
-                <div className="space-y-3">
-                  {submission.assigned_to && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Assigned to:</span>
-                      <span className="font-medium">{submission.assigned_to}</span>
-                    </div>
-                  )}
-                  {submission.estimated_completion && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Est. Completion:</span>
-                      <span className="font-medium">{formatShortDate(submission.estimated_completion)}</span>
-                    </div>
-                  )}
-                  {submission.status_notes && (
-                    <>
-                      {(submission.assigned_to || submission.estimated_completion) && <Separator />}
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {submission.status_notes}
-                      </p>
-                    </>
-                  )}
-                </div>
-              </Card>
-            )}
+                )}
+                {submission.estimated_completion && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Est. Completion:</span>
+                    <span className="font-medium">{formatShortDate(submission.estimated_completion)}</span>
+                  </div>
+                )}
+                {submission.status_notes && (
+                  <>
+                    {(submission.assigned_to || submission.estimated_completion) && <Separator />}
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      {submission.status_notes}
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {/* Previous History */}
+              {statusHistory.length > 0 && (
+                <>
+                  <Separator className="my-4" />
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="history" className="border-none">
+                      <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          View Status History ({statusHistory.length} changes)
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-3 pt-2">
+                          {statusHistory.map((entry) => (
+                            <div 
+                              key={entry.id} 
+                              className="p-3 rounded-lg bg-muted/50 border border-border/50"
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  {entry.old_status && (
+                                    <>
+                                      <Badge variant="outline" className="text-xs">
+                                        {STATUS_CONFIG[entry.old_status]?.label || entry.old_status}
+                                      </Badge>
+                                      <ChevronRight className="w-3 h-3 text-muted-foreground" />
+                                    </>
+                                  )}
+                                  <Badge className={cn("text-xs", STATUS_CONFIG[entry.new_status]?.color)}>
+                                    {STATUS_CONFIG[entry.new_status]?.label || entry.new_status}
+                                  </Badge>
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                  {formatShortDate(entry.created_at)}
+                                </span>
+                              </div>
+                              {entry.notes && (
+                                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                                  {entry.notes}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </>
+              )}
+            </Card>
           </div>
         </div>
       </main>
