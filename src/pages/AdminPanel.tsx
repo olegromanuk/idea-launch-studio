@@ -480,18 +480,136 @@ const AdminPanel = () => {
                   </div>
                 </Card>
 
-                {/* Scope */}
+                {/* Scope - Features */}
                 <Card className="p-4">
-                  <h4 className="font-semibold mb-3">Selected Scope</h4>
-                  <div className="text-sm">
-                    <p className="text-muted-foreground">
-                      Features: {selectedSubmission.selected_scope?.features?.length || 0}
-                    </p>
-                    <p className="text-muted-foreground">
-                      User Stories: {selectedSubmission.selected_scope?.userStories?.length || 0}
-                    </p>
-                  </div>
+                  <h4 className="font-semibold mb-3">Selected Features</h4>
+                  {selectedSubmission.selected_scope?.features?.length > 0 ? (
+                    <div className="space-y-3">
+                      {selectedSubmission.selected_scope.features.map((feature: any, idx: number) => (
+                        <div key={idx} className="p-3 bg-muted/50 rounded-lg">
+                          <p className="font-medium text-sm">{feature.title || feature.name || `Feature ${idx + 1}`}</p>
+                          {feature.description && (
+                            <p className="text-xs text-muted-foreground mt-1">{feature.description}</p>
+                          )}
+                          {feature.priority && (
+                            <Badge variant="outline" className="mt-2 text-xs">
+                              {feature.priority}
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No features selected</p>
+                  )}
                 </Card>
+
+                {/* Scope - User Stories */}
+                <Card className="p-4">
+                  <h4 className="font-semibold mb-3">User Stories</h4>
+                  {selectedSubmission.selected_scope?.userStories?.length > 0 ? (
+                    <div className="space-y-3">
+                      {selectedSubmission.selected_scope.userStories.map((story: any, idx: number) => (
+                        <div key={idx} className="p-3 bg-muted/50 rounded-lg">
+                          <p className="text-sm">{story.story || story.title || story.description || `Story ${idx + 1}`}</p>
+                          {story.acceptanceCriteria && (
+                            <div className="mt-2">
+                              <p className="text-xs font-medium text-muted-foreground">Acceptance Criteria:</p>
+                              <p className="text-xs text-muted-foreground">{story.acceptanceCriteria}</p>
+                            </div>
+                          )}
+                          {story.priority && (
+                            <Badge variant="outline" className="mt-2 text-xs">
+                              {story.priority}
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No user stories defined</p>
+                  )}
+                </Card>
+
+                {/* Scope - Technical Solution */}
+                {selectedSubmission.selected_scope?.technicalSolution && (
+                  <Card className="p-4">
+                    <h4 className="font-semibold mb-3">Technical Solution</h4>
+                    <div className="text-sm space-y-2">
+                      {selectedSubmission.selected_scope.technicalSolution.architecture && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Architecture:</p>
+                          <p>{selectedSubmission.selected_scope.technicalSolution.architecture}</p>
+                        </div>
+                      )}
+                      {selectedSubmission.selected_scope.technicalSolution.techStack && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Tech Stack:</p>
+                          <p>{selectedSubmission.selected_scope.technicalSolution.techStack}</p>
+                        </div>
+                      )}
+                      {selectedSubmission.selected_scope.technicalSolution.integrations && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Integrations:</p>
+                          <p>{selectedSubmission.selected_scope.technicalSolution.integrations}</p>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                )}
+
+                {/* Scope - Timeline & Milestones */}
+                {selectedSubmission.selected_scope?.milestones?.length > 0 && (
+                  <Card className="p-4">
+                    <h4 className="font-semibold mb-3">Milestones</h4>
+                    <div className="space-y-2">
+                      {selectedSubmission.selected_scope.milestones.map((milestone: any, idx: number) => (
+                        <div key={idx} className="flex items-center gap-2 text-sm">
+                          <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+                          <span>{milestone.title || milestone.name || milestone}</span>
+                          {milestone.duration && (
+                            <Badge variant="outline" className="ml-auto text-xs">
+                              {milestone.duration}
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+
+                {/* Scope - Risks & Constraints */}
+                {(selectedSubmission.selected_scope?.risks?.length > 0 || selectedSubmission.selected_scope?.constraints?.length > 0) && (
+                  <Card className="p-4">
+                    <h4 className="font-semibold mb-3">Risks & Constraints</h4>
+                    {selectedSubmission.selected_scope.risks?.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Risks:</p>
+                        <ul className="text-sm space-y-1">
+                          {selectedSubmission.selected_scope.risks.map((risk: any, idx: number) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                              <span>{risk.title || risk.description || risk}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {selectedSubmission.selected_scope.constraints?.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Constraints:</p>
+                        <ul className="text-sm space-y-1">
+                          {selectedSubmission.selected_scope.constraints.map((constraint: any, idx: number) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                              <span>{constraint.title || constraint.description || constraint}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </Card>
+                )}
 
                 {/* Additional Requirements */}
                 {selectedSubmission.additional_requirements && (
