@@ -19,7 +19,15 @@ import { RisksConstraints } from "@/components/canvas/scope/RisksConstraints";
 import { TechnicalSolution } from "@/components/canvas/scope/TechnicalSolution";
 import { ScopeBlockCard } from "@/components/canvas/scope/ScopeBlockCard";
 import { ScopeEditorDrawer } from "@/components/canvas/scope/ScopeEditorDrawer";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen, LogIn, Users, Layers, ListTodo, Clock, AlertTriangle, Cpu, Map, Rocket } from "lucide-react";
+import { MarketingBlockCard } from "@/components/canvas/gtm/MarketingBlockCard";
+import { MarketingEditorDrawer } from "@/components/canvas/gtm/MarketingEditorDrawer";
+import { TargetAudienceBuilder, AudienceSegment } from "@/components/canvas/gtm/TargetAudienceBuilder";
+import { MarketingCreatives, Creative } from "@/components/canvas/gtm/MarketingCreatives";
+import { CampaignPlanner, Campaign } from "@/components/canvas/gtm/CampaignPlanner";
+import { ContentCalendar, ContentPost } from "@/components/canvas/gtm/ContentCalendar";
+import { AdsManager, AdSet } from "@/components/canvas/gtm/AdsManager";
+import { LaunchStrategy, LaunchPhase } from "@/components/canvas/gtm/LaunchStrategy";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen, LogIn, Users, Layers, ListTodo, Clock, AlertTriangle, Cpu, Map, Rocket, Target, Image, Calendar, DollarSign } from "lucide-react";
 import { DevelopmentSubmissionForm } from "@/components/development/DevelopmentSubmissionForm";
 import { HorizontalRoadmap } from "@/components/canvas/HorizontalRoadmap";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -101,6 +109,18 @@ const Canvas = () => {
     technicalSolution: "",
   });
 
+  // GTM data with structured formats
+  const [gtmData, setGtmData] = useState({
+    audienceSegments: [] as AudienceSegment[],
+    creatives: [] as Creative[],
+    campaigns: [] as Campaign[],
+    contentPosts: [] as ContentPost[],
+    adSets: [] as AdSet[],
+    launchPhases: [] as LaunchPhase[],
+  });
+
+  const [openGtmDrawer, setOpenGtmDrawer] = useState<string | null>(null);
+
   const canvasTabs: CanvasTab[] = [
     {
       id: "business",
@@ -146,12 +166,12 @@ const Canvas = () => {
       title: "Go-to-Market",
       icon: Megaphone,
       sections: [
-        { key: "positioning", title: "Positioning & Messaging", subtitle: "How will you position your product?" },
-        { key: "acquisitionChannels", title: "Acquisition Channels", subtitle: "Where will you find customers?" },
-        { key: "pricingModel", title: "Pricing Model", subtitle: "What will you charge?" },
-        { key: "launchPlan", title: "Launch Plan", subtitle: "How will you launch?" },
-        { key: "contentStrategy", title: "Content Strategy", subtitle: "What content will you create?" },
-        { key: "growthLoops", title: "Growth Loops", subtitle: "How will you drive viral growth?" },
+        { key: "audienceSegments", title: "Target Audience", subtitle: "Define audience segments & personas" },
+        { key: "creatives", title: "Marketing Creatives", subtitle: "Design ads, copy, images & videos" },
+        { key: "campaigns", title: "Campaign Planner", subtitle: "Plan campaigns with KPIs & budgets" },
+        { key: "contentPosts", title: "Content Calendar", subtitle: "Schedule posts across platforms" },
+        { key: "adSets", title: "Ads Manager", subtitle: "Configure ad targeting & budgets" },
+        { key: "launchPhases", title: "Launch Strategy", subtitle: "Plan launch phases & milestones" },
       ],
     },
   ];
@@ -178,6 +198,12 @@ const Canvas = () => {
     const savedScope = localStorage.getItem("scopeData");
     if (savedScope) {
       setScopeData(JSON.parse(savedScope));
+    }
+
+    // Load saved GTM data
+    const savedGtm = localStorage.getItem("gtmData");
+    if (savedGtm) {
+      setGtmData(JSON.parse(savedGtm));
     }
 
     // Load completed blocks
@@ -214,10 +240,15 @@ const Canvas = () => {
     }
   }, [navigate, user]);
 
-  // Save scope data locally and to DB
+  // Save scope data locally
   useEffect(() => {
     localStorage.setItem("scopeData", JSON.stringify(scopeData));
   }, [scopeData]);
+
+  // Save GTM data locally
+  useEffect(() => {
+    localStorage.setItem("gtmData", JSON.stringify(gtmData));
+  }, [gtmData]);
 
   // Save canvas data locally and to database
   useEffect(() => {
@@ -229,7 +260,7 @@ const Canvas = () => {
         await supabase
           .from("projects")
           .update({ 
-            canvas_data: { ...canvasData, scopeData },
+            canvas_data: { ...canvasData, scopeData, gtmData } as any,
             updated_at: new Date().toISOString()
           })
           .eq("id", projectId);
@@ -250,7 +281,7 @@ const Canvas = () => {
         localStorage.setItem("completedBlocks", JSON.stringify([...newCompleted]));
       }
     });
-  }, [canvasData, scopeData, projectId, user]);
+  }, [canvasData, scopeData, gtmData, projectId, user]);
 
   const handleExportPDF = () => {
     exportToPDF(canvasData, canvasTabs, projectData?.idea || "Product Canvas");
@@ -452,6 +483,24 @@ const Canvas = () => {
       });
       
       return (filledSections.length / scopeFields.length) * 100;
+    }
+
+    // Special handling for GTM tab which uses gtmData
+    if (tabId === "gtm") {
+      const gtmFields = [
+        { key: "audienceSegments", data: gtmData.audienceSegments },
+        { key: "creatives", data: gtmData.creatives },
+        { key: "campaigns", data: gtmData.campaigns },
+        { key: "contentPosts", data: gtmData.contentPosts },
+        { key: "adSets", data: gtmData.adSets },
+        { key: "launchPhases", data: gtmData.launchPhases },
+      ];
+      
+      const filledSections = gtmFields.filter(field => {
+        return Array.isArray(field.data) && field.data.length > 0;
+      });
+      
+      return (filledSections.length / gtmFields.length) * 100;
     }
     
     const filledSections = tab.sections.filter(section => {
@@ -1143,6 +1192,295 @@ const Canvas = () => {
                           navigate("/my-submissions");
                         }}
                       />
+                    </div>
+                  ) : tab.id === "gtm" ? (
+                    <div className="space-y-4">
+                      {/* Target Audience */}
+                      <MarketingBlockCard
+                        title="Target Audience"
+                        subtitle="Define audience segments & personas"
+                        icon={Users}
+                        gradient="from-pink-500 to-rose-500"
+                        itemCount={gtmData.audienceSegments.length}
+                        completedCount={gtmData.audienceSegments.filter(s => s.isPrimary).length}
+                        onAIGenerate={() => generateSuggestions("audienceSegments")}
+                        isGenerating={loadingSection === "audienceSegments"}
+                        onViewAll={() => setOpenGtmDrawer("audienceSegments")}
+                      >
+                        {gtmData.audienceSegments.slice(0, 3).map((segment, i) => (
+                          <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50">
+                            <div className="w-8 h-8 rounded-full bg-pink-500/10 flex items-center justify-center">
+                              <Users className="w-4 h-4 text-pink-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">{segment.name || "Unnamed Segment"}</p>
+                              <p className="text-xs text-muted-foreground">{segment.demographics.ageRange} • {segment.demographics.location || "Global"}</p>
+                            </div>
+                            {segment.isPrimary && (
+                              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Primary</span>
+                            )}
+                          </div>
+                        ))}
+                      </MarketingBlockCard>
+
+                      {/* Marketing Creatives */}
+                      <MarketingBlockCard
+                        title="Marketing Creatives"
+                        subtitle="Design ads, copy, images & videos"
+                        icon={Image}
+                        gradient="from-violet-500 to-purple-500"
+                        itemCount={gtmData.creatives.length}
+                        completedCount={gtmData.creatives.filter(c => c.status === "approved").length}
+                        onAIGenerate={() => generateSuggestions("creatives")}
+                        isGenerating={loadingSection === "creatives"}
+                        onViewAll={() => setOpenGtmDrawer("creatives")}
+                      >
+                        {gtmData.creatives.slice(0, 3).map((creative, i) => (
+                          <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50">
+                            <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
+                              <Image className="w-4 h-4 text-violet-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">{creative.title || "Untitled"}</p>
+                              <p className="text-xs text-muted-foreground capitalize">{creative.type} • {creative.platform}</p>
+                            </div>
+                            <span className={cn(
+                              "text-xs px-2 py-0.5 rounded",
+                              creative.status === "approved" ? "bg-success/10 text-success" : 
+                              creative.status === "review" ? "bg-amber-500/10 text-amber-500" : "bg-muted text-muted-foreground"
+                            )}>{creative.status}</span>
+                          </div>
+                        ))}
+                      </MarketingBlockCard>
+
+                      {/* Campaign Planner */}
+                      <MarketingBlockCard
+                        title="Campaign Planner"
+                        subtitle="Plan campaigns with KPIs & budgets"
+                        icon={Target}
+                        gradient="from-blue-500 to-cyan-500"
+                        itemCount={gtmData.campaigns.length}
+                        completedCount={gtmData.campaigns.filter(c => c.status === "active" || c.status === "completed").length}
+                        onAIGenerate={() => generateSuggestions("campaigns")}
+                        isGenerating={loadingSection === "campaigns"}
+                        onViewAll={() => setOpenGtmDrawer("campaigns")}
+                      >
+                        {gtmData.campaigns.slice(0, 3).map((campaign, i) => (
+                          <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50">
+                            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                              <Target className="w-4 h-4 text-blue-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">{campaign.name || "Unnamed Campaign"}</p>
+                              <p className="text-xs text-muted-foreground">{campaign.channel} • ${campaign.budget || 0}</p>
+                            </div>
+                            <span className={cn(
+                              "text-xs px-2 py-0.5 rounded capitalize",
+                              campaign.status === "active" ? "bg-success/10 text-success" : 
+                              campaign.status === "completed" ? "bg-blue-500/10 text-blue-500" : "bg-muted text-muted-foreground"
+                            )}>{campaign.status}</span>
+                          </div>
+                        ))}
+                      </MarketingBlockCard>
+
+                      {/* Content Calendar */}
+                      <MarketingBlockCard
+                        title="Content Calendar"
+                        subtitle="Schedule posts across platforms"
+                        icon={Calendar}
+                        gradient="from-emerald-500 to-teal-500"
+                        itemCount={gtmData.contentPosts.length}
+                        completedCount={gtmData.contentPosts.filter(p => p.status === "published").length}
+                        onAIGenerate={() => generateSuggestions("contentPosts")}
+                        isGenerating={loadingSection === "contentPosts"}
+                        onViewAll={() => setOpenGtmDrawer("contentPosts")}
+                      >
+                        {gtmData.contentPosts.slice(0, 3).map((post, i) => (
+                          <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50">
+                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                              <Calendar className="w-4 h-4 text-emerald-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">{post.title || "Untitled Post"}</p>
+                              <p className="text-xs text-muted-foreground capitalize">{post.platform} • {post.postType}</p>
+                            </div>
+                            <span className={cn(
+                              "text-xs px-2 py-0.5 rounded capitalize",
+                              post.status === "published" ? "bg-success/10 text-success" : 
+                              post.status === "scheduled" ? "bg-blue-500/10 text-blue-500" : "bg-muted text-muted-foreground"
+                            )}>{post.status}</span>
+                          </div>
+                        ))}
+                      </MarketingBlockCard>
+
+                      {/* Ads Manager */}
+                      <MarketingBlockCard
+                        title="Ads Manager"
+                        subtitle="Configure ad targeting & budgets"
+                        icon={DollarSign}
+                        gradient="from-amber-500 to-orange-500"
+                        itemCount={gtmData.adSets.length}
+                        completedCount={gtmData.adSets.filter(a => a.status === "active").length}
+                        onAIGenerate={() => generateSuggestions("adSets")}
+                        isGenerating={loadingSection === "adSets"}
+                        onViewAll={() => setOpenGtmDrawer("adSets")}
+                      >
+                        {gtmData.adSets.slice(0, 3).map((adSet, i) => (
+                          <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50">
+                            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                              <DollarSign className="w-4 h-4 text-amber-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">{adSet.name || "Unnamed Ad Set"}</p>
+                              <p className="text-xs text-muted-foreground">{adSet.platform} • ${adSet.budget.amount || 0}/{adSet.budget.type}</p>
+                            </div>
+                            <span className={cn(
+                              "text-xs px-2 py-0.5 rounded capitalize",
+                              adSet.status === "active" ? "bg-success/10 text-success" : 
+                              adSet.status === "paused" ? "bg-amber-500/10 text-amber-500" : "bg-muted text-muted-foreground"
+                            )}>{adSet.status}</span>
+                          </div>
+                        ))}
+                      </MarketingBlockCard>
+
+                      {/* Launch Strategy */}
+                      <MarketingBlockCard
+                        title="Launch Strategy"
+                        subtitle="Plan launch phases & milestones"
+                        icon={Rocket}
+                        gradient="from-red-500 to-rose-600"
+                        itemCount={gtmData.launchPhases.length}
+                        completedCount={gtmData.launchPhases.filter(p => p.status === "completed").length}
+                        onAIGenerate={() => generateSuggestions("launchPhases")}
+                        isGenerating={loadingSection === "launchPhases"}
+                        onViewAll={() => setOpenGtmDrawer("launchPhases")}
+                      >
+                        {gtmData.launchPhases.slice(0, 3).map((phase, i) => (
+                          <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50">
+                            <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-sm font-bold text-red-500">
+                              {i + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">{phase.name || "Unnamed Phase"}</p>
+                              <p className="text-xs text-muted-foreground">{phase.tasks.length} tasks • {phase.goals.length} goals</p>
+                            </div>
+                            <span className={cn(
+                              "text-xs px-2 py-0.5 rounded capitalize",
+                              phase.status === "completed" ? "bg-success/10 text-success" : 
+                              phase.status === "in_progress" ? "bg-blue-500/10 text-blue-500" : "bg-muted text-muted-foreground"
+                            )}>{phase.status.replace("_", " ")}</span>
+                          </div>
+                        ))}
+                      </MarketingBlockCard>
+
+                      {/* GTM Editor Drawers */}
+                      <MarketingEditorDrawer
+                        isOpen={openGtmDrawer === "audienceSegments"}
+                        onClose={() => setOpenGtmDrawer(null)}
+                        title="Target Audience"
+                        subtitle="Define audience segments & personas"
+                        icon={Users}
+                        gradient="from-pink-500 to-rose-500"
+                        onAIGenerate={() => generateSuggestions("audienceSegments")}
+                        isGenerating={loadingSection === "audienceSegments"}
+                      >
+                        <TargetAudienceBuilder
+                          segments={gtmData.audienceSegments}
+                          onChange={(segments) => setGtmData({ ...gtmData, audienceSegments: segments })}
+                          onAIGenerate={() => generateSuggestions("audienceSegments")}
+                          isGenerating={loadingSection === "audienceSegments"}
+                        />
+                      </MarketingEditorDrawer>
+
+                      <MarketingEditorDrawer
+                        isOpen={openGtmDrawer === "creatives"}
+                        onClose={() => setOpenGtmDrawer(null)}
+                        title="Marketing Creatives"
+                        subtitle="Design ads, copy, images & videos"
+                        icon={Image}
+                        gradient="from-violet-500 to-purple-500"
+                        onAIGenerate={() => generateSuggestions("creatives")}
+                        isGenerating={loadingSection === "creatives"}
+                      >
+                        <MarketingCreatives
+                          creatives={gtmData.creatives}
+                          onChange={(creatives) => setGtmData({ ...gtmData, creatives })}
+                          onAIGenerate={() => generateSuggestions("creatives")}
+                          isGenerating={loadingSection === "creatives"}
+                        />
+                      </MarketingEditorDrawer>
+
+                      <MarketingEditorDrawer
+                        isOpen={openGtmDrawer === "campaigns"}
+                        onClose={() => setOpenGtmDrawer(null)}
+                        title="Campaign Planner"
+                        subtitle="Plan campaigns with KPIs & budgets"
+                        icon={Target}
+                        gradient="from-blue-500 to-cyan-500"
+                        onAIGenerate={() => generateSuggestions("campaigns")}
+                        isGenerating={loadingSection === "campaigns"}
+                      >
+                        <CampaignPlanner
+                          campaigns={gtmData.campaigns}
+                          onChange={(campaigns) => setGtmData({ ...gtmData, campaigns })}
+                          onAIGenerate={() => generateSuggestions("campaigns")}
+                          isGenerating={loadingSection === "campaigns"}
+                        />
+                      </MarketingEditorDrawer>
+
+                      <MarketingEditorDrawer
+                        isOpen={openGtmDrawer === "contentPosts"}
+                        onClose={() => setOpenGtmDrawer(null)}
+                        title="Content Calendar"
+                        subtitle="Schedule posts across platforms"
+                        icon={Calendar}
+                        gradient="from-emerald-500 to-teal-500"
+                        onAIGenerate={() => generateSuggestions("contentPosts")}
+                        isGenerating={loadingSection === "contentPosts"}
+                      >
+                        <ContentCalendar
+                          posts={gtmData.contentPosts}
+                          onChange={(posts) => setGtmData({ ...gtmData, contentPosts: posts })}
+                          onAIGenerate={() => generateSuggestions("contentPosts")}
+                          isGenerating={loadingSection === "contentPosts"}
+                        />
+                      </MarketingEditorDrawer>
+
+                      <MarketingEditorDrawer
+                        isOpen={openGtmDrawer === "adSets"}
+                        onClose={() => setOpenGtmDrawer(null)}
+                        title="Ads Manager"
+                        subtitle="Configure ad targeting & budgets"
+                        icon={DollarSign}
+                        gradient="from-amber-500 to-orange-500"
+                        onAIGenerate={() => generateSuggestions("adSets")}
+                        isGenerating={loadingSection === "adSets"}
+                      >
+                        <AdsManager
+                          adSets={gtmData.adSets}
+                          onChange={(adSets) => setGtmData({ ...gtmData, adSets })}
+                          onAIGenerate={() => generateSuggestions("adSets")}
+                          isGenerating={loadingSection === "adSets"}
+                        />
+                      </MarketingEditorDrawer>
+
+                      <MarketingEditorDrawer
+                        isOpen={openGtmDrawer === "launchPhases"}
+                        onClose={() => setOpenGtmDrawer(null)}
+                        title="Launch Strategy"
+                        subtitle="Plan launch phases & milestones"
+                        icon={Rocket}
+                        gradient="from-red-500 to-rose-600"
+                        onAIGenerate={() => generateSuggestions("launchPhases")}
+                        isGenerating={loadingSection === "launchPhases"}
+                      >
+                        <LaunchStrategy
+                          phases={gtmData.launchPhases}
+                          onChange={(phases) => setGtmData({ ...gtmData, launchPhases: phases })}
+                          onAIGenerate={() => generateSuggestions("launchPhases")}
+                          isGenerating={loadingSection === "launchPhases"}
+                        />
+                      </MarketingEditorDrawer>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
