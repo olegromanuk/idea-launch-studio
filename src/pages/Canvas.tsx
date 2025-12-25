@@ -63,6 +63,7 @@ const Canvas = () => {
   const [unlockedBlock, setUnlockedBlock] = useState<string | null>(null);
   const [openScopeDrawer, setOpenScopeDrawer] = useState<string | null>(null);
   const [isRoadmapOpen, setIsRoadmapOpen] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
   
   const [canvasData, setCanvasData] = useState({
     // Business Logic
@@ -190,7 +191,28 @@ const Canvas = () => {
     if (savedValidations) {
       setValidatedBlocks(new Set(JSON.parse(savedValidations)));
     }
-  }, [navigate]);
+
+    // Fetch submission status for development progress
+    const fetchSubmissionStatus = async () => {
+      if (!user || !storedProjectId) return;
+      
+      const { data: submission } = await supabase
+        .from("dev_submissions")
+        .select("status")
+        .eq("project_id", storedProjectId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (submission) {
+        setSubmissionStatus(submission.status);
+      }
+    };
+
+    if (user) {
+      fetchSubmissionStatus();
+    }
+  }, [navigate, user]);
 
   // Save scope data locally and to DB
   useEffect(() => {
@@ -392,6 +414,24 @@ const Canvas = () => {
   const calculateCanvasProgress = (tabId: string) => {
     const tab = canvasTabs.find(t => t.id === tabId);
     if (!tab) return 0;
+    
+    // Special handling for Development tab - based on submission status
+    if (tabId === "development") {
+      if (!submissionStatus) return 0;
+      
+      const statusProgressMap: Record<string, number> = {
+        submitted: 15,
+        review: 30,
+        development: 50,
+        testing: 70,
+        deployment: 85,
+        completed: 100,
+        on_hold: 50,
+        cancelled: 0,
+      };
+      
+      return statusProgressMap[submissionStatus] || 0;
+    }
     
     // Special handling for Scope tab which uses scopeData instead of canvasData
     if (tabId === "scope") {
@@ -752,7 +792,7 @@ const Canvas = () => {
                           </div>
                         </div>
                         
-                        {!isLocked && (
+                        {!isLocked && tab.id !== "development" && (
                           <Button
                             onClick={() => setValidationBlock({ id: tab.id, title: tab.title })}
                             className="bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all"
