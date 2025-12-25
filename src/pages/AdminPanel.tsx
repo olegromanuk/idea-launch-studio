@@ -176,12 +176,7 @@ const AdminPanel = () => {
   };
 
   const handleOpenDetail = (submission: DevSubmission) => {
-    setSelectedSubmission(submission);
-    setEditStatus(submission.status);
-    setEditStatusNotes(submission.status_notes || "");
-    setEditAssignedTo(submission.assigned_to || "");
-    setEditEstimatedCompletion(submission.estimated_completion || "");
-    setIsDetailOpen(true);
+    navigate(`/admin-panel/submission/${submission.id}`);
   };
 
   const handleUpdateSubmission = async () => {
