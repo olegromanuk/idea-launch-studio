@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import Board from "./pages/Board";
 import MySubmissions from "./pages/MySubmissions";
 import AdminPanel from "./pages/AdminPanel";
+import SubmissionDetail from "./pages/SubmissionDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/board" element={<Board />} />
             <Route path="/my-submissions" element={<MySubmissions />} />
             <Route path="/admin-panel" element={<AdminPanel />} />
+            <Route path="/admin-panel/submission/:id" element={<SubmissionDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
