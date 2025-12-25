@@ -324,6 +324,117 @@ const Canvas = () => {
       }
 
       if (data?.suggestions) {
+        // Handle GTM sections
+        const gtmSections = ['audienceSegments', 'creatives', 'campaigns', 'contentPosts', 'adSets', 'launchPhases'];
+        
+        if (gtmSections.includes(section)) {
+          const suggestions = data.suggestions;
+          
+          if (section === 'audienceSegments' && suggestions.segments) {
+            const newSegments = suggestions.segments.map((s: any) => ({
+              id: crypto.randomUUID(),
+              name: s.name,
+              description: s.description,
+              demographics: {
+                ageRange: s.ageRange || '25-34',
+                gender: s.gender || 'All',
+                location: s.location || '',
+                income: s.income || '',
+                occupation: s.occupation || '',
+              },
+              psychographics: {
+                interests: s.interests || [],
+                painPoints: s.painPoints || [],
+                goals: s.goals || [],
+                behaviors: s.behaviors || [],
+              },
+              isPrimary: s.isPrimary || false,
+            }));
+            // Set first as primary if none exists
+            if (gtmData.audienceSegments.length === 0 && newSegments.length > 0) {
+              newSegments[0].isPrimary = true;
+            }
+            setGtmData(prev => ({ ...prev, audienceSegments: [...prev.audienceSegments, ...newSegments] }));
+          } else if (section === 'creatives' && suggestions.creatives) {
+            const newCreatives = suggestions.creatives.map((c: any) => ({
+              id: crypto.randomUUID(),
+              title: c.title,
+              type: c.type,
+              platform: c.platform,
+              headline: c.headline,
+              body: c.body,
+              cta: c.cta,
+              visualDescription: c.visualDescription || '',
+              status: 'draft' as const,
+            }));
+            setGtmData(prev => ({ ...prev, creatives: [...prev.creatives, ...newCreatives] }));
+          } else if (section === 'campaigns' && suggestions.campaigns) {
+            const newCampaigns = suggestions.campaigns.map((c: any) => ({
+              id: crypto.randomUUID(),
+              name: c.name,
+              objective: c.objective,
+              channel: c.channel,
+              budget: c.budget || 0,
+              startDate: c.startDate || '',
+              endDate: c.endDate || '',
+              status: 'draft' as const,
+              kpis: c.kpis || [],
+              tactics: c.tactics || [],
+            }));
+            setGtmData(prev => ({ ...prev, campaigns: [...prev.campaigns, ...newCampaigns] }));
+          } else if (section === 'contentPosts' && suggestions.posts) {
+            const newPosts = suggestions.posts.map((p: any) => ({
+              id: crypto.randomUUID(),
+              title: p.title,
+              platform: p.platform,
+              content: p.content,
+              hashtags: p.hashtags || [],
+              scheduledFor: p.scheduledFor || '',
+              status: 'draft' as const,
+              contentType: p.contentType || 'image',
+            }));
+            setGtmData(prev => ({ ...prev, contentPosts: [...prev.contentPosts, ...newPosts] }));
+          } else if (section === 'adSets' && suggestions.adSets) {
+            const newAdSets = suggestions.adSets.map((a: any) => ({
+              id: crypto.randomUUID(),
+              name: a.name,
+              platform: a.platform,
+              objective: a.objective,
+              dailyBudget: a.dailyBudget || 0,
+              bidStrategy: a.bidStrategy,
+              status: 'draft' as const,
+              targeting: {
+                ageRange: { min: 18, max: 65 },
+                genders: ['all'],
+                locations: [],
+                interests: [],
+              },
+              placements: a.placements || [],
+            }));
+            setGtmData(prev => ({ ...prev, adSets: [...prev.adSets, ...newAdSets] }));
+          } else if (section === 'launchPhases' && suggestions.phases) {
+            const newPhases = suggestions.phases.map((p: any) => ({
+              id: crypto.randomUUID(),
+              name: p.name,
+              duration: p.duration,
+              status: 'upcoming' as const,
+              goals: p.goals || [],
+              tasks: (p.tasks || []).map((t: any) => ({
+                id: crypto.randomUUID(),
+                title: t.title,
+                completed: t.completed || false,
+              })),
+            }));
+            setGtmData(prev => ({ ...prev, launchPhases: [...prev.launchPhases, ...newPhases] }));
+          }
+          
+          toast({
+            title: "Suggestions generated!",
+            description: "AI suggestions have been added to the section.",
+          });
+          return;
+        }
+        
         // Handle structured scope data
         const scopeSections = ['userStories', 'featureScope', 'taskBreakdown', 'technicalSolution', 'risksConstraints', 'timeline'];
         

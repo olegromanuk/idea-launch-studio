@@ -161,6 +161,274 @@ Generate 3-4 suggestions for Launch & Marketing. Include:
       }
     }
 
+    // Handle GTM section suggestions with structured output
+    const gtmSections = ['audienceSegments', 'creatives', 'campaigns', 'contentPosts', 'adSets', 'launchPhases'];
+    
+    if (gtmSections.includes(section)) {
+      const gtmPrompts: Record<string, { prompt: string; tool: any }> = {
+        audienceSegments: {
+          prompt: `Based on this product idea: "${productIdea.idea}" for audience "${productIdea.audience}" solving problem "${productIdea.problem}".
+Generate 2-3 detailed audience segments with demographics and psychographics.`,
+          tool: {
+            type: 'function',
+            function: {
+              name: 'provide_audience_segments',
+              description: 'Provide audience segments',
+              parameters: {
+                type: 'object',
+                properties: {
+                  segments: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: { type: 'string', description: 'Segment name (e.g., "Tech-Savvy Professionals")' },
+                        description: { type: 'string', description: 'Brief description of this segment' },
+                        ageRange: { type: 'string', enum: ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'] },
+                        gender: { type: 'string', enum: ['All', 'Male', 'Female'] },
+                        location: { type: 'string', description: 'Geographic location' },
+                        income: { type: 'string', description: 'Income range' },
+                        occupation: { type: 'string', description: 'Job title or industry' },
+                        interests: { type: 'array', items: { type: 'string' }, description: '3-5 interests' },
+                        painPoints: { type: 'array', items: { type: 'string' }, description: '2-3 pain points' },
+                        goals: { type: 'array', items: { type: 'string' }, description: '2-3 goals' },
+                        behaviors: { type: 'array', items: { type: 'string' }, description: '2-3 behaviors' },
+                        isPrimary: { type: 'boolean' }
+                      },
+                      required: ['name', 'description', 'ageRange', 'gender', 'location', 'interests', 'painPoints', 'goals']
+                    }
+                  }
+                },
+                required: ['segments']
+              }
+            }
+          }
+        },
+        creatives: {
+          prompt: `Based on this product idea: "${productIdea.idea}" for audience "${productIdea.audience}".
+Generate 3-4 marketing creative ideas including ad copy, social media posts, and visual concepts.`,
+          tool: {
+            type: 'function',
+            function: {
+              name: 'provide_creatives',
+              description: 'Provide marketing creatives',
+              parameters: {
+                type: 'object',
+                properties: {
+                  creatives: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        title: { type: 'string' },
+                        type: { type: 'string', enum: ['ad', 'social', 'video', 'email', 'blog'] },
+                        platform: { type: 'string', enum: ['facebook', 'instagram', 'linkedin', 'twitter', 'youtube', 'tiktok', 'email', 'blog'] },
+                        headline: { type: 'string' },
+                        body: { type: 'string' },
+                        cta: { type: 'string' },
+                        visualDescription: { type: 'string' }
+                      },
+                      required: ['title', 'type', 'platform', 'headline', 'body', 'cta']
+                    }
+                  }
+                },
+                required: ['creatives']
+              }
+            }
+          }
+        },
+        campaigns: {
+          prompt: `Based on this product idea: "${productIdea.idea}" for audience "${productIdea.audience}".
+Generate 2-3 marketing campaign ideas with objectives, channels, and budgets.`,
+          tool: {
+            type: 'function',
+            function: {
+              name: 'provide_campaigns',
+              description: 'Provide campaign plans',
+              parameters: {
+                type: 'object',
+                properties: {
+                  campaigns: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: { type: 'string' },
+                        objective: { type: 'string', enum: ['awareness', 'consideration', 'conversion', 'retention'] },
+                        channel: { type: 'string', enum: ['social', 'search', 'email', 'content', 'influencer', 'paid'] },
+                        budget: { type: 'number' },
+                        startDate: { type: 'string' },
+                        endDate: { type: 'string' },
+                        kpis: { type: 'array', items: { type: 'string' } },
+                        tactics: { type: 'array', items: { type: 'string' } }
+                      },
+                      required: ['name', 'objective', 'channel', 'budget', 'kpis', 'tactics']
+                    }
+                  }
+                },
+                required: ['campaigns']
+              }
+            }
+          }
+        },
+        contentPosts: {
+          prompt: `Based on this product idea: "${productIdea.idea}" for audience "${productIdea.audience}".
+Generate 4-5 content post ideas for a content calendar across different platforms.`,
+          tool: {
+            type: 'function',
+            function: {
+              name: 'provide_content_posts',
+              description: 'Provide content calendar posts',
+              parameters: {
+                type: 'object',
+                properties: {
+                  posts: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        title: { type: 'string' },
+                        platform: { type: 'string', enum: ['instagram', 'twitter', 'linkedin', 'facebook', 'tiktok', 'youtube', 'blog'] },
+                        content: { type: 'string' },
+                        hashtags: { type: 'array', items: { type: 'string' } },
+                        scheduledFor: { type: 'string' },
+                        contentType: { type: 'string', enum: ['image', 'video', 'carousel', 'story', 'text'] }
+                      },
+                      required: ['title', 'platform', 'content', 'hashtags']
+                    }
+                  }
+                },
+                required: ['posts']
+              }
+            }
+          }
+        },
+        adSets: {
+          prompt: `Based on this product idea: "${productIdea.idea}" for audience "${productIdea.audience}".
+Generate 2-3 ad set configurations with targeting and budget strategies.`,
+          tool: {
+            type: 'function',
+            function: {
+              name: 'provide_ad_sets',
+              description: 'Provide ad set configurations',
+              parameters: {
+                type: 'object',
+                properties: {
+                  adSets: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: { type: 'string' },
+                        platform: { type: 'string', enum: ['facebook', 'instagram', 'google', 'linkedin', 'twitter', 'tiktok'] },
+                        objective: { type: 'string', enum: ['awareness', 'traffic', 'engagement', 'leads', 'conversions'] },
+                        dailyBudget: { type: 'number' },
+                        bidStrategy: { type: 'string', enum: ['lowest_cost', 'cost_cap', 'bid_cap', 'target_cost'] },
+                        targetingDescription: { type: 'string' },
+                        placements: { type: 'array', items: { type: 'string' } }
+                      },
+                      required: ['name', 'platform', 'objective', 'dailyBudget', 'bidStrategy', 'targetingDescription']
+                    }
+                  }
+                },
+                required: ['adSets']
+              }
+            }
+          }
+        },
+        launchPhases: {
+          prompt: `Based on this product idea: "${productIdea.idea}".
+Generate 3-4 launch phases with goals and key tasks for each phase.`,
+          tool: {
+            type: 'function',
+            function: {
+              name: 'provide_launch_phases',
+              description: 'Provide launch strategy phases',
+              parameters: {
+                type: 'object',
+                properties: {
+                  phases: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: { type: 'string' },
+                        duration: { type: 'string' },
+                        goals: { type: 'array', items: { type: 'string' } },
+                        tasks: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              title: { type: 'string' },
+                              completed: { type: 'boolean' }
+                            },
+                            required: ['title']
+                          }
+                        }
+                      },
+                      required: ['name', 'duration', 'goals', 'tasks']
+                    }
+                  }
+                },
+                required: ['phases']
+              }
+            }
+          }
+        }
+      };
+
+      const gtmConfig = gtmPrompts[section];
+      console.log(`Generating suggestions for GTM section: ${section}`);
+
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: 'You are an expert marketing strategist helping create comprehensive go-to-market plans.' },
+            { role: 'user', content: gtmConfig.prompt }
+          ],
+          tools: [gtmConfig.tool],
+          tool_choice: { type: 'function', function: { name: gtmConfig.tool.function.name } }
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        if (response.status === 402) {
+          return new Response(
+            JSON.stringify({ error: 'AI usage limit reached. Please add credits to continue.' }),
+            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const errorText = await response.text();
+        console.error('AI Gateway error:', response.status, errorText);
+        throw new Error(`AI Gateway returned ${response.status}`);
+      }
+
+      const aiData = await response.json();
+      console.log('AI Response for GTM:', JSON.stringify(aiData));
+      
+      const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+      if (toolCall?.function?.arguments) {
+        const result = JSON.parse(toolCall.function.arguments);
+        return new Response(
+          JSON.stringify({ suggestions: result, section }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     // Handle scope section suggestions with structured output
     const scopeSections = ['userStories', 'featureScope', 'taskBreakdown', 'technicalSolution', 'risksConstraints', 'timeline'];
     
