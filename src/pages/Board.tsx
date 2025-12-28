@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Trash2, Plus, FileDown, ZoomIn, ZoomOut, Maximize2, Grid3X3, Map, Link2, LinkIcon } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, FileDown, ZoomIn, ZoomOut, Maximize2, Grid3X3, Map, Link2, Sparkles } from "lucide-react";
 import jsPDF from "jspdf";
 import { cn } from "@/lib/utils";
 import { ConnectionLayer } from "@/components/board/ConnectionLayer";
 import { Connection } from "@/components/board/BoardConnector";
+import { AddElementDialog } from "@/components/board/AddElementDialog";
+import { BoardManager } from "@/components/board/BoardManager";
+import { AIDiagramGenerator } from "@/components/board/AIDiagramGenerator";
 
 interface BoardElement {
   id: string;
@@ -53,6 +56,11 @@ const Board = () => {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [connectMode, setConnectMode] = useState(false);
   const [drawingConnection, setDrawingConnection] = useState<{ fromId: string; toX: number; toY: number } | null>(null);
+
+  // Dialog state
+  const [showAddElement, setShowAddElement] = useState(false);
+  const [showAIDiagram, setShowAIDiagram] = useState(false);
+  const [currentBoardId, setCurrentBoardId] = useState<string | null>(null);
 
   // Board dimensions for minimap
   const BOARD_WIDTH = 3000;
@@ -236,11 +244,17 @@ const Board = () => {
     };
   }, [zoom]);
 
-  const loadElements = async (uid: string) => {
-    const { data, error } = await supabase
+  const loadElements = async (uid: string, boardId?: string | null) => {
+    let query = supabase
       .from("dashboard_elements")
       .select("*")
       .eq("user_id", uid);
+    
+    if (boardId) {
+      query = query.eq("board_id", boardId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Error loading elements:", error);
@@ -250,6 +264,94 @@ const Board = () => {
     if (data) {
       setElements(data as BoardElement[]);
     }
+  };
+
+  // Reload elements when board changes
+  useEffect(() => {
+    if (userId) {
+      loadElements(userId, currentBoardId);
+    }
+  }, [currentBoardId, userId]);
+
+  const handleAddElement = async (elementData: {
+    section_key: string;
+    section_title: string;
+    content: string;
+    color: string;
+    width: number;
+    height: number;
+  }) => {
+    const newElement = {
+      user_id: userId,
+      section_key: elementData.section_key,
+      section_title: elementData.section_title,
+      content: elementData.content,
+      color: elementData.color,
+      width: elementData.width,
+      height: elementData.height,
+      position_x: 100 + Math.random() * 200,
+      position_y: 100 + Math.random() * 200,
+      board_id: currentBoardId,
+    };
+
+    const { data, error } = await supabase
+      .from("dashboard_elements")
+      .insert(newElement)
+      .select()
+      .single();
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add element",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setElements((prev) => [...prev, data as BoardElement]);
+    toast({
+      title: "Element added",
+      description: `"${elementData.section_title}" has been added to the board`,
+    });
+  };
+
+  const handleAIDiagramGenerate = async (generatedElements: Array<{
+    section_key: string;
+    section_title: string;
+    content: string;
+    color: string;
+    position_x: number;
+    position_y: number;
+  }>) => {
+    const elementsToInsert = generatedElements.map((el) => ({
+      user_id: userId,
+      section_key: el.section_key,
+      section_title: el.section_title,
+      content: el.content,
+      color: el.color,
+      position_x: el.position_x,
+      position_y: el.position_y,
+      width: 300,
+      height: 200,
+      board_id: currentBoardId,
+    }));
+
+    const { data, error } = await supabase
+      .from("dashboard_elements")
+      .insert(elementsToInsert)
+      .select();
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add diagram elements",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setElements((prev) => [...prev, ...(data as BoardElement[])]);
   };
 
   const snapToGridValue = (value: number) => {
@@ -527,6 +629,39 @@ const Board = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Board Manager */}
+            <BoardManager
+              userId={userId}
+              currentBoardId={currentBoardId}
+              onBoardChange={setCurrentBoardId}
+              onBoardCreated={(board) => setCurrentBoardId(board.id)}
+            />
+
+            <div className="h-6 w-px bg-border mx-2" />
+
+            {/* Add Element */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAddElement(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Element
+            </Button>
+
+            {/* AI Diagram Generator */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAIDiagram(true)}
+              className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              AI Diagram
+            </Button>
+
+            <div className="h-6 w-px bg-border mx-2" />
+
             {/* Snap to grid toggle */}
             <Button
               variant={snapToGrid ? "default" : "outline"}
@@ -782,6 +917,19 @@ const Board = () => {
           </div>
         </div>
       </div>
+
+      {/* Dialogs */}
+      <AddElementDialog
+        open={showAddElement}
+        onOpenChange={setShowAddElement}
+        onAdd={handleAddElement}
+      />
+
+      <AIDiagramGenerator
+        open={showAIDiagram}
+        onOpenChange={setShowAIDiagram}
+        onGenerate={handleAIDiagramGenerate}
+      />
     </div>
   );
 };
