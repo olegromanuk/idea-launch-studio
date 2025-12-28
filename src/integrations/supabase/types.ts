@@ -74,8 +74,36 @@ export type Database = {
           },
         ]
       }
+      boards: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dashboard_elements: {
         Row: {
+          board_id: string | null
           color: string
           content: string
           created_at: string
@@ -90,6 +118,7 @@ export type Database = {
           width: number
         }
         Insert: {
+          board_id?: string | null
           color?: string
           content: string
           created_at?: string
@@ -104,6 +133,7 @@ export type Database = {
           width?: number
         }
         Update: {
+          board_id?: string | null
           color?: string
           content?: string
           created_at?: string
@@ -117,7 +147,15 @@ export type Database = {
           user_id?: string
           width?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_elements_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "boards"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dev_submission_status_history: {
         Row: {
