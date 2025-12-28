@@ -163,7 +163,7 @@ const Canvas = () => {
     },
     {
       id: "gtm",
-      title: "Go-to-Market",
+      title: "Market Product Fit",
       icon: Megaphone,
       sections: [
         { key: "audienceSegments", title: "Target Audience", subtitle: "Define audience segments & personas" },
