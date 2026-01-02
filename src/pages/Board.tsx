@@ -146,7 +146,13 @@ const Board = () => {
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && !e.repeat) {
+      // Don't capture Space when focused on input elements
+      const activeElement = document.activeElement;
+      const isInputFocused = activeElement instanceof HTMLInputElement || 
+                             activeElement instanceof HTMLTextAreaElement ||
+                             activeElement?.getAttribute('contenteditable') === 'true';
+      
+      if (e.code === 'Space' && !e.repeat && !isInputFocused) {
         e.preventDefault();
         setSpacePressed(true);
       }
