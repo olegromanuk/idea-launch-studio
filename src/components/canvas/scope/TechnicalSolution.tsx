@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Sparkles,
@@ -30,65 +29,65 @@ export const TechnicalSolution = ({
   const hasContent = value && value.trim().length > 0;
 
   return (
-    <Card className="relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-slate-500 to-zinc-600" />
+    <div className="relative bg-[#0A0A0A] border border-white/[0.08] overflow-hidden">
+      {/* Blueprint corner accents */}
+      <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+      <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
       
       <div className="p-6">
         {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-500 to-zinc-600 flex items-center justify-center shadow-lg shadow-slate-500/20">
-              <Cpu className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="font-bold text-lg text-foreground">Technical Solution</h3>
-              <p className="text-sm text-muted-foreground">
-                Architecture and technology decisions
-              </p>
-            </div>
-          </div>
-          
+        <div className="flex justify-between items-start mb-4 border-b border-white/5 pb-4">
+          <h2 className="font-mono text-xs text-[#00f0ff] uppercase tracking-widest flex items-center gap-2">
+            <span className="w-1.5 h-1.5 bg-[#00f0ff] rounded-full shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
+            Technical_Solution
+          </h2>
           <div className="flex items-center gap-2">
             {hasContent ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 text-success text-xs font-medium">
+              <span className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider border border-green-500/30 text-green-400 bg-green-500/10 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" />
                 Completed
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+              <span className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider border border-white/10 text-slate-500 flex items-center gap-1">
                 <Circle className="w-3 h-3" />
                 Pending
               </span>
             )}
-            {hasContent && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(!isEditing)}
-              >
-                {isEditing ? (
-                  <>
-                    <Eye className="w-4 h-4 mr-1" />
-                    Preview
-                  </>
-                ) : (
-                  <>
-                    <Edit3 className="w-4 h-4 mr-1" />
-                    Edit
-                  </>
-                )}
-              </Button>
-            )}
-            <Button
-              size="sm"
-              onClick={onAIGenerate}
-              disabled={isGenerating}
-              className="bg-gradient-to-r from-slate-500 to-zinc-600 text-white"
-            >
-              <Sparkles className={cn("w-4 h-4 mr-1", isGenerating && "animate-spin")} />
-              {isGenerating ? "Generating..." : "AI Generate"}
-            </Button>
+            <Cpu className="w-5 h-5 text-slate-700" />
           </div>
+        </div>
+        
+        {/* Actions */}
+        <div className="flex gap-2 mb-4">
+          {hasContent && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditing(!isEditing)}
+              className="font-mono text-xs uppercase tracking-wider border-white/10 hover:border-[#00f0ff]/30 hover:text-[#00f0ff] bg-transparent"
+            >
+              {isEditing ? (
+                <>
+                  <Eye className="w-4 h-4 mr-1.5" />
+                  Preview
+                </>
+              ) : (
+                <>
+                  <Edit3 className="w-4 h-4 mr-1.5" />
+                  Edit
+                </>
+              )}
+            </Button>
+          )}
+          <Button
+            size="sm"
+            onClick={onAIGenerate}
+            disabled={isGenerating}
+            className="font-mono text-xs uppercase tracking-wider bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20 text-[#00f0ff] border border-[#00f0ff]/30 hover:border-[#00f0ff]/50 shadow-[0_0_10px_rgba(0,240,255,0.1)] hover:shadow-[0_0_20px_rgba(0,240,255,0.2)]"
+          >
+            <Sparkles className={cn("w-4 h-4 mr-1.5", isGenerating && "animate-spin")} />
+            {isGenerating ? "Generating..." : "AI Generate"}
+          </Button>
         </div>
 
         {isEditing || !hasContent ? (
@@ -96,23 +95,28 @@ export const TechnicalSolution = ({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="Describe your technical architecture, tech stack choices, infrastructure decisions, and key technical considerations..."
-            className="min-h-[200px] resize-none font-mono text-sm"
+            className="min-h-[200px] resize-none bg-[#0F0F0F] border-white/10 focus:border-[#00f0ff]/50 font-mono text-sm"
           />
         ) : (
-          <div className="min-h-[200px] p-4 rounded-lg bg-muted/30 border border-border prose prose-sm dark:prose-invert max-w-none">
+          <div className="min-h-[200px] p-4 bg-[#0F0F0F] border border-white/5 prose prose-sm prose-invert max-w-none">
             <ReactMarkdown
               components={{
-                h1: ({ children }) => <h1 className="text-xl font-bold text-foreground mt-4 mb-2 first:mt-0">{children}</h1>,
-                h2: ({ children }) => <h2 className="text-lg font-semibold text-foreground mt-4 mb-2">{children}</h2>,
-                h3: ({ children }) => <h3 className="text-base font-semibold text-foreground mt-3 mb-1">{children}</h3>,
-                p: ({ children }) => <p className="text-sm text-foreground mb-2">{children}</p>,
-                ul: ({ children }) => <ul className="list-disc list-inside text-sm text-foreground mb-2 space-y-1">{children}</ul>,
-                ol: ({ children }) => <ol className="list-decimal list-inside text-sm text-foreground mb-2 space-y-1">{children}</ol>,
-                li: ({ children }) => <li className="text-sm text-foreground">{children}</li>,
-                code: ({ children }) => <code className="px-1.5 py-0.5 rounded bg-muted text-sm font-mono text-foreground">{children}</code>,
-                pre: ({ children }) => <pre className="p-3 rounded-lg bg-muted overflow-x-auto text-sm mb-2">{children}</pre>,
-                strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
-                em: ({ children }) => <em className="italic">{children}</em>,
+                h1: ({ children }) => <h1 className="text-lg font-bold text-white mt-4 mb-2 first:mt-0 font-mono uppercase tracking-wider">{children}</h1>,
+                h2: ({ children }) => <h2 className="text-base font-semibold text-white mt-4 mb-2 font-mono uppercase tracking-wider">{children}</h2>,
+                h3: ({ children }) => <h3 className="text-sm font-semibold text-white mt-3 mb-1 font-mono uppercase tracking-wider">{children}</h3>,
+                p: ({ children }) => <p className="text-sm text-slate-400 mb-2">{children}</p>,
+                ul: ({ children }) => <ul className="text-sm text-slate-400 mb-2 space-y-1">{children}</ul>,
+                ol: ({ children }) => <ol className="text-sm text-slate-400 mb-2 space-y-1">{children}</ol>,
+                li: ({ children }) => (
+                  <li className="text-sm text-slate-400 flex items-start gap-2">
+                    <span className="text-[#00f0ff] mt-1">•</span>
+                    <span>{children}</span>
+                  </li>
+                ),
+                code: ({ children }) => <code className="px-1.5 py-0.5 bg-slate-800 text-[#00f0ff] text-sm font-mono">{children}</code>,
+                pre: ({ children }) => <pre className="p-3 bg-slate-900 overflow-x-auto text-sm mb-2 border border-white/5">{children}</pre>,
+                strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+                em: ({ children }) => <em className="italic text-slate-300">{children}</em>,
               }}
             >
               {value}
@@ -120,13 +124,13 @@ export const TechnicalSolution = ({
           </div>
         )}
         
-        <p className="text-xs text-muted-foreground mt-2">
+        <p className="text-[10px] text-slate-600 mt-2 font-mono uppercase tracking-wider">
           {isEditing || !hasContent 
-            ? "Include: Tech stack, architecture pattern, hosting/infrastructure, key libraries, and technical trade-offs"
+            ? "Include: Tech stack, architecture pattern, hosting/infrastructure, key libraries, and trade-offs"
             : "Click Edit to modify the technical solution"
           }
         </p>
       </div>
-    </Card>
+    </div>
   );
 };

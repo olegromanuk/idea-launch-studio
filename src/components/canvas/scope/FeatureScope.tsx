@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { 
   Sparkles, 
   Plus, 
@@ -18,7 +16,6 @@ import { cn } from "@/lib/utils";
 import { FeatureDetailDrawer, Feature } from "./FeatureDetailDrawer";
 import { UserStory } from "./UserStoriesList";
 
-// Re-export Feature type
 export type { Feature };
 
 interface FeatureScopeProps {
@@ -32,19 +29,19 @@ interface FeatureScopeProps {
 const CATEGORY_CONFIG = {
   mvp: { 
     label: "MVP", 
-    color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/30",
+    color: "border-emerald-500/30 text-emerald-400 bg-emerald-500/10",
     icon: Star,
     description: "Must have for launch"
   },
   future: { 
     label: "Future", 
-    color: "bg-blue-500/10 text-blue-500 border-blue-500/30",
+    color: "border-blue-500/30 text-blue-400 bg-blue-500/10",
     icon: Clock,
     description: "Post-launch features"
   },
   "nice-to-have": { 
     label: "Nice to Have", 
-    color: "bg-purple-500/10 text-purple-500 border-purple-500/30",
+    color: "border-purple-500/30 text-purple-400 bg-purple-500/10",
     icon: Layers,
     description: "If time permits"
   },
@@ -95,11 +92,6 @@ export const FeatureScope = ({
     onChange(features.filter(f => f.id !== id));
   };
 
-  const updateCategory = (id: string, category: Feature["category"], e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange(features.map(f => f.id === id ? { ...f, category } : f));
-  };
-
   const handleFeatureClick = (feature: Feature) => {
     setSelectedFeature(feature);
     setIsDrawerOpen(true);
@@ -118,97 +110,122 @@ export const FeatureScope = ({
 
   return (
     <>
-      <Card className="relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+      <div className="relative bg-[#0A0A0A] border border-white/[0.08] overflow-hidden">
+        {/* Blueprint corner accents */}
+        <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+        <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
         
         <div className="p-6">
           {/* Header */}
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                <Layers className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg text-foreground">Feature Scope</h3>
-                <p className="text-sm text-muted-foreground">
-                  {groupedFeatures.mvp.length} MVP • {groupedFeatures.future.length} Future
-                </p>
-              </div>
+          <div className="flex justify-between items-start mb-6 border-b border-white/5 pb-4">
+            <h2 className="font-mono text-xs text-[#00f0ff] uppercase tracking-widest flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-[#00f0ff] rounded-full shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
+              Feature_Scope
+            </h2>
+            <Layers className="w-5 h-5 text-slate-700" />
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="p-3 bg-[#0F0F0F] border-l-2 border-emerald-500">
+              <span className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">MVP</span>
+              <span className="text-2xl font-bold text-white tracking-tight font-mono">{groupedFeatures.mvp.length}</span>
             </div>
-            
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsAdding(!isAdding)}
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add
-              </Button>
-              <Button
-                size="sm"
-                onClick={onAIGenerate}
-                disabled={isGenerating}
-                className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white"
-              >
-                <Sparkles className={cn("w-4 h-4 mr-1", isGenerating && "animate-spin")} />
-                {isGenerating ? "Adding..." : "AI Generate"}
-              </Button>
+            <div className="p-3 bg-[#0F0F0F] border-l-2 border-blue-500">
+              <span className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Future</span>
+              <span className="text-2xl font-bold text-white tracking-tight font-mono">{groupedFeatures.future.length}</span>
             </div>
+            <div className="p-3 bg-[#0F0F0F] border-l-2 border-purple-500">
+              <span className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Nice-to-Have</span>
+              <span className="text-2xl font-bold text-white tracking-tight font-mono">{groupedFeatures["nice-to-have"].length}</span>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-2 mb-6">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAdding(!isAdding)}
+              className="flex-1 font-mono text-xs uppercase tracking-wider border-white/10 hover:border-[#00f0ff]/30 hover:text-[#00f0ff] bg-transparent"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              Add Feature
+            </Button>
+            <Button
+              size="sm"
+              onClick={onAIGenerate}
+              disabled={isGenerating}
+              className="flex-1 font-mono text-xs uppercase tracking-wider bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20 text-[#00f0ff] border border-[#00f0ff]/30 hover:border-[#00f0ff]/50 shadow-[0_0_10px_rgba(0,240,255,0.1)] hover:shadow-[0_0_20px_rgba(0,240,255,0.2)]"
+            >
+              <Sparkles className={cn("w-4 h-4 mr-1.5", isGenerating && "animate-spin")} />
+              {isGenerating ? "Generating..." : "AI Generate"}
+            </Button>
           </div>
 
           {/* Add form */}
           {isAdding && (
-            <div className="mb-6 p-4 rounded-xl bg-muted/50 border border-border animate-fade-in">
+            <div className="mb-6 p-4 bg-[#0F0F0F] border border-white/10 animate-in fade-in-0 slide-in-from-top-2">
               <div className="grid gap-3">
                 <Input
                   placeholder="Feature name"
                   value={newFeature.name}
                   onChange={(e) => setNewFeature({ ...newFeature, name: e.target.value })}
+                  className="bg-[#0A0A0A] border-white/10 focus:border-[#00f0ff]/50 font-mono text-sm"
                 />
                 <Input
                   placeholder="Brief description (optional)"
                   value={newFeature.description}
                   onChange={(e) => setNewFeature({ ...newFeature, description: e.target.value })}
+                  className="bg-[#0A0A0A] border-white/10 focus:border-[#00f0ff]/50 font-mono text-sm"
                 />
                 <div className="flex gap-2">
                   {(Object.keys(CATEGORY_CONFIG) as Feature["category"][]).map((cat) => (
-                    <Button
+                    <button
                       key={cat}
-                      variant="outline"
-                      size="sm"
                       onClick={() => setNewFeature({ ...newFeature, category: cat })}
                       className={cn(
-                        "flex-1",
-                        newFeature.category === cat && CATEGORY_CONFIG[cat].color
+                        "flex-1 py-2 text-xs font-mono uppercase tracking-wider border transition-all",
+                        newFeature.category === cat 
+                          ? CATEGORY_CONFIG[cat].color
+                          : "border-white/10 text-slate-500 hover:border-white/20"
                       )}
                     >
                       {CATEGORY_CONFIG[cat].label}
-                    </Button>
+                    </button>
                   ))}
                 </div>
-                <div className="flex gap-2">
-                  <span className="text-sm text-muted-foreground self-center mr-2">Effort:</span>
+                <div className="flex gap-2 items-center">
+                  <span className="text-xs text-slate-500 font-mono uppercase">Effort:</span>
                   {(Object.keys(EFFORT_CONFIG) as Feature["effort"][]).map((e) => (
-                    <Button
+                    <button
                       key={e}
-                      variant="outline"
-                      size="sm"
                       onClick={() => setNewFeature({ ...newFeature, effort: e })}
                       className={cn(
-                        "w-10",
-                        newFeature.effort === e && "ring-2 ring-primary"
+                        "w-10 h-10 flex items-center justify-center text-xs font-mono uppercase border transition-all",
+                        newFeature.effort === e 
+                          ? "border-[#00f0ff]/50 bg-[#00f0ff]/10 text-[#00f0ff]"
+                          : "border-white/10 text-slate-500 hover:border-white/20"
                       )}
                     >
                       {EFFORT_CONFIG[e].label}
-                    </Button>
+                    </button>
                   ))}
                 </div>
                 <div className="flex gap-2 justify-end">
-                  <Button variant="ghost" size="sm" onClick={() => setIsAdding(false)}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setIsAdding(false)}
+                    className="font-mono text-xs uppercase text-slate-500"
+                  >
                     Cancel
                   </Button>
-                  <Button size="sm" onClick={addFeature}>
+                  <Button 
+                    size="sm" 
+                    onClick={addFeature}
+                    className="font-mono text-xs uppercase bg-[#00f0ff] text-black hover:bg-[#00f0ff]/90"
+                  >
                     Add Feature
                   </Button>
                 </div>
@@ -226,14 +243,18 @@ export const FeatureScope = ({
               return (
                 <div key={category}>
                   <div className="flex items-center gap-2 mb-3">
-                    <Icon className={cn("w-4 h-4", category === "mvp" ? "text-emerald-500" : category === "future" ? "text-blue-500" : "text-purple-500")} />
-                    <h4 className="font-semibold text-sm text-foreground">{config.label}</h4>
-                    <span className="text-xs text-muted-foreground">({categoryFeatures.length})</span>
+                    <Icon className={cn(
+                      "w-4 h-4",
+                      category === "mvp" ? "text-emerald-500" : 
+                      category === "future" ? "text-blue-500" : "text-purple-500"
+                    )} />
+                    <h4 className="font-mono text-xs text-slate-400 uppercase tracking-wider">{config.label}</h4>
+                    <span className="text-xs text-slate-600 font-mono">({categoryFeatures.length})</span>
                   </div>
                   
                   {categoryFeatures.length === 0 ? (
-                    <div className="text-center py-4 text-xs text-muted-foreground border border-dashed border-border rounded-lg">
-                      No {config.label.toLowerCase()} features yet
+                    <div className="text-center py-4 text-xs text-slate-600 border border-dashed border-white/10 font-mono">
+                      No {config.label.toLowerCase()} features
                     </div>
                   ) : (
                     <div className="grid gap-2">
@@ -244,30 +265,33 @@ export const FeatureScope = ({
                           <div
                             key={feature.id}
                             onClick={() => handleFeatureClick(feature)}
-                            className="group flex items-center gap-3 p-3 rounded-lg bg-card border border-border hover:shadow-md hover:border-primary/30 transition-all cursor-pointer"
+                            className="group flex items-center gap-3 p-3 bg-[#0F0F0F] border border-white/5 hover:border-[#00f0ff]/30 transition-all cursor-pointer relative overflow-hidden"
                           >
+                            {/* Hover glow effect */}
+                            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#00f0ff]/30 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                            
                             <div className={cn(
-                              "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0",
+                              "w-7 h-7 rounded flex items-center justify-center text-xs font-bold text-white shrink-0 font-mono",
                               EFFORT_CONFIG[feature.effort].color
                             )}>
                               {EFFORT_CONFIG[feature.effort].label}
                             </div>
                             
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm text-foreground truncate">
+                              <p className="font-medium text-sm text-white truncate">
                                 {feature.name}
                               </p>
                               <div className="flex items-center gap-2 mt-1">
                                 {feature.description && (
-                                  <p className="text-xs text-muted-foreground truncate">
+                                  <p className="text-xs text-slate-500 truncate">
                                     {feature.description}
                                   </p>
                                 )}
                                 {linkedCount > 0 && (
-                                  <Badge variant="secondary" className="text-xs shrink-0">
-                                    <Link2 className="w-3 h-3 mr-1" />
-                                    {linkedCount} {linkedCount === 1 ? 'story' : 'stories'}
-                                  </Badge>
+                                  <span className="flex items-center gap-1 text-xs text-[#00f0ff] shrink-0">
+                                    <Link2 className="w-3 h-3" />
+                                    {linkedCount}
+                                  </span>
                                 )}
                               </div>
                             </div>
@@ -276,7 +300,7 @@ export const FeatureScope = ({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 hover:text-[#00f0ff]"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleFeatureClick(feature);
@@ -287,12 +311,12 @@ export const FeatureScope = ({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-7 w-7 p-0 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="h-7 w-7 p-0 text-red-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={(e) => removeFeature(feature.id, e)}
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </Button>
-                              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                              <ChevronRight className="w-4 h-4 text-slate-600" />
                             </div>
                           </div>
                         );
@@ -304,7 +328,7 @@ export const FeatureScope = ({
             })}
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Feature Detail Drawer */}
       <FeatureDetailDrawer
