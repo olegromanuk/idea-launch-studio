@@ -592,7 +592,7 @@ export const DevelopmentSubmissionForm = ({
                   <p className="text-[#94A3B8] text-sm">No features defined yet. Add features in Scope & Planning first.</p>
                 </div>
               ) : (
-                Object.entries(groupedFeatures).map(([category, features], catIndex) => (
+                Object.entries(groupedFeatures).map(([category, features]: [string, any[]], catIndex) => (
                   <div key={category} className="mb-4">
                     <div className="flex items-center gap-2 px-2 py-1 mb-1">
                       <FolderOpen className={cn(
@@ -603,7 +603,7 @@ export const DevelopmentSubmissionForm = ({
                         {category.replace(/_/g, " ")}
                       </span>
                     </div>
-                    {features.map((feature) => (
+                    {features.map((feature: any) => (
                       <div 
                         key={feature.id}
                         onClick={() => toggleFeature(feature.id)}
