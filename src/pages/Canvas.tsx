@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -866,6 +867,7 @@ const Canvas = () => {
                 })}
               </TabsList>
 
+              <AnimatePresence mode="wait">
               {canvasTabs.map((tab) => {
                 const isLocked = isBlockLocked(tab.id);
                 const getPreviousBlockNameForContent = (tabId: string) => {
@@ -877,7 +879,21 @@ const Canvas = () => {
                 const previousBlockName = getPreviousBlockNameForContent(tab.id);
                 
                 return (
-                <TabsContent key={tab.id} value={tab.id} className="space-y-8">
+                <TabsContent key={tab.id} value={tab.id} className="space-y-8" asChild forceMount>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                    animate={{ 
+                      opacity: activeTab === tab.id ? 1 : 0, 
+                      y: activeTab === tab.id ? 0 : 20,
+                      scale: activeTab === tab.id ? 1 : 0.98
+                    }}
+                    exit={{ opacity: 0, y: -20, scale: 0.98 }}
+                    transition={{ 
+                      duration: 0.4, 
+                      ease: [0.25, 0.46, 0.45, 0.94]
+                    }}
+                    style={{ display: activeTab === tab.id ? 'block' : 'none' }}
+                  >
                   {/* Tab Header - Blueprint Style */}
                   {tab.id !== "business" && (
                     <div className="relative overflow-hidden bg-[#0A0A0A] border border-white/[0.08] p-6 mb-6">
@@ -1464,9 +1480,11 @@ const Canvas = () => {
                       />
                     </div>
                   )}
+                  </motion.div>
                 </TabsContent>
                 );
               })}
+              </AnimatePresence>
             </Tabs>
           </TooltipProvider>
         </div>
