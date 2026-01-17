@@ -1,6 +1,7 @@
 import { Building2, Palette, User, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 export type PersonaType = "enterprise" | "agency" | "solo";
 
@@ -54,7 +55,7 @@ export const PersonaSelector = ({ onPersonaSelect }: PersonaSelectorProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B1017] text-gray-100 flex flex-col relative">
+    <div className="min-h-screen bg-[#050505] text-gray-100 flex flex-col relative">
       {/* Grid background */}
       <div 
         className="fixed inset-0 pointer-events-none z-0 opacity-10"
@@ -64,26 +65,11 @@ export const PersonaSelector = ({ onPersonaSelect }: PersonaSelectorProps) => {
         }}
       />
 
-      {/* Header */}
-      <header className="relative z-10 border-b border-[#1E293B] bg-[#121821]/50 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <a className="flex items-center gap-2 group" href="/">
-              <span className="text-[#0EA5E9] text-2xl">◈</span>
-              <span className="font-bold tracking-widest uppercase text-xs font-mono">Logomir OS</span>
-            </a>
-          </div>
-          <div className="flex items-center gap-6">
-            <span className="text-[10px] font-mono text-[#94A3B8] uppercase tracking-widest">Step 01 / 04</span>
-            <div className="flex gap-1">
-              <div className="w-8 h-1 bg-[#0EA5E9] rounded-full" />
-              <div className="w-8 h-1 bg-[#1E293B] rounded-full" />
-              <div className="w-8 h-1 bg-[#1E293B] rounded-full" />
-              <div className="w-8 h-1 bg-[#1E293B] rounded-full" />
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Shared Header */}
+      <AppHeader 
+        currentStep="Step_01_Persona"
+        showStepIndicator
+      />
 
       {/* Main content */}
       <main className="relative z-10 flex-grow flex flex-col items-center justify-center p-6 lg:p-8">
@@ -111,24 +97,24 @@ export const PersonaSelector = ({ onPersonaSelect }: PersonaSelectorProps) => {
                   onClick={() => handleSelect(persona.id)}
                 >
                   <div className={cn(
-                    "h-full p-8 bg-[#121821] border flex flex-col items-center text-center transition-all duration-300",
+                    "h-full p-8 bg-[#0F1115] border flex flex-col items-center text-center transition-all duration-300",
                     isSelected 
-                      ? "border-[#0EA5E9] bg-[#0EA5E9]/[0.05] ring-1 ring-[#0EA5E9]/50" 
-                      : "border-[#1E293B] hover:border-[#0EA5E9]/50 hover:bg-[#0EA5E9]/[0.02]",
+                      ? "border-[#00E0FF] bg-[#00E0FF]/[0.05] ring-1 ring-[#00E0FF]/50" 
+                      : "border-[#1f2937] hover:border-[#00E0FF]/50 hover:bg-[#00E0FF]/[0.02]",
                     "hover:-translate-y-0.5"
                   )}>
                     {/* Icon container */}
                     <div className={cn(
-                      "w-16 h-16 mb-6 flex items-center justify-center rounded-sm bg-gray-900 border transition-colors",
+                      "w-16 h-16 mb-6 flex items-center justify-center rounded-sm bg-[#0F1115] border transition-colors",
                       isSelected 
-                        ? "border-[#0EA5E9]/50" 
-                        : "border-[#1E293B] group-hover:border-[#0EA5E9]/30"
+                        ? "border-[#00E0FF]/50" 
+                        : "border-[#1f2937] group-hover:border-[#00E0FF]/30"
                     )}>
-                      <Icon className="w-8 h-8 text-[#0EA5E9]" />
+                      <Icon className="w-8 h-8 text-[#00E0FF]" />
                     </div>
                     
                     {/* Title */}
-                    <h3 className="text-xl font-bold text-[#0EA5E9] uppercase tracking-tight mb-3">
+                    <h3 className="text-xl font-bold text-[#00E0FF] uppercase tracking-tight mb-3">
                       {persona.title}
                     </h3>
                     
@@ -140,7 +126,7 @@ export const PersonaSelector = ({ onPersonaSelect }: PersonaSelectorProps) => {
                     {/* Hover label */}
                     <div className="mt-auto pt-6">
                       <span className={cn(
-                        "text-[10px] font-mono text-[#0EA5E9] uppercase transition-opacity",
+                        "text-[10px] font-mono text-[#00E0FF] uppercase transition-opacity",
                         isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                       )}>
                         {isSelected ? "Selected" : "Select Configuration"}
@@ -158,10 +144,10 @@ export const PersonaSelector = ({ onPersonaSelect }: PersonaSelectorProps) => {
               onClick={handleContinue}
               disabled={!selectedPersona}
               className={cn(
-                "w-full max-w-md py-4 font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all",
+                "w-full max-w-md py-4 font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all rounded",
                 selectedPersona
-                  ? "bg-[#0EA5E9] text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_30px_-5px_rgba(14,165,233,0.4)]"
-                  : "bg-[#1E293B] text-[#94A3B8] cursor-not-allowed"
+                  ? "bg-[#00E0FF] text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_30px_-5px_rgba(0,224,255,0.4)]"
+                  : "bg-[#1f2937] text-slate-400 cursor-not-allowed"
               )}
             >
               Continue To Architecture
@@ -175,13 +161,13 @@ export const PersonaSelector = ({ onPersonaSelect }: PersonaSelectorProps) => {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-[#1E293B] py-6 bg-[#121821]/50">
+      <footer className="relative z-10 border-t border-[#1f2937] py-6 bg-[#050505]">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-[10px] uppercase text-gray-600 tracking-[0.2em]">Deployment Protocol v2.4.0</div>
-          <p className="text-[11px] text-[#94A3B8]">© 2024 Logomir OS. Secure Environment.</p>
+          <div className="text-[10px] uppercase text-slate-600 tracking-[0.2em] font-mono">Deployment Protocol v2.4.0</div>
+          <p className="text-[11px] text-slate-400">© 2024 Logomir OS. Secure Environment.</p>
           <div className="flex gap-6">
-            <a className="text-[#94A3B8] hover:text-[#0EA5E9] transition-colors text-[10px] uppercase font-mono" href="#">Help Center</a>
-            <a className="text-[#94A3B8] hover:text-[#0EA5E9] transition-colors text-[10px] uppercase font-mono" href="#">Privacy Policy</a>
+            <a className="text-slate-400 hover:text-[#00E0FF] transition-colors text-[10px] uppercase font-mono" href="#">Help Center</a>
+            <a className="text-slate-400 hover:text-[#00E0FF] transition-colors text-[10px] uppercase font-mono" href="#">Privacy Policy</a>
           </div>
         </div>
       </footer>
