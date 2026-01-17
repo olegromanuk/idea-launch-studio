@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Grid3X3, Bell, LogOut, Shield, FolderOpen } from "lucide-react";
+import { Grid3X3, Bell, LogOut, Shield, FolderOpen, LayoutGrid } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -61,6 +61,11 @@ export const AppHeader = ({
       label: "Projects", 
       path: "/projects",
       active: isActive("/projects")
+    },
+    { 
+      label: "Board", 
+      path: "/board",
+      active: isActive("/board")
     },
     { 
       label: "Admin", 
