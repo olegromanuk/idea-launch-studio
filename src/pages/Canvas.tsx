@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CanvasCell } from "@/components/canvas/CanvasCell";
 import { BusinessLogicSection } from "@/components/canvas/BusinessLogicSection";
+import { ScopePlanningSection } from "@/components/canvas/scope/ScopePlanningSection";
 import { ExpandedCanvasEditor } from "@/components/canvas/ExpandedCanvasEditor";
 import { TeamChat } from "@/components/canvas/TeamChat";
 import { AIChat } from "@/components/canvas/AIChat";
@@ -987,146 +988,14 @@ const Canvas = () => {
                       </div>
                     </div>
                   ) : tab.id === "scope" ? (
-                    <div className="space-y-4">
-                      {/* User Stories Block */}
-                      <ScopeBlockCard
-                        title="User Stories"
-                        subtitle="High-level user journey and acceptance criteria"
-                        icon={Users}
-                        gradient="from-blue-500 to-cyan-500"
-                        itemCount={scopeData.userStories.length}
-                        completedCount={scopeData.userStories.filter(s => s.completed).length}
-                        onAIGenerate={() => generateSuggestions("userStories")}
-                        isGenerating={loadingSection === "userStories"}
-                        onViewAll={() => setOpenScopeDrawer("userStories")}
-                      >
-                        {scopeData.userStories.slice(0, 5).map((story, i) => (
-                          <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-background border border-border/50">
-                            <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <Users className="w-3 h-3 text-blue-500" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-foreground">
-                                As a <span className="text-primary">{story.persona}</span>
-                              </p>
-                              <p className="text-sm text-muted-foreground truncate">I want to {story.action}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </ScopeBlockCard>
-
-                      {/* Feature Scope Block */}
-                      <ScopeBlockCard
-                        title="Scope of Features"
-                        subtitle="Define MVP features vs nice-to-haves"
-                        icon={Layers}
-                        gradient="from-emerald-500 to-teal-500"
-                        itemCount={scopeData.features.length}
-                        completedCount={scopeData.features.filter(f => f.category === "mvp").length}
-                        onAIGenerate={() => generateSuggestions("featureScope")}
-                        isGenerating={loadingSection === "featureScope"}
-                        onViewAll={() => setOpenScopeDrawer("featureScope")}
-                      >
-                        {scopeData.features.slice(0, 5).map((feature, i) => (
-                          <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50">
-                            <div className={`w-2 h-2 rounded-full ${feature.category === "mvp" ? "bg-emerald-500" : feature.category === "future" ? "bg-blue-500" : "bg-purple-500"}`} />
-                            <span className="text-sm font-medium text-foreground flex-1">{feature.name}</span>
-                            <span className="text-xs text-muted-foreground capitalize">{feature.category}</span>
-                          </div>
-                        ))}
-                      </ScopeBlockCard>
-
-                      {/* Tasks & Milestones Block */}
-                      <ScopeBlockCard
-                        title="Tasks & Milestones"
-                        subtitle="Break down work into actionable tasks"
-                        icon={ListTodo}
-                        gradient="from-violet-500 to-purple-500"
-                        itemCount={scopeData.milestones.length}
-                        completedCount={scopeData.milestones.filter(m => m.tasks?.every((t: any) => t.status === "done")).length}
-                        onAIGenerate={() => generateSuggestions("taskBreakdown")}
-                        isGenerating={loadingSection === "taskBreakdown"}
-                        onViewAll={() => setOpenScopeDrawer("taskBreakdown")}
-                      >
-                        {scopeData.milestones.slice(0, 5).map((milestone, i) => (
-                          <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-background border border-border/50">
-                            <div className="flex items-center gap-3">
-                              <div className="w-6 h-6 rounded-full bg-violet-500/10 flex items-center justify-center">
-                                <ListTodo className="w-3 h-3 text-violet-500" />
-                              </div>
-                              <span className="text-sm font-medium text-foreground">{milestone.name}</span>
-                            </div>
-                            <span className="text-xs text-muted-foreground">{milestone.tasks?.length || 0} tasks</span>
-                          </div>
-                        ))}
-                      </ScopeBlockCard>
-
-                      {/* Technical Solution Block */}
-                      <ScopeBlockCard
-                        title="Technical Solution"
-                        subtitle="Architecture and technology decisions"
-                        icon={Cpu}
-                        gradient="from-slate-500 to-zinc-600"
-                        itemCount={scopeData.technicalSolution ? 1 : 0}
-                        completedCount={scopeData.technicalSolution ? 1 : 0}
-                        onAIGenerate={() => generateSuggestions("technicalSolution")}
-                        isGenerating={loadingSection === "technicalSolution"}
-                        onViewAll={() => setOpenScopeDrawer("technicalSolution")}
-                      >
-                        {scopeData.technicalSolution && (
-                          <div className="p-3 rounded-lg bg-background border border-border/50">
-                            <p className="text-sm text-muted-foreground line-clamp-3">
-                              {scopeData.technicalSolution}
-                            </p>
-                          </div>
-                        )}
-                      </ScopeBlockCard>
-
-                      {/* Risks & Constraints Block */}
-                      <ScopeBlockCard
-                        title="Risks & Constraints"
-                        subtitle="Identify blockers and mitigation plans"
-                        icon={AlertTriangle}
-                        gradient="from-amber-500 to-orange-500"
-                        itemCount={scopeData.risks.length}
-                        completedCount={scopeData.risks.filter(r => r.mitigation).length}
-                        onAIGenerate={() => generateSuggestions("risksConstraints")}
-                        isGenerating={loadingSection === "risksConstraints"}
-                        onViewAll={() => setOpenScopeDrawer("risksConstraints")}
-                      >
-                        {scopeData.risks.slice(0, 5).map((risk, i) => (
-                          <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50">
-                            <span className={`w-2 h-2 rounded-full ${risk.impact === "high" ? "bg-red-500" : risk.impact === "medium" ? "bg-amber-500" : "bg-green-500"}`} />
-                            <span className="text-sm text-foreground flex-1 truncate">{risk.title}</span>
-                            <span className="text-xs text-muted-foreground capitalize">{risk.type}</span>
-                          </div>
-                        ))}
-                      </ScopeBlockCard>
-
-                      {/* Timeline & Estimates Block */}
-                      <ScopeBlockCard
-                        title="Timeline & Estimates"
-                        subtitle="Project phases and delivery schedule"
-                        icon={Clock}
-                        gradient="from-rose-500 to-pink-500"
-                        itemCount={scopeData.timeline.length}
-                        completedCount={scopeData.timeline.length}
-                        onAIGenerate={() => generateSuggestions("timeline")}
-                        isGenerating={loadingSection === "timeline"}
-                        onViewAll={() => setOpenScopeDrawer("timeline")}
-                      >
-                        {scopeData.timeline.slice(0, 5).map((phase, i) => (
-                          <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-background border border-border/50">
-                            <div className="flex items-center gap-3">
-                              <div className="w-6 h-6 rounded-full bg-rose-500/10 flex items-center justify-center">
-                                <Clock className="w-3 h-3 text-rose-500" />
-                              </div>
-                              <span className="text-sm font-medium text-foreground">{phase.name}</span>
-                            </div>
-                            <span className="text-xs text-muted-foreground">{phase.duration}</span>
-                          </div>
-                        ))}
-                      </ScopeBlockCard>
+                    <>
+                      <ScopePlanningSection
+                        scopeData={scopeData}
+                        loadingSection={loadingSection}
+                        onAIGenerate={(section) => generateSuggestions(section)}
+                        onOpenDrawer={(section) => setOpenScopeDrawer(section)}
+                        projectData={projectData}
+                      />
 
                       {/* Scope Editor Drawers */}
                       <ScopeEditorDrawer
@@ -1238,7 +1107,7 @@ const Canvas = () => {
                           isGenerating={loadingSection === "timeline"}
                         />
                       </ScopeEditorDrawer>
-                    </div>
+                    </>
                   ) : tab.id === "development" ? (
                     <div className="space-y-6">
                       <div className="flex items-center gap-4 mb-6">
