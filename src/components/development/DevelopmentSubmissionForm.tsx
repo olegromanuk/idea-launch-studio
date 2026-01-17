@@ -78,6 +78,7 @@ interface ExistingSubmission {
   status: string;
   created_at: string;
   submitted_at: string;
+  priority?: string;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Clock }> = {
@@ -126,7 +127,8 @@ export const DevelopmentSubmissionForm = ({
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [existingSubmission, setExistingSubmission] = useState<ExistingSubmission | null>(null);
+  const [existingSubmissions, setExistingSubmissions] = useState<ExistingSubmission[]>([]);
+  const [showNewForm, setShowNewForm] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [timelineView, setTimelineView] = useState<"weeks" | "months">("weeks");
   
@@ -150,9 +152,9 @@ export const DevelopmentSubmissionForm = ({
     additionalRequirements: "",
   });
 
-  // Check for existing submission on mount
+  // Check for existing submissions on mount
   useEffect(() => {
-    const checkExistingSubmission = async () => {
+    const checkExistingSubmissions = async () => {
       if (!user) {
         setIsLoading(false);
         return;
@@ -161,7 +163,7 @@ export const DevelopmentSubmissionForm = ({
       try {
         const query = supabase
           .from("dev_submissions")
-          .select("id, project_name, status, created_at, submitted_at")
+          .select("id, project_name, status, created_at, submitted_at, priority")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
         
@@ -169,12 +171,12 @@ export const DevelopmentSubmissionForm = ({
           query.eq("project_id", projectId);
         }
 
-        const { data, error } = await query.limit(1).maybeSingle();
+        const { data, error } = await query.limit(10);
 
         if (error) {
-          console.error("Error checking existing submission:", error);
-        } else if (data) {
-          setExistingSubmission(data);
+          console.error("Error checking existing submissions:", error);
+        } else if (data && data.length > 0) {
+          setExistingSubmissions(data);
         }
       } catch (err) {
         console.error("Error:", err);
@@ -183,7 +185,7 @@ export const DevelopmentSubmissionForm = ({
       }
     };
 
-    checkExistingSubmission();
+    checkExistingSubmissions();
   }, [user, projectId]);
 
   // Selected scope items
@@ -329,90 +331,118 @@ export const DevelopmentSubmissionForm = ({
     );
   }
 
-  // Show existing submission status
-  if (existingSubmission) {
-    const statusInfo = STATUS_CONFIG[existingSubmission.status] || STATUS_CONFIG.submitted;
-    const StatusIcon = statusInfo.icon;
-
+  // Show existing submissions list
+  if (existingSubmissions.length > 0 && !showNewForm) {
     return (
       <div className="space-y-6">
-        {/* Existing Submission Card */}
-        <div className="bg-[#121821] border border-[#1E293B] p-6 relative">
-          {/* Corner accents */}
-          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-[#0EA5E9]" />
-          <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-[#0EA5E9]" />
-          <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-[#0EA5E9]" />
-          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#0EA5E9]" />
-          
-          <div className="flex items-start gap-4">
-            <div className={cn("w-12 h-12 rounded flex items-center justify-center", statusInfo.color)}>
-              <StatusIcon className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-white mb-1 uppercase tracking-wide">
-                Development Request {statusInfo.label}
-              </h3>
-              <p className="text-sm text-[#94A3B8] mb-4 font-mono">
-                Project "<span className="text-[#0EA5E9]">{existingSubmission.project_name}</span>" 
-                was submitted on {formatDate(existingSubmission.submitted_at)}
-              </p>
-              
-              <div className="flex flex-wrap gap-3">
-                <button 
-                  onClick={() => navigate("/my-submissions")}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#0EA5E9] text-white hover:bg-[#0EA5E9]/90 transition-colors text-xs font-bold uppercase shadow-[0_0_15px_-3px_rgba(14,165,233,0.3)]"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  View My Submissions
-                </button>
-                <button 
-                  onClick={() => setExistingSubmission(null)}
-                  className="flex items-center gap-2 px-4 py-2 border border-[#1E293B] bg-[#121821] hover:border-[#0EA5E9]/50 transition-colors text-xs font-medium uppercase text-[#94A3B8]"
-                >
-                  <Rocket className="w-4 h-4" />
-                  Submit New Request
-                </button>
-              </div>
-            </div>
+        {/* Header with New Submission Button */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-1">Development Requests</h3>
+            <p className="text-lg font-bold text-white">Your Submissions ({existingSubmissions.length})</p>
           </div>
+          <button 
+            onClick={() => setShowNewForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#0EA5E9] text-white hover:bg-[#0EA5E9]/90 transition-colors text-xs font-bold uppercase shadow-[0_0_15px_-3px_rgba(14,165,233,0.3)]"
+          >
+            <Plus className="w-4 h-4" />
+            New Submission
+          </button>
+        </div>
+
+        {/* Submissions List */}
+        <div className="space-y-4">
+          {existingSubmissions.map((submission) => {
+            const statusInfo = STATUS_CONFIG[submission.status] || STATUS_CONFIG.submitted;
+            const StatusIcon = statusInfo.icon;
+            
+            return (
+              <div key={submission.id} className="bg-[#121821] border border-[#1E293B] p-5 relative hover:border-[#0EA5E9]/30 transition-colors">
+                {/* Corner accents */}
+                <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[#0EA5E9]/50" />
+                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-[#0EA5E9]/50" />
+                <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-[#0EA5E9]/50" />
+                <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-[#0EA5E9]/50" />
+                
+                <div className="flex items-start gap-4">
+                  <div className={cn("w-10 h-10 rounded flex items-center justify-center flex-shrink-0", statusInfo.color)}>
+                    <StatusIcon className="w-5 h-5 text-white" />
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h4 className="text-white font-medium truncate">{submission.project_name}</h4>
+                        <p className="text-xs text-[#94A3B8] font-mono mt-1">
+                          Submitted {formatDate(submission.submitted_at)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={cn(
+                          "text-[10px] font-mono uppercase px-2 py-1 rounded",
+                          statusInfo.color.replace("bg-", "bg-") + "/20",
+                          "text-white border",
+                          statusInfo.color.replace("bg-", "border-") + "/50"
+                        )}>
+                          {statusInfo.label}
+                        </span>
+                        {submission.priority && (
+                          <span className={cn(
+                            "text-[10px] font-mono uppercase px-2 py-1 rounded bg-[#1E293B] text-[#94A3B8]"
+                          )}>
+                            {submission.priority}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Mini Timeline */}
+                    <div className="flex items-center gap-1 mt-3">
+                      {Object.entries(STATUS_CONFIG).slice(0, 6).map(([key, config], index) => {
+                        const isActive = key === submission.status;
+                        const isPast = Object.keys(STATUS_CONFIG).indexOf(submission.status) > index;
+                        
+                        return (
+                          <div key={key} className="flex items-center flex-1">
+                            <div className={cn(
+                              "w-2 h-2 rounded-full transition-all",
+                              isActive && `${config.color} ring-2 ring-offset-1 ring-offset-[#121821] ring-white/20`,
+                              isPast && "bg-green-500",
+                              !isActive && !isPast && "bg-[#1E293B]"
+                            )} />
+                            {index < 5 && (
+                              <div className={cn(
+                                "flex-1 h-0.5 mx-0.5",
+                                isPast ? "bg-green-500" : "bg-[#1E293B]"
+                              )} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  <button 
+                    onClick={() => navigate(`/my-submissions`)}
+                    className="flex items-center gap-1 px-3 py-1.5 border border-[#1E293B] bg-[#121821] hover:border-[#0EA5E9]/50 transition-colors text-xs font-mono uppercase text-[#94A3B8] flex-shrink-0"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    View
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
         
-        {/* Timeline */}
-        <div className="bg-[#121821] border border-[#1E293B] p-5">
-          <h4 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 flex items-center gap-2 border-b border-[#1E293B] pb-3">
-            <Clock className="w-4 h-4" />
-            Submission Timeline
-          </h4>
-          <div className="flex items-center justify-between w-full">
-            {Object.entries(STATUS_CONFIG).slice(0, 6).map(([key, config], index) => {
-              const isActive = key === existingSubmission.status;
-              const isPast = Object.keys(STATUS_CONFIG).indexOf(existingSubmission.status) > index;
-              
-              return (
-                <div key={key} className="flex items-center flex-1">
-                  <div className="flex flex-col items-center">
-                    <div className={cn(
-                      "w-8 h-8 rounded flex items-center justify-center text-xs font-mono transition-all",
-                      isActive && `${config.color} text-white ring-2 ring-offset-2 ring-offset-[#121821]`,
-                      isPast && "bg-green-500 text-white",
-                      !isActive && !isPast && "bg-[#1E293B] text-[#94A3B8]"
-                    )}>
-                      {isPast ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
-                    </div>
-                    <span className="text-[10px] text-[#94A3B8] mt-2 text-center font-mono uppercase">
-                      {["Submitted", "Review", "Dev", "Test", "Deploy", "Done"][index]}
-                    </span>
-                  </div>
-                  {index < 5 && (
-                    <div className={cn(
-                      "flex-1 h-0.5 mx-1",
-                      isPast ? "bg-green-500" : "bg-[#1E293B]"
-                    )} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
+        {/* View All Link */}
+        <div className="text-center pt-2">
+          <button 
+            onClick={() => navigate("/my-submissions")}
+            className="text-xs text-[#0EA5E9] hover:text-white transition-colors font-mono uppercase"
+          >
+            View All Submissions →
+          </button>
         </div>
       </div>
     );
