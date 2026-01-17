@@ -2,21 +2,20 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AuthButton } from "@/components/auth/AuthButton";
 import { 
-  Brain, 
-  Users, 
-  Building2, 
-  Rocket, 
-  Target, 
-  Layers, 
   Play,
-  ArrowRight,
+  X,
   Check,
-  X
+  Focus,
+  GitBranch,
+  Map,
+  Terminal,
+  Rocket,
+  BadgeCheck
 } from "lucide-react";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background text-slate-300 antialiased selection:bg-primary/30 selection:text-white">
+    <div className="min-h-screen bg-[#05070a] text-slate-300 antialiased selection:bg-primary/30 selection:text-white">
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
         
         {/* Navigation */}
@@ -33,7 +32,6 @@ const Index = () => {
             <div className="hidden md:flex items-center gap-8 font-mono text-[11px] tracking-widest uppercase">
               <a className="text-slate-400 hover:text-primary transition-colors" href="#features">Features</a>
               <a className="text-slate-400 hover:text-primary transition-colors" href="#methodology">Methodology</a>
-              <a className="text-slate-400 hover:text-primary transition-colors" href="#philosophy">Philosophy</a>
             </div>
             <div className="flex items-center gap-4">
               <AuthButton />
@@ -49,43 +47,41 @@ const Index = () => {
             <div className="relative z-10 w-full max-w-[1000px] text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/5 border border-primary/20 text-primary font-mono text-[10px] font-bold uppercase tracking-[0.3em] mb-8">
                 <span className="flex h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />
-                System: Private Alpha Active
+                FOR ENTREPRENEURS AND SOLO FOUNDERS
               </div>
               
-              <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[0.95]">
-                STOP BUILDING <br className="hidden md:block" />
-                <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/30">IN CHAOS.</span>
+              <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[0.95] uppercase">
+                Build the right product.<br className="hidden md:block" />
+                <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/30">Launch it without chaos.</span>
               </h1>
               
-              <h2 className="text-xl md:text-2xl font-mono font-bold text-primary mb-6 tracking-tight cyan-glow">
-                BUILD WITH ARCHITECTURAL CLARITY.
+              <h2 className="text-lg md:text-xl font-mono font-bold text-primary mb-6 tracking-tight cyan-glow leading-snug max-w-4xl mx-auto uppercase">
+                Logomir is an AI Product Operating System that takes you from idea → MVP → launch — in one continuous flow.
               </h2>
               
               <p className="text-base md:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10 font-light">
-                The AI Product Operating System for solo founders and small teams to turn vision into a visual MVP roadmap.
+                Define a clear MVP scope, product logic, and launch plan before writing code or spending money.
               </p>
               
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-                <Button asChild className="group px-8 py-6 bg-primary text-primary-foreground font-bold text-sm font-mono uppercase tracking-widest hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)] transition-all">
-                  <Link to="/onboarding">
-                    Start with your idea
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button variant="outline" className="px-8 py-6 bg-white/5 border border-white/10 text-white font-mono text-sm uppercase tracking-widest hover:bg-white/10 transition-all">
-                  View Methodology
-                </Button>
-              </div>
-              
-              <div className="border-t border-primary/20 pt-8 inline-block">
-                <p className="text-xl font-light italic text-white/70">
-                  "We don't accelerate execution. <span className="text-primary font-bold not-italic border-b border-primary/30">We fix thinking first.</span>"
+              <div className="flex flex-col items-center justify-center gap-4 mb-16">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <Button asChild className="group px-8 py-4 bg-primary text-primary-foreground font-bold text-sm font-mono uppercase tracking-widest hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)] transition-all">
+                    <Link to="/onboarding">
+                      START WITH YOUR IDEA
+                    </Link>
+                  </Button>
+                  <Button variant="outline" className="px-8 py-4 bg-white/5 border border-white/10 text-white font-mono text-sm uppercase tracking-widest hover:bg-white/10 transition-all">
+                    View Methodology
+                  </Button>
+                </div>
+                <p className="text-[10px] font-mono text-slate-600 uppercase tracking-widest mt-2">
+                  No setup. No templates. No unfinished MVPs.
                 </p>
               </div>
             </div>
             
             {/* Hero Visual */}
-            <div className="mt-16 w-full max-w-[1100px] relative px-4">
+            <div className="mt-8 w-full max-w-[1100px] relative px-4">
               <div className="blueprint-card p-1 shadow-2xl overflow-hidden">
                 <div className="w-full aspect-[21/9] bg-slate-900/80 rounded-sm flex items-center justify-center relative group overflow-hidden">
                   <div className="absolute inset-0 blueprint-bg opacity-20" />
@@ -98,291 +94,249 @@ const Index = () => {
           </section>
 
           {/* Problem Section */}
-          <section className="relative w-full py-16 px-6 bg-background">
+          <section className="relative w-full py-20 px-6 bg-[#05070a]">
             <div className="horizontal-divider" />
-            <div className="max-w-[1100px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 mt-16">
-              <div className="lg:col-span-5 relative">
-                <div className="absolute -top-10 -left-10 w-24 h-24 border-t border-l border-primary/20 opacity-50" />
+            <div className="max-w-[1100px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 mt-16 items-center">
+              <div className="relative">
+                <div className="absolute -top-8 -left-8 w-24 h-24 border-t border-l border-primary/20 opacity-50" />
                 <span className="font-mono text-primary text-xs uppercase tracking-[0.5em] mb-4 block">Problem ID: 01</span>
-                <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-white mb-6 uppercase">
-                  The real problem <br />isn't speed.
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-white uppercase leading-[0.9]">
+                  Most MVPs<br/>don't fail.<br/>They get stuck.
                 </h2>
-                <p className="text-xl text-slate-500 font-mono tracking-tighter uppercase italic">The problem is chaos.</p>
               </div>
-              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="blueprint-card p-6 glitch-bg">
-                  <span className="font-mono text-[10px] text-primary mb-2 block tracking-widest">ABUNDANCE</span>
-                  <p className="text-slate-400 text-sm">We have content AI that generates thousands of words in seconds.</p>
-                </div>
-                <div className="blueprint-card p-6">
-                  <span className="font-mono text-[10px] text-primary mb-2 block tracking-widest">FRICTIONLESS</span>
-                  <p className="text-slate-400 text-sm">We have interface builders that mock up high-fidelity screens in minutes.</p>
-                </div>
-                <div className="blueprint-card p-6">
-                  <span className="font-mono text-[10px] text-primary mb-2 block tracking-widest">VELOCITY</span>
-                  <p className="text-slate-400 text-sm">We have accelerators that push for rapid shipping and overnight growth.</p>
-                </div>
-                <div className="bg-primary/5 border border-primary/30 p-6 flex flex-col justify-center">
-                  <p className="text-sm font-bold text-white uppercase tracking-tighter">Fast execution without clarity is accelerated guesswork.</p>
+              <div className="relative">
+                <div className="blueprint-card p-8 md:p-10 border-l-2 border-l-primary/50">
+                  <p className="text-slate-400 text-lg leading-relaxed mb-8 font-light">
+                    Solo founders move fast. They design, build, and prototype quickly. But without a clear product decision layer, projects stall halfway:
+                  </p>
+                  <ul className="space-y-4 mb-8 font-mono text-sm text-slate-300 uppercase tracking-wide">
+                    <li className="flex items-center gap-4">
+                      <X className="h-4 w-4 text-primary/70" />
+                      unclear MVP scope
+                    </li>
+                    <li className="flex items-center gap-4">
+                      <X className="h-4 w-4 text-primary/70" />
+                      endless revisions
+                    </li>
+                    <li className="flex items-center gap-4">
+                      <X className="h-4 w-4 text-primary/70" />
+                      tools that don't connect
+                    </li>
+                    <li className="flex items-center gap-4">
+                      <X className="h-4 w-4 text-primary/70" />
+                      launches that never happen
+                    </li>
+                  </ul>
+                  <div className="border-t border-white/10 pt-6 mt-2">
+                    <p className="text-primary font-mono text-xs uppercase tracking-widest font-bold">
+                      Speed without direction turns effort into waste.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="max-w-3xl mx-auto text-center mt-20 pb-16">
-              <p className="text-xl md:text-3xl font-extrabold text-white mb-4">But in the rush to move fast, we ignore the anchor:</p>
-              <p className="text-3xl md:text-5xl font-black text-primary uppercase tracking-tighter cyan-glow">
-                What exactly should be built — and why?
+            <div className="horizontal-divider mt-16" />
+          </section>
+
+          {/* Decision Layer Section */}
+          <section className="relative w-full py-32 px-6 bg-[#05070a] overflow-hidden flex flex-col items-center justify-center">
+            <div className="absolute inset-0 blueprint-bg opacity-20 pointer-events-none" />
+            <div className="relative z-10 w-full max-w-[1000px] text-center">
+              <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-white mb-8 leading-none uppercase">
+                What's missing is not speed.<br/>
+                It's a decision layer.
+              </h2>
+              <p className="text-lg md:text-xl text-slate-400 font-light leading-relaxed mb-10 max-w-3xl mx-auto">
+                Logomir is the operating system that sits between ideas and execution.
               </p>
-            </div>
-            <div className="horizontal-divider" />
-          </section>
-
-          {/* Definition Section */}
-          <section className="relative w-full py-16 px-6 bg-muted/20">
-            <div className="max-w-[1100px] mx-auto text-center">
-              <span className="font-mono text-primary text-[10px] uppercase tracking-[0.6em] mb-4 block">Definition.OS</span>
-              <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-10 uppercase">A new category is required.</h2>
-              <div className="flex flex-wrap justify-center gap-6 mb-16">
-                <span className="px-4 py-1.5 border border-white/5 bg-white/5 font-mono text-sm text-white/30 line-through">Not a tool</span>
-                <span className="px-4 py-1.5 border border-white/5 bg-white/5 font-mono text-sm text-white/30 line-through">Not a generator</span>
-                <span className="px-4 py-1.5 border border-white/5 bg-white/5 font-mono text-sm text-white/30 line-through">Not an accelerator</span>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-px bg-white/10 border border-white/10 max-w-5xl mx-auto overflow-hidden">
-                <div className="p-12 text-left bg-background flex flex-col justify-center">
-                  <p className="text-3xl md:text-4xl font-black tracking-tighter text-white leading-tight uppercase">
-                    AI PRODUCT <br />OPERATING SYSTEM.
-                  </p>
-                  <div className="w-16 h-1.5 bg-primary mt-6" />
-                </div>
-                <div className="p-12 text-left bg-background/50 grid grid-cols-1 gap-8">
-                  <div>
-                    <h4 className="font-mono text-xs font-bold text-primary mb-2 uppercase tracking-widest">Core Philosophy</h4>
-                    <p className="text-slate-400 text-sm leading-relaxed">Most AI tools focus on output. We focus on the inputs—the logic, user needs, and structural integrity of your vision before code.</p>
-                  </div>
-                  <div>
-                    <h4 className="font-mono text-xs font-bold text-primary mb-2 uppercase tracking-widest">Strategic Framework</h4>
-                    <p className="text-slate-400 text-sm leading-relaxed">Logomir acts as the central nervous system, connecting high-level strategy to granular execution in one visual canvas.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Features Section */}
-          <section id="features" className="relative w-full py-20 px-6 overflow-hidden">
-            <div className="absolute inset-0 blueprint-bg opacity-10" />
-            <div className="max-w-[1100px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-              <div className="lg:col-span-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="font-mono text-primary text-[10px] uppercase tracking-widest px-2 py-1 border border-primary/30">Module: 02_Navigation</span>
-                </div>
-                <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-white mb-6 uppercase">What Logomir actually is.</h2>
-                <p className="text-lg text-slate-400 mb-8 max-w-2xl font-light">
-                  Logomir is a <span className="text-white border-b border-primary/40">product navigation system</span> bridging the gap between raw ambition and functional architecture.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="blueprint-card p-5 group hover:border-primary/40 transition-colors">
-                    <Brain className="text-primary h-5 w-5 mb-3" />
-                    <h5 className="text-white font-bold text-sm mb-1 uppercase tracking-tight">Ideas to Hypotheses</h5>
-                    <p className="text-slate-500 text-[11px]">Convert vague features into testable assumptions.</p>
-                  </div>
-                  <div className="blueprint-card p-5 group hover:border-primary/40 transition-colors">
-                    <Users className="text-primary h-5 w-5 mb-3" />
-                    <h5 className="text-white font-bold text-sm mb-1 uppercase tracking-tight">User Problems</h5>
-                    <p className="text-slate-500 text-[11px]">Map pain points and align every feature.</p>
-                  </div>
-                  <div className="blueprint-card p-5 group hover:border-primary/40 transition-colors">
-                    <Building2 className="text-primary h-5 w-5 mb-3" />
-                    <h5 className="text-white font-bold text-sm mb-1 uppercase tracking-tight">Define Right MVP</h5>
-                    <p className="text-slate-500 text-[11px]">Strip bloat and identify essential core.</p>
-                  </div>
-                  <div className="blueprint-card p-5 group hover:border-primary/40 transition-colors">
-                    <Layers className="text-primary h-5 w-5 mb-3" />
-                    <h5 className="text-white font-bold text-sm mb-1 uppercase tracking-tight">Logic Before Code</h5>
-                    <p className="text-slate-500 text-[11px]">Visual blueprint for development architecture.</p>
-                  </div>
-                  <div className="blueprint-card p-5 group hover:border-primary/40 transition-colors md:col-span-2">
-                    <Rocket className="text-primary h-5 w-5 mb-3" />
-                    <h5 className="text-white font-bold text-sm mb-1 uppercase tracking-tight">Launch with Intent</h5>
-                    <p className="text-slate-500 text-[11px]">Move from canvas to market with a high-fidelity roadmap that works.</p>
-                  </div>
-                </div>
-              </div>
-              <div className="lg:col-span-4 flex">
-                <div className="w-full blueprint-card p-8 flex flex-col items-center justify-center text-center relative overflow-hidden bg-primary/5">
-                  <div className="absolute inset-0 blueprint-bg opacity-20" />
-                  <Target className="h-12 w-12 text-primary mb-6 animate-pulse" />
-                  <p className="text-lg font-light text-white leading-relaxed relative z-10 italic">
-                    "All happens inside a <span className="text-primary font-bold not-italic">visual canvas</span>, guided by AI agents that think like architects."
-                  </p>
-                </div>
-              </div>
+              <p className="text-primary font-mono text-sm md:text-base uppercase tracking-[0.2em] font-bold cyan-glow">
+                This is where products stop getting stuck.
+              </p>
             </div>
           </section>
 
           {/* Flow Section */}
-          <section id="methodology" className="relative w-full py-16 px-6 border-t border-white/5">
+          <section id="methodology" className="relative w-full py-16 px-6 bg-[#07090d]">
             <div className="max-w-[1100px] mx-auto">
               <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 border-b border-white/5 pb-8">
                 <div>
                   <span className="font-mono text-primary text-[10px] uppercase tracking-widest mb-2 block">System.Process</span>
-                  <h2 className="text-3xl font-black tracking-tight text-white uppercase">The Flow.</h2>
+                  <h2 className="text-3xl font-black tracking-tight text-white uppercase">How it works — from idea to launch</h2>
                 </div>
-                <p className="text-slate-500 text-sm max-w-sm mt-4 md:mt-0 font-mono">From idea chaos to product clarity.</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="blueprint-card p-6 flex flex-col items-start">
                   <div className="text-[10px] font-mono text-primary mb-4 border-b border-primary/20 w-full pb-1">STEP_01</div>
-                  <h4 className="text-white font-bold text-sm mb-2 uppercase">Idea <span className="text-primary">→</span> Struct</h4>
-                  <p className="text-slate-500 text-xs">Structured hypotheses to ground your vision.</p>
+                  <h4 className="text-white font-bold text-sm mb-2 uppercase">Idea <span className="text-primary">→</span> Decision</h4>
+                  <p className="text-slate-500 text-xs">Turn a raw idea into a clear product decision.</p>
                 </div>
                 <div className="blueprint-card p-6 flex flex-col items-start">
                   <div className="text-[10px] font-mono text-primary mb-4 border-b border-primary/20 w-full pb-1">STEP_02</div>
-                  <h4 className="text-white font-bold text-sm mb-2 uppercase">Struct <span className="text-primary">→</span> Logic</h4>
-                  <p className="text-slate-500 text-xs">Users, problems, and value in a cohesive map.</p>
+                  <h4 className="text-white font-bold text-sm mb-2 uppercase">Decision <span className="text-primary">→</span> MVP</h4>
+                  <p className="text-slate-500 text-xs">Define the smallest product worth building.</p>
                 </div>
                 <div className="blueprint-card p-6 flex flex-col items-start">
                   <div className="text-[10px] font-mono text-primary mb-4 border-b border-primary/20 w-full pb-1">STEP_03</div>
-                  <h4 className="text-white font-bold text-sm mb-2 uppercase">Logic <span className="text-primary">→</span> MVP</h4>
-                  <p className="text-slate-500 text-xs">Building only the essential core of your product.</p>
+                  <h4 className="text-white font-bold text-sm mb-2 uppercase">MVP <span className="text-primary">→</span> Build</h4>
+                  <p className="text-slate-500 text-xs">Translate logic into a build-ready plan and setup.</p>
                 </div>
                 <div className="blueprint-card p-6 flex flex-col items-start">
                   <div className="text-[10px] font-mono text-primary mb-4 border-b border-primary/20 w-full pb-1">STEP_04</div>
-                  <h4 className="text-white font-bold text-sm mb-2 uppercase">MVP <span className="text-primary">→</span> Launch</h4>
-                  <p className="text-slate-500 text-xs">Transition to high-intent market entry.</p>
+                  <h4 className="text-white font-bold text-sm mb-2 uppercase">Build <span className="text-primary">→</span> Launch</h4>
+                  <p className="text-slate-500 text-xs">Prepare and execute a focused go-to-market launch.</p>
                 </div>
               </div>
-              <div className="mt-8 bg-white/5 border border-white/10 p-4 text-center font-mono text-xs text-slate-400">
-                "Every step is <span className="text-white uppercase font-bold tracking-widest">visual, intentional, and guided</span> by AI that explains <span className="italic text-primary">why</span>."
+              <div className="mt-8 text-center">
+                <p className="text-primary/80 font-mono text-xs uppercase tracking-widest font-medium">One continuous flow, no handoffs between tools.</p>
               </div>
             </div>
           </section>
 
-          {/* Philosophy Section */}
-          <section id="philosophy" className="relative w-full py-16 px-6 bg-background">
-            <div className="max-w-[1100px] mx-auto">
-              <div className="flex items-center gap-6 mb-12">
-                <h2 className="text-3xl font-black text-white uppercase tracking-tighter shrink-0">Philosophy.txt</h2>
-                <div className="h-px w-full bg-white/10" />
+          {/* Deliverables Section */}
+          <section id="features" className="relative w-full py-20 px-6 overflow-hidden bg-[#05070a] border-t border-white/5">
+            <div className="absolute inset-0 blueprint-bg opacity-10 pointer-events-none" />
+            <div className="max-w-[1100px] mx-auto flex flex-col items-center relative z-10">
+              <div className="text-center mb-16 max-w-3xl">
+                <span className="font-mono text-primary text-[10px] uppercase tracking-widest px-2 py-1 border border-primary/30 inline-block mb-6">Module: 02_Deliverables</span>
+                <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-white mb-6 uppercase">What you get by the end</h2>
+                <p className="text-lg text-slate-400 font-light leading-relaxed">
+                  By the time you finish Logomir, you don't just have clarity. You have everything needed to build and launch.
+                </p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/5 border border-white/5">
-                <div className="p-8 bg-background hover:bg-white/[0.02] transition-colors border-b md:border-b-0 md:border-r border-white/5">
-                  <span className="font-mono text-primary text-xs mr-4">#01</span>
-                  <p className="text-xl font-light text-slate-400 mt-2">Speed without clarity is <span className="text-white">wasted effort.</span></p>
+              <div className="flex flex-wrap justify-center gap-6 w-full">
+                <div className="blueprint-card p-8 group hover:border-primary/40 transition-colors flex flex-col items-start w-full md:w-[calc(50%-12px)] lg:w-[calc(33.33%-16px)]">
+                  <Focus className="text-primary h-8 w-8 mb-5 group-hover:scale-110 transition-transform" />
+                  <h5 className="text-white font-bold text-sm mb-2 uppercase tracking-tight">A clear MVP scope</h5>
+                  <p className="text-slate-500 text-xs leading-relaxed">What to build and what to skip.</p>
                 </div>
-                <div className="p-8 bg-background hover:bg-white/[0.02] transition-colors border-b border-white/5">
-                  <span className="font-mono text-primary text-xs mr-4">#02</span>
-                  <p className="text-xl font-light text-slate-400 mt-2">Tools don't replace <span className="text-white">thinking.</span></p>
+                <div className="blueprint-card p-8 group hover:border-primary/40 transition-colors flex flex-col items-start w-full md:w-[calc(50%-12px)] lg:w-[calc(33.33%-16px)]">
+                  <GitBranch className="text-primary h-8 w-8 mb-5 group-hover:scale-110 transition-transform" />
+                  <h5 className="text-white font-bold text-sm mb-2 uppercase tracking-tight">Product logic</h5>
+                  <p className="text-slate-500 text-xs leading-relaxed">User flow and logic definitions.</p>
                 </div>
-                <div className="p-8 bg-background hover:bg-white/[0.02] transition-colors border-b md:border-b-0 md:border-r border-white/5">
-                  <span className="font-mono text-primary text-xs mr-4">#03</span>
-                  <p className="text-xl font-light text-slate-400 mt-2">MVP is a decision, not a <span className="text-white">feature list.</span></p>
+                <div className="blueprint-card p-8 group hover:border-primary/40 transition-colors flex flex-col items-start w-full md:w-[calc(50%-12px)] lg:w-[calc(33.33%-16px)]">
+                  <Map className="text-primary h-8 w-8 mb-5 group-hover:scale-110 transition-transform" />
+                  <h5 className="text-white font-bold text-sm mb-2 uppercase tracking-tight">Build-ready roadmap</h5>
+                  <p className="text-slate-500 text-xs leading-relaxed">Task breakdown and execution plan.</p>
                 </div>
-                <div className="p-8 bg-background hover:bg-white/[0.02] transition-colors border-b border-white/5">
-                  <span className="font-mono text-primary text-xs mr-4">#04</span>
-                  <p className="text-xl font-light text-slate-400 mt-2">Startup failure happens <span className="text-white">before code.</span></p>
+                <div className="blueprint-card p-8 group hover:border-primary/40 transition-colors flex flex-col items-start w-full md:w-[calc(50%-12px)] lg:w-[calc(33.33%-16px)]">
+                  <Terminal className="text-primary h-8 w-8 mb-5 group-hover:scale-110 transition-transform" />
+                  <h5 className="text-white font-bold text-sm mb-2 uppercase tracking-tight">Technical direction</h5>
+                  <p className="text-slate-500 text-xs leading-relaxed">Technical choices and tooling setup.</p>
                 </div>
-                <div className="p-8 bg-background hover:bg-white/[0.02] transition-colors md:col-span-2">
-                  <span className="font-mono text-primary text-xs mr-4">#05</span>
-                  <p className="text-xl font-light text-slate-400 mt-2">The earlier clarity appears, the <span className="text-white">cheaper mistakes become.</span></p>
+                <div className="blueprint-card p-8 group hover:border-primary/40 transition-colors flex flex-col items-start w-full md:w-[calc(50%-12px)] lg:w-[calc(33.33%-16px)]">
+                  <Rocket className="text-primary h-8 w-8 mb-5 group-hover:scale-110 transition-transform" />
+                  <h5 className="text-white font-bold text-sm mb-2 uppercase tracking-tight">Launch checklist</h5>
+                  <p className="text-slate-500 text-xs leading-relaxed">Initial go-to-market plan.</p>
+                </div>
+                <div className="blueprint-card p-8 group hover:border-primary/40 transition-colors flex flex-col items-start w-full md:w-[calc(50%-12px)] lg:w-[calc(33.33%-16px)]">
+                  <BadgeCheck className="text-primary h-8 w-8 mb-5 group-hover:scale-110 transition-transform" />
+                  <h5 className="text-white font-bold text-sm mb-2 uppercase tracking-tight">LAUNCH-READY PRODUCT</h5>
+                  <p className="text-slate-500 text-xs leading-relaxed">Product setup reviewed, validated, and optimized with professional support before launch.</p>
                 </div>
               </div>
-              <div className="mt-16">
-                <p className="text-4xl md:text-5xl font-black text-white tracking-tighter uppercase leading-none cyan-glow">
-                  Think clearly first. Build the right thing. <span className="text-primary/50">Then move fast.</span>
+              <div className="mt-16 text-center max-w-2xl">
+                <div className="h-px w-24 bg-gradient-to-r from-transparent via-primary/50 to-transparent mx-auto mb-6" />
+                <p className="text-white font-mono text-sm uppercase tracking-widest font-bold leading-relaxed">
+                  ALL DESIGNED TO REDUCE REWORK, SHORTEN BUILD TIME, <br className="hidden md:block" />AND SHIP A PRODUCT THAT'S ACTUALLY READY.
                 </p>
               </div>
             </div>
           </section>
 
-          {/* Persona Section */}
-          <section className="relative w-full py-16 px-6 border-t border-white/10">
-            <div className="max-w-[1100px] mx-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                <div className="lg:col-span-4">
-                  <span className="font-mono text-primary text-[10px] uppercase tracking-widest mb-4 block">Persona_Mapping</span>
-                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-6">Who Logomir is for</h2>
-                  <div className="space-y-6">
-                    <div className="border-l border-primary/30 pl-4 py-1">
-                      <span className="font-mono text-primary text-[10px] block mb-1">USER_01</span>
-                      <h4 className="text-sm font-bold text-white uppercase">Visionaries</h4>
-                      <p className="text-slate-500 text-xs">Architectural roadmap to stop second-guessing.</p>
-                    </div>
-                    <div className="border-l border-primary/30 pl-4 py-1">
-                      <span className="font-mono text-primary text-[10px] block mb-1">USER_02</span>
-                      <h4 className="text-sm font-bold text-white uppercase">Lean Units</h4>
-                      <p className="text-slate-500 text-xs">Small teams who can't afford wasted development.</p>
-                    </div>
-                    <div className="border-l border-primary/30 pl-4 py-1">
-                      <span className="font-mono text-primary text-[10px] block mb-1">USER_03</span>
-                      <h4 className="text-sm font-bold text-white uppercase">Truth Seekers</h4>
-                      <p className="text-slate-500 text-xs">Tired of AI noise without real logic.</p>
-                    </div>
-                    <div className="border-l border-primary/30 pl-4 py-1">
-                      <span className="font-mono text-primary text-[10px] block mb-1">USER_04</span>
-                      <h4 className="text-sm font-bold text-white uppercase">Architects</h4>
-                      <p className="text-slate-500 text-xs">Focus on building the *right* thing first.</p>
-                    </div>
+          {/* Execution Support Section */}
+          <section className="relative w-full py-20 px-6 bg-[#05070a] border-t border-white/5 overflow-hidden">
+            <div className="absolute inset-0 blueprint-bg opacity-10 pointer-events-none" />
+            <div className="max-w-[1100px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
+              <div className="relative">
+                <div className="absolute -top-8 -left-8 w-24 h-24 border-t border-l border-primary/20 opacity-50" />
+                <span className="font-mono text-primary text-[10px] uppercase tracking-widest px-2 py-1 border border-primary/30 inline-block mb-4">Module: Execution_Support</span>
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-white uppercase leading-[0.95]">
+                  From MVP to market<br/>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40">— without getting stuck</span>
+                </h2>
+              </div>
+              <div className="relative">
+                <div className="blueprint-card p-8 md:p-10 border-l-2 border-l-primary/50">
+                  <p className="text-slate-400 text-lg leading-relaxed mb-8 font-light">
+                    Many founders can design an MVP, but get stuck when it's time to finish, configure, and launch. Logomir is built to carry the product through the final steps.
+                  </p>
+                  <ul className="space-y-4 mb-8 font-mono text-sm text-slate-300 uppercase tracking-wide">
+                    <li className="flex items-start gap-4">
+                      <Check className="h-4 w-4 text-primary mt-0.5" />
+                      <span>Guidance to complete MVP setup and configuration</span>
+                    </li>
+                    <li className="flex items-start gap-4">
+                      <Check className="h-4 w-4 text-primary mt-0.5" />
+                      <span>Help connecting product logic with tools and implementation</span>
+                    </li>
+                    <li className="flex items-start gap-4">
+                      <Check className="h-4 w-4 text-primary mt-0.5" />
+                      <span>Support resolving blockers and edge cases</span>
+                    </li>
+                    <li className="flex items-start gap-4">
+                      <Check className="h-4 w-4 text-primary mt-0.5" />
+                      <span>Go-to-market preparation and launch support</span>
+                    </li>
+                    <li className="flex items-start gap-4">
+                      <Check className="h-4 w-4 text-primary mt-0.5" />
+                      <span>Marketing and distribution setup for first users</span>
+                    </li>
+                  </ul>
+                  <div className="p-5 bg-primary/5 border border-primary/10 mb-8 rounded-sm">
+                    <p className="text-slate-400 text-xs italic leading-relaxed">
+                      "This is not outsourcing and not a generic agency. It's professional support embedded into the Logomir system, available when founders need help finishing the cycle."
+                    </p>
                   </div>
-                </div>
-                <div className="lg:col-span-8 flex flex-col justify-end">
-                  <div className="blueprint-card grid grid-cols-1 md:grid-cols-2 overflow-hidden bg-white/[0.01]">
-                    <div className="p-8 border-b md:border-b-0 md:border-r border-white/10 flex flex-col">
-                      <div className="flex items-center gap-2 text-red-500/80 mb-6">
-                        <X className="h-4 w-4" />
-                        <span className="font-mono text-[9px] font-black uppercase tracking-widest">FILTER_OUT</span>
-                      </div>
-                      <p className="text-xl font-bold text-white leading-tight uppercase">
-                        If you're looking for <span className="text-slate-600">templates</span> or <span className="text-slate-600">hacks</span>, 
-                        <span className="block mt-4 text-xs font-mono text-red-500 bg-red-500/5 border border-red-500/20 p-2 text-center uppercase">Logomir is not for you.</span>
-                      </p>
-                    </div>
-                    <div className="p-8 bg-primary/5 flex flex-col">
-                      <div className="flex items-center gap-2 text-primary mb-6">
-                        <Check className="h-4 w-4" />
-                        <span className="font-mono text-[9px] font-black uppercase tracking-widest">IDEAL_FIT</span>
-                      </div>
-                      <p className="text-xl font-bold text-white leading-tight uppercase">
-                        If you want <span className="text-primary">product clarity</span> — 
-                        <Link to="/onboarding" className="block mt-4 text-xs font-mono text-primary underline decoration-primary/40 underline-offset-4 cursor-pointer hover:text-white transition-colors uppercase">WELCOME. JOIN ALPHA.</Link>
-                      </p>
-                    </div>
+                  <div className="border-t border-white/10 pt-6">
+                    <p className="text-primary font-mono text-xs uppercase tracking-widest font-bold">
+                      One system. One flow. From idea to market.
+                    </p>
                   </div>
                 </div>
               </div>
+            </div>
+          </section>
+
+          {/* Not For Section */}
+          <section className="w-full bg-[#05070a] py-8 px-6 border-t border-white/5">
+            <div className="max-w-[1100px] mx-auto text-center">
+              <p className="text-slate-500 font-mono text-xs uppercase tracking-widest">
+                <span className="text-red-500">Not for template seekers.</span> <span className="text-primary">Built for founders demanding clarity.</span>
+              </p>
             </div>
           </section>
 
           {/* Final CTA Section */}
-          <section className="relative w-full py-28 px-6 bg-background overflow-hidden border-t border-white/5">
+          <section className="relative w-full py-28 px-6 bg-[#05070a] overflow-hidden border-t border-white/5">
             <div className="absolute inset-0 blueprint-bg opacity-10 pointer-events-none" />
             <div className="max-w-[1200px] mx-auto relative z-10 text-center flex flex-col items-center">
-              <div className="mb-12 space-y-6">
-                <p className="font-mono text-primary text-xs uppercase tracking-[0.4em] mb-4">Final.Module</p>
-                <p className="text-xl md:text-2xl font-light tracking-tight text-slate-400 max-w-3xl mx-auto leading-relaxed">
-                  This is not another AI tool. This is the <span className="text-white font-bold">foundation layer</span> before design, development, and marketing.
-                </p>
-                <h2 className="text-5xl md:text-8xl font-black tracking-tighter text-white uppercase cyan-glow leading-none">
-                  WHERE <br />PRODUCTS BEGIN.
+              <div className="mb-10 text-center max-w-3xl">
+                <p className="font-mono text-primary text-xs uppercase tracking-[0.4em] mb-6">Final.Module</p>
+                <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white uppercase cyan-glow leading-none mb-8">
+                  Start with your idea.
                 </h2>
+                <p className="text-slate-400 text-lg md:text-xl font-light leading-relaxed">
+                  Turn it into a clear MVP plan and launch path.<br className="hidden md:block" />
+                  No setup. No pressure. No unfinished projects.
+                </p>
               </div>
-              <div className="flex flex-col items-center gap-6">
-                <Button asChild className="px-12 py-6 bg-primary text-primary-foreground font-mono font-black text-lg uppercase tracking-widest hover:shadow-[0_0_50px_hsl(var(--primary)/0.4)] transition-all">
-                  <Link to="/onboarding">Start with your idea</Link>
+              <div className="flex flex-col items-center gap-4">
+                <Button asChild className="px-12 py-5 bg-primary text-primary-foreground font-mono font-black text-lg uppercase tracking-widest hover:shadow-[0_0_50px_hsl(var(--primary)/0.4)] transition-all">
+                  <Link to="/onboarding">
+                    START WITH YOUR IDEA
+                  </Link>
                 </Button>
-                <div className="flex items-center gap-3">
-                  <span className="h-px w-8 bg-primary/30" />
-                  <p className="text-slate-500 font-mono text-[10px] tracking-widest uppercase">
-                    Private Alpha Access Available
-                  </p>
-                  <span className="h-px w-8 bg-primary/30" />
-                </div>
+                <p className="text-slate-600 font-mono text-[10px] tracking-widest uppercase mt-2">
+                  Designed for solo founders and small teams.
+                </p>
               </div>
             </div>
           </section>
         </main>
 
         {/* Footer */}
-        <footer className="w-full border-t border-white/5 py-10 px-6 bg-background/80">
+        <footer className="w-full border-t border-white/5 py-10 px-6 bg-[#05070a]/80">
           <div className="max-w-[1100px] mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-3 opacity-60">
               <div className="size-6 text-primary">
