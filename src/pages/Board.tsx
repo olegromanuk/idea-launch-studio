@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Trash2, Plus, FileDown, ZoomIn, ZoomOut, Maximize2, Grid3X3, Map, Link2, Sparkles } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, FileDown, ZoomIn, ZoomOut, Maximize2, Grid3X3, Map, Link2, Sparkles, MoreVertical, MousePointer2 } from "lucide-react";
 import jsPDF from "jspdf";
 import { cn } from "@/lib/utils";
 import { ConnectionLayer } from "@/components/board/ConnectionLayer";
@@ -614,83 +614,128 @@ const Board = () => {
   const viewport = getViewportRect();
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <div className="border-b border-border bg-card shrink-0">
-        <div className="max-w-[1800px] mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/canvas")}
+    <div className="min-h-screen bg-[#050505] flex flex-col overflow-x-hidden">
+      {/* Blueprint Grid Background */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{
+          backgroundImage: 'linear-gradient(to right, #1a1a1a 1px, transparent 1px), linear-gradient(to bottom, #1a1a1a 1px, transparent 1px)',
+          backgroundSize: '50px 50px',
+          maskImage: 'radial-gradient(circle at center, black 40%, transparent 100%)'
+        }}
+      />
+
+      {/* Glass Navigation */}
+      <nav className="sticky top-0 z-50 bg-[#050505]/60 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Grid3X3 className="w-6 h-6 text-[#38BDF8]" />
+            <span className="font-bold tracking-[0.2em] text-xs uppercase text-white">Logomir</span>
+          </div>
+          
+          <div className="hidden md:flex items-center gap-8 text-[10px] font-mono tracking-widest text-zinc-500">
+            <button 
+              onClick={() => navigate("/projects")}
+              className="hover:text-[#38BDF8] transition-colors uppercase"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Canvas
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold">Interactive Board</h1>
-              <p className="text-sm text-muted-foreground">
-                Drag to move • Scroll to pan • Ctrl+Scroll to zoom • Space+Drag to pan
-              </p>
+              Projects
+            </button>
+            <button className="text-[#38BDF8] uppercase">Canvas_View</button>
+            <button 
+              onClick={() => navigate("/canvas")}
+              className="hover:text-[#38BDF8] transition-colors uppercase"
+            >
+              Roadmap
+            </button>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+              STATUS: SYNCED
+            </span>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#38BDF8] to-blue-600 flex items-center justify-center text-white text-[10px] font-bold">
+              {userId.slice(0, 2).toUpperCase()}
             </div>
           </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="flex-grow relative w-full p-8 z-10">
+        {/* Header Section */}
+        <div className="relative z-10 mb-8 flex justify-between items-end max-w-7xl mx-auto">
+          <div>
+            <p className="font-mono text-[#38BDF8] text-[10px] tracking-widest mb-2">SYSTEM.ANALYSIS_BOARD.V2</p>
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white">
+              Project <span className="text-[#38BDF8]">Analysis</span> Canvas
+            </h1>
+            <p className="text-zinc-500 mt-3 max-w-xl text-sm leading-relaxed">
+              Visualizing core architectural components and logic flow for solo product building.
+            </p>
+          </div>
+          
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowAddElement(true)}
+              className="flex items-center gap-2 px-5 py-2.5 text-[11px] font-mono border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 uppercase tracking-wider"
+            >
+              <Plus className="w-4 h-4" />
+              Add Component
+            </Button>
+            <Button
+              onClick={() => setShowAIDiagram(true)}
+              className="flex items-center gap-2 px-5 py-2.5 text-[11px] font-mono bg-[#38BDF8] text-black font-bold hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(56,189,248,0.4)] uppercase tracking-wider"
+            >
+              <Sparkles className="w-4 h-4" />
+              AI Diagram
+            </Button>
+          </div>
+        </div>
+
+        {/* Controls Bar */}
+        <div className="max-w-7xl mx-auto mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {/* Board Manager */}
             <BoardManager
               userId={userId}
               currentBoardId={currentBoardId}
               onBoardChange={setCurrentBoardId}
               onBoardCreated={(board) => setCurrentBoardId(board.id)}
             />
-
-            <div className="h-6 w-px bg-border mx-2" />
-
-            {/* Add Element */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAddElement(true)}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Element
-            </Button>
-
-            {/* AI Diagram Generator */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAIDiagram(true)}
-              className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              AI Diagram
-            </Button>
-
-            <div className="h-6 w-px bg-border mx-2" />
-
-            {/* Snap to grid toggle */}
+            
+            <div className="h-6 w-px bg-white/10 mx-2" />
+            
             <Button
               variant={snapToGrid ? "default" : "outline"}
               size="sm"
               onClick={() => setSnapToGrid(!snapToGrid)}
-              title="Snap to grid"
+              className={cn(
+                "text-[10px] font-mono uppercase tracking-wider",
+                snapToGrid 
+                  ? "bg-[#38BDF8]/20 text-[#38BDF8] border-[#38BDF8]/30" 
+                  : "border-white/10 text-zinc-400 hover:text-white"
+              )}
             >
-              <Grid3X3 className="w-4 h-4 mr-2" />
+              <Grid3X3 className="w-4 h-4 mr-1.5" />
               Snap
             </Button>
             
-            {/* Minimap toggle */}
             <Button
               variant={showMinimap ? "default" : "outline"}
               size="sm"
               onClick={() => setShowMinimap(!showMinimap)}
-              title="Toggle minimap"
+              className={cn(
+                "text-[10px] font-mono uppercase tracking-wider",
+                showMinimap 
+                  ? "bg-[#38BDF8]/20 text-[#38BDF8] border-[#38BDF8]/30" 
+                  : "border-white/10 text-zinc-400 hover:text-white"
+              )}
             >
-              <Map className="w-4 h-4 mr-2" />
+              <Map className="w-4 h-4 mr-1.5" />
               Map
             </Button>
             
-            {/* Connect mode toggle */}
             <Button
               variant={connectMode ? "default" : "outline"}
               size="sm"
@@ -698,61 +743,60 @@ const Board = () => {
                 setConnectMode(!connectMode);
                 setDrawingConnection(null);
               }}
-              title="Draw connections between elements"
+              className={cn(
+                "text-[10px] font-mono uppercase tracking-wider",
+                connectMode 
+                  ? "bg-[#38BDF8]/20 text-[#38BDF8] border-[#38BDF8]/30" 
+                  : "border-white/10 text-zinc-400 hover:text-white"
+              )}
             >
-              <Link2 className="w-4 h-4 mr-2" />
+              <Link2 className="w-4 h-4 mr-1.5" />
               Connect
             </Button>
+          </div>
 
-            {/* Zoom controls */}
-            <div className="flex items-center gap-1 border border-border rounded-md p-1 ml-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleZoomOut}
-                disabled={zoom <= MIN_ZOOM}
-              >
-                <ZoomOut className="w-4 h-4" />
-              </Button>
-              <span className="text-sm font-medium px-2 min-w-[4rem] text-center">
-                {Math.round(zoom * 100)}%
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleZoomIn}
-                disabled={zoom >= MAX_ZOOM}
-              >
-                <ZoomIn className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleZoomReset}
-                title="Reset View (Ctrl+0)"
-              >
-                <Maximize2 className="w-4 h-4" />
-              </Button>
-            </div>
+          {/* Zoom controls */}
+          <div className="flex items-center gap-1 bg-[#141820]/80 backdrop-blur border border-white/10 rounded-lg px-3 py-1.5">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/dashboard")}
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-zinc-400 hover:text-[#38BDF8] hover:bg-transparent"
+              onClick={handleZoomOut}
+              disabled={zoom <= MIN_ZOOM}
             >
-              View Dashboard
+              <ZoomOut className="w-4 h-4" />
+            </Button>
+            <span className="text-[11px] font-mono text-white px-3 min-w-[4rem] text-center">
+              {Math.round(zoom * 100)}%
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-zinc-400 hover:text-[#38BDF8] hover:bg-transparent"
+              onClick={handleZoomIn}
+              disabled={zoom >= MAX_ZOOM}
+            >
+              <ZoomIn className="w-4 h-4" />
+            </Button>
+            <div className="w-px h-5 bg-white/10 mx-1" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-zinc-400 hover:text-[#38BDF8] hover:bg-transparent"
+              onClick={handleZoomReset}
+              title="Reset View (Ctrl+0)"
+            >
+              <Maximize2 className="w-4 h-4" />
             </Button>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Board Area */}
       <div
         ref={containerRef}
         className={cn(
-          "relative flex-1 overflow-hidden bg-muted/20",
+          "relative flex-1 overflow-hidden",
           isPanning || spacePressed ? "cursor-grab" : connectMode ? "cursor-crosshair" : "cursor-default",
           isPanning && "cursor-grabbing"
         )}
@@ -771,26 +815,36 @@ const Board = () => {
             width: BOARD_WIDTH,
             height: BOARD_HEIGHT,
             backgroundImage: `
-              linear-gradient(to right, hsl(var(--border) / 0.5) 1px, transparent 1px),
-              linear-gradient(to bottom, hsl(var(--border) / 0.5) 1px, transparent 1px)
+              linear-gradient(to right, rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(56, 189, 248, 0.08) 1px, transparent 1px)
             `,
             backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+            backgroundColor: '#0a0a0a',
           }}
         >
           {elements.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Card className="p-8 text-center max-w-md">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Plus className="w-8 h-8 text-primary" />
+              <div className="bg-[#141820] border border-[#262c3a] p-10 text-center max-w-md shadow-2xl">
+                {/* Corner accents */}
+                <div className="absolute -top-px -left-px w-3 h-3 border-t-2 border-l-2 border-[#38BDF8]" />
+                <div className="absolute -top-px -right-px w-3 h-3 border-t-2 border-r-2 border-[#38BDF8]" />
+                <div className="absolute -bottom-px -left-px w-3 h-3 border-b-2 border-l-2 border-[#38BDF8]" />
+                <div className="absolute -bottom-px -right-px w-3 h-3 border-b-2 border-r-2 border-[#38BDF8]" />
+                
+                <div className="w-16 h-16 mx-auto mb-4 bg-[#38BDF8]/10 border border-[#38BDF8]/30 flex items-center justify-center">
+                  <Plus className="w-8 h-8 text-[#38BDF8]" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">No elements yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Go to the Canvas page and click "Add to Online Dashboard" on any completed section to add elements here.
+                <h3 className="text-xl font-semibold text-white mb-2">No elements yet</h3>
+                <p className="text-zinc-400 mb-6 text-sm">
+                  Click "Add Component" or use "AI Diagram" to start building your analysis canvas.
                 </p>
-                <Button onClick={() => navigate("/canvas")}>
-                  Go to Canvas
+                <Button 
+                  onClick={() => setShowAddElement(true)}
+                  className="bg-[#38BDF8] text-black font-bold hover:opacity-90 shadow-[0_0_15px_rgba(56,189,248,0.3)]"
+                >
+                  Add First Component
                 </Button>
-              </Card>
+              </div>
             </div>
           )}
 
@@ -804,21 +858,23 @@ const Board = () => {
             boardHeight={BOARD_HEIGHT}
           />
 
+          {/* Canvas Cards */}
           {elements.map((element) => (
-            <Card
+            <div
               key={element.id}
               className={cn(
-                "absolute transition-shadow hover:shadow-xl select-none",
+                "absolute select-none transition-all duration-300",
+                "bg-[#141820] border border-[#262c3a] shadow-2xl",
+                "hover:translate-y-[-4px] hover:border-[#38BDF8] hover:shadow-[0_0_20px_rgba(56,189,248,0.1)]",
                 connectMode ? "cursor-crosshair" : "cursor-move",
-                draggingElement === element.id && "shadow-2xl z-50 ring-2 ring-primary",
-                connectMode && drawingConnection?.fromId === element.id && "ring-2 ring-primary"
+                draggingElement === element.id && "shadow-2xl z-50 ring-2 ring-[#38BDF8] shadow-[0_0_30px_rgba(56,189,248,0.3)]",
+                connectMode && drawingConnection?.fromId === element.id && "ring-2 ring-[#38BDF8]"
               )}
               style={{
                 left: `${element.position_x}px`,
                 top: `${element.position_y}px`,
                 width: `${element.width}px`,
                 minHeight: `${element.height}px`,
-                borderLeft: `4px solid ${element.color}`,
               }}
               onMouseDown={(e) => {
                 e.stopPropagation();
@@ -829,59 +885,125 @@ const Board = () => {
                 handleMouseUp(e, element.id);
               }}
             >
-              <div className="p-4 space-y-2">
+              {/* Connection nodes */}
+              <div className="absolute top-1/2 -right-1.5 w-3 h-3 bg-[#38BDF8] rounded-full border-2 border-[#050505] shadow-[0_0_10px_rgba(56,189,248,0.5)]" />
+              <div className="absolute -bottom-1.5 left-1/2 w-3 h-3 bg-[#38BDF8] rounded-full border-2 border-[#050505]" />
+              <div className="absolute top-1/2 -left-1.5 w-3 h-3 bg-[#38BDF8] rounded-full border-2 border-[#050505]" />
+              <div className="absolute -top-1.5 left-1/2 w-3 h-3 bg-[#38BDF8] rounded-full border-2 border-[#050505]" />
+              
+              <div className="p-6 space-y-3">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <div
-                      className="text-xs uppercase tracking-wide font-semibold mb-1"
-                      style={{ color: element.color }}
-                    >
-                      {element.section_key}
-                    </div>
-                    <h4 className="font-bold text-lg">{element.section_title}</h4>
+                  <span 
+                    className="text-[9px] font-mono uppercase tracking-tighter px-2 py-0.5 rounded"
+                    style={{ 
+                      color: element.color,
+                      backgroundColor: `${element.color}15`,
+                      border: `1px solid ${element.color}30`
+                    }}
+                  >
+                    {element.section_key}
+                  </span>
+                  <button className="text-zinc-600 hover:text-white transition-colors">
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <h3 className="font-semibold text-white text-base">{element.section_title}</h3>
+                
+                <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-wrap max-h-[200px] overflow-y-auto">
+                  {element.content}
+                </p>
+                
+                <div className="pt-3 border-t border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 uppercase">
+                    <span 
+                      className="w-2 h-2 rounded-full" 
+                      style={{ backgroundColor: element.color }}
+                    />
+                    <span>Active Node</span>
                   </div>
                   <div className="flex gap-1">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="delete-btn h-8 w-8 hover:bg-primary hover:text-primary-foreground"
+                      className="delete-btn h-7 w-7 text-zinc-500 hover:bg-[#38BDF8]/10 hover:text-[#38BDF8]"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleExportToPDF(element);
                       }}
                       title="Export to PDF"
                     >
-                      <FileDown className="w-4 h-4" />
+                      <FileDown className="w-3.5 h-3.5" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="delete-btn h-8 w-8 hover:bg-destructive hover:text-destructive-foreground"
+                      className="delete-btn h-7 w-7 text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDelete(element.id);
                       }}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   </div>
                 </div>
-                <div className="text-sm text-muted-foreground whitespace-pre-wrap max-h-[300px] overflow-y-auto">
-                  {element.content}
-                </div>
               </div>
-            </Card>
+            </div>
           ))}
+        </div>
+
+        {/* Floating Toolbar */}
+        <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-[#141820]/80 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl px-8 py-4 flex items-center gap-8 z-50">
+          <button 
+            onClick={() => setConnectMode(false)}
+            className={cn(
+              "transition-all transform hover:scale-110",
+              !connectMode ? "text-[#38BDF8]" : "text-zinc-500 hover:text-[#38BDF8]"
+            )}
+          >
+            <MousePointer2 className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={() => setSnapToGrid(!snapToGrid)}
+            className={cn(
+              "transition-all transform hover:scale-110",
+              snapToGrid ? "text-[#38BDF8]" : "text-zinc-500 hover:text-[#38BDF8]"
+            )}
+          >
+            <Grid3X3 className="w-5 h-5" />
+          </button>
+          <button 
+            className="text-[#38BDF8] bg-[#38BDF8]/10 rounded-xl p-2 shadow-[0_0_15px_rgba(56,189,248,0.2)]"
+            onClick={() => setShowAIDiagram(true)}
+          >
+            <Sparkles className="w-5 h-5" />
+          </button>
+          <div className="w-px h-8 bg-white/10" />
+          <button 
+            onClick={() => setShowAddElement(true)}
+            className="text-zinc-500 hover:text-[#38BDF8] transition-all transform hover:scale-110"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={() => setConnectMode(!connectMode)}
+            className={cn(
+              "transition-all transform hover:scale-110",
+              connectMode ? "text-[#38BDF8]" : "text-zinc-500 hover:text-[#38BDF8]"
+            )}
+          >
+            <Link2 className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Minimap */}
         {showMinimap && (
           <div
-            className="absolute bottom-4 right-4 w-48 h-32 bg-card/90 backdrop-blur border border-border rounded-lg overflow-hidden shadow-lg cursor-pointer"
+            className="absolute bottom-4 right-4 w-48 h-32 bg-[#141820]/90 backdrop-blur border border-[#262c3a] rounded-lg overflow-hidden shadow-lg cursor-pointer"
             onClick={handleMinimapClick}
           >
             <div className="relative w-full h-full">
-              {/* Elements on minimap */}
               {elements.map((element) => (
                 <div
                   key={element.id}
@@ -898,9 +1020,8 @@ const Board = () => {
                   }}
                 />
               ))}
-              {/* Viewport indicator */}
               <div
-                className="absolute border-2 border-primary bg-primary/10 pointer-events-none"
+                className="absolute border-2 border-[#38BDF8] bg-[#38BDF8]/10 pointer-events-none"
                 style={{
                   left: `${Math.max(0, viewport.x)}%`,
                   top: `${Math.max(0, viewport.y)}%`,
@@ -913,14 +1034,41 @@ const Board = () => {
         )}
 
         {/* Keyboard shortcuts hint */}
-        <div className="absolute bottom-4 left-4 text-xs text-muted-foreground bg-card/80 backdrop-blur px-3 py-2 rounded-md border border-border">
+        <div className="absolute bottom-4 left-4 text-[10px] font-mono text-zinc-500 bg-[#141820]/80 backdrop-blur px-4 py-2.5 rounded-lg border border-white/5">
           <div className="flex gap-4 flex-wrap">
-            <span>🖱️ Scroll: Pan</span>
-            <span>⌘/Ctrl + Scroll: Zoom</span>
-            <span>Space + Drag: Pan</span>
-            <span>Arrows: Navigate</span>
-            {connectMode && <span className="text-primary font-medium">🔗 Click element → drag to another to connect</span>}
+            <span>Scroll: Pan</span>
+            <span>⌘+Scroll: Zoom</span>
+            <span>Space+Drag: Pan</span>
+            {connectMode && <span className="text-[#38BDF8] font-medium">🔗 Click → Drag → Connect</span>}
           </div>
+        </div>
+      </div>
+
+      {/* AI Analyst Panel */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <div className="bg-[#141820]/80 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl w-80 p-5 transition-all hover:border-[#38BDF8]/30 duration-500">
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-widest">AI Analyst</h4>
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#38BDF8] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#38BDF8]" />
+            </span>
+          </div>
+          <div className="bg-black/40 border border-white/5 rounded-lg p-4 mb-4">
+            <p className="text-xs text-zinc-300 leading-relaxed">
+              <span className="font-bold text-[#38BDF8] mr-1">Insight:</span> 
+              {elements.length === 0 
+                ? "Start adding components to build your analysis canvas. Use AI Diagram for quick generation."
+                : `Detected ${elements.length} components. Consider adding connections to visualize relationships.`
+              }
+            </p>
+          </div>
+          <button 
+            onClick={() => setShowAIDiagram(true)}
+            className="w-full text-[10px] font-mono font-bold uppercase tracking-widest py-3 rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors border border-white/5"
+          >
+            Generate Architecture
+          </button>
         </div>
       </div>
 
