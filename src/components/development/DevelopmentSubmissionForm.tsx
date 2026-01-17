@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -31,7 +29,10 @@ import {
   User,
   ExternalLink,
   Clock,
-  Loader2
+  Loader2,
+  Users,
+  Cpu,
+  Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -145,14 +146,12 @@ export const DevelopmentSubmissionForm = ({
       }
 
       try {
-        // Check for existing submission for this project
         const query = supabase
           .from("dev_submissions")
           .select("id, project_name, status, created_at, submitted_at")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
         
-        // If we have a project ID, filter by it; otherwise get most recent
         if (projectId) {
           query.eq("project_id", projectId);
         }
@@ -297,9 +296,9 @@ export const DevelopmentSubmissionForm = ({
   // Show loading state
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-        <Loader2 className="w-8 h-8 animate-spin mb-4" />
-        <p>Checking submission status...</p>
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin mb-4 text-[#0EA5E9]" />
+        <p className="text-[#94A3B8] font-mono text-sm uppercase">Checking submission status...</p>
       </div>
     );
   }
@@ -311,43 +310,50 @@ export const DevelopmentSubmissionForm = ({
 
     return (
       <div className="space-y-6">
-        <Card className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+        {/* Existing Submission Card */}
+        <div className="bg-[#121821] border border-[#1E293B] p-6 relative">
+          {/* Corner accents */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-[#0EA5E9]" />
+          <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-[#0EA5E9]" />
+          <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-[#0EA5E9]" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#0EA5E9]" />
+          
           <div className="flex items-start gap-4">
-            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", statusInfo.color)}>
+            <div className={cn("w-12 h-12 rounded flex items-center justify-center", statusInfo.color)}>
               <StatusIcon className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-foreground mb-1">
+              <h3 className="text-lg font-bold text-white mb-1 uppercase tracking-wide">
                 Development Request {statusInfo.label}
               </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Your project "<span className="font-medium text-foreground">{existingSubmission.project_name}</span>" 
+              <p className="text-sm text-[#94A3B8] mb-4 font-mono">
+                Project "<span className="text-[#0EA5E9]">{existingSubmission.project_name}</span>" 
                 was submitted on {formatDate(existingSubmission.submitted_at)}
               </p>
               
               <div className="flex flex-wrap gap-3">
-                <Button 
+                <button 
                   onClick={() => navigate("/my-submissions")}
-                  className="gap-2"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#0EA5E9] text-white hover:bg-[#0EA5E9]/90 transition-colors text-xs font-bold uppercase shadow-[0_0_15px_-3px_rgba(14,165,233,0.3)]"
                 >
                   <ExternalLink className="w-4 h-4" />
                   View My Submissions
-                </Button>
-                <Button 
-                  variant="outline"
+                </button>
+                <button 
                   onClick={() => setExistingSubmission(null)}
-                  className="gap-2"
+                  className="flex items-center gap-2 px-4 py-2 border border-[#1E293B] bg-[#121821] hover:border-[#0EA5E9]/50 transition-colors text-xs font-medium uppercase text-[#94A3B8]"
                 >
                   <Rocket className="w-4 h-4" />
                   Submit New Request
-                </Button>
+                </button>
               </div>
             </div>
           </div>
-        </Card>
+        </div>
         
-        <Card className="p-4 bg-muted/50">
-          <h4 className="font-medium mb-3 flex items-center gap-2">
+        {/* Timeline */}
+        <div className="bg-[#121821] border border-[#1E293B] p-5">
+          <h4 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 flex items-center gap-2 border-b border-[#1E293B] pb-3">
             <Clock className="w-4 h-4" />
             Submission Timeline
           </h4>
@@ -360,156 +366,214 @@ export const DevelopmentSubmissionForm = ({
                 <div key={key} className="flex items-center flex-1">
                   <div className="flex flex-col items-center">
                     <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all",
-                      isActive && `${config.color} text-white ring-2 ring-offset-2 ring-offset-background`,
+                      "w-8 h-8 rounded flex items-center justify-center text-xs font-mono transition-all",
+                      isActive && `${config.color} text-white ring-2 ring-offset-2 ring-offset-[#121821]`,
                       isPast && "bg-green-500 text-white",
-                      !isActive && !isPast && "bg-muted text-muted-foreground"
+                      !isActive && !isPast && "bg-[#1E293B] text-[#94A3B8]"
                     )}>
                       {isPast ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
                     </div>
-                    <span className="text-xs text-muted-foreground mt-2 text-center">
+                    <span className="text-[10px] text-[#94A3B8] mt-2 text-center font-mono uppercase">
                       {["Submitted", "Review", "Dev", "Test", "Deploy", "Done"][index]}
                     </span>
                   </div>
                   {index < 5 && (
                     <div className={cn(
                       "flex-1 h-0.5 mx-1",
-                      isPast ? "bg-green-500" : "bg-muted"
+                      isPast ? "bg-green-500" : "bg-[#1E293B]"
                     )} />
                   )}
                 </div>
               );
             })}
           </div>
-        </Card>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+            <span className="text-xs font-mono text-[#0EA5E9] uppercase">Module: 03_Development</span>
+            <span className="bg-[#0EA5E9]/10 text-[#0EA5E9] text-[10px] px-2 py-0.5 border border-[#0EA5E9]/30 rounded font-bold">
+              STEP {currentStep}/4
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold uppercase tracking-tight mb-1 text-white">Development Submission</h1>
+          <p className="text-[#94A3B8] text-sm max-w-xl">
+            Configure and submit your project for development. Our team will review and build your {projectData?.idea || "project"}.
+          </p>
+        </div>
+      </div>
+
       {/* Progress Steps */}
-      <div className="flex items-center justify-between mb-8">
-        {steps.map((step, index) => {
-          const Icon = step.icon;
-          const isActive = currentStep === step.id;
-          const isCompleted = currentStep > step.id;
-          
-          return (
-            <div key={step.id} className="flex items-center">
-              <button
-                onClick={() => setCurrentStep(step.id)}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg transition-all",
-                  isActive && "bg-primary text-primary-foreground",
-                  isCompleted && "bg-success/20 text-success",
-                  !isActive && !isCompleted && "bg-muted text-muted-foreground hover:bg-muted/80"
+      <div className="bg-[#121821] border border-[#1E293B] p-4">
+        <div className="flex items-center justify-between">
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            const isActive = currentStep === step.id;
+            const isCompleted = currentStep > step.id;
+            
+            return (
+              <div key={step.id} className="flex items-center flex-1">
+                <button
+                  onClick={() => setCurrentStep(step.id)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 transition-all text-xs font-mono uppercase",
+                    isActive && "bg-[#0EA5E9] text-white shadow-[0_0_15px_-3px_rgba(14,165,233,0.4)]",
+                    isCompleted && "bg-green-500/20 text-green-400 border border-green-500/30",
+                    !isActive && !isCompleted && "bg-[#1E293B]/50 text-[#94A3B8] hover:bg-[#1E293B] hover:text-white"
+                  )}
+                >
+                  {isCompleted ? (
+                    <CheckCircle2 className="w-4 h-4" />
+                  ) : (
+                    <Icon className="w-4 h-4" />
+                  )}
+                  <span className="hidden sm:inline">{step.title}</span>
+                </button>
+                {index < steps.length - 1 && (
+                  <div className={cn(
+                    "flex-1 h-0.5 mx-2",
+                    isCompleted ? "bg-green-500/50" : "bg-[#1E293B]"
+                  )} />
                 )}
-              >
-                {isCompleted ? (
-                  <CheckCircle2 className="w-5 h-5" />
-                ) : (
-                  <Icon className="w-5 h-5" />
-                )}
-                <span className="hidden sm:inline font-medium">{step.title}</span>
-              </button>
-              {index < steps.length - 1 && (
-                <ChevronRight className="w-5 h-5 mx-2 text-muted-foreground" />
-              )}
-            </div>
-          );
-        })}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Step 1: Scope Selection */}
       {currentStep === 1 && (
         <div className="space-y-6 animate-fade-in">
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Project Information</h3>
+          {/* Project Information */}
+          <div className="bg-[#121821] border border-[#1E293B] p-5 relative">
+            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[#0EA5E9]" />
+            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-[#0EA5E9]" />
+            
+            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center gap-2">
+              <Code className="w-4 h-4" /> Project Information
+            </h3>
             <div className="grid gap-4">
               <div>
-                <Label>Project Name</Label>
+                <Label className="text-[#94A3B8] text-xs font-mono uppercase">Project Name</Label>
                 <Input
                   value={formData.projectName}
                   onChange={(e) => setFormData({ ...formData, projectName: e.target.value })}
                   placeholder="Your project name"
+                  className="bg-black/30 border-[#1E293B] focus:border-[#0EA5E9] text-white placeholder:text-[#94A3B8]/50"
                 />
               </div>
               <div>
-                <Label>Project Description</Label>
+                <Label className="text-[#94A3B8] text-xs font-mono uppercase">Project Description</Label>
                 <Textarea
                   value={formData.projectDescription}
                   onChange={(e) => setFormData({ ...formData, projectDescription: e.target.value })}
                   placeholder="Brief description of what you want to build..."
                   rows={3}
+                  className="bg-black/30 border-[#1E293B] focus:border-[#0EA5E9] text-white placeholder:text-[#94A3B8]/50"
                 />
               </div>
             </div>
           </div>
 
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Select Features to Develop</h3>
-            <p className="text-sm text-muted-foreground mb-4">Choose which features should be included in this development cycle</p>
+          {/* Features Selection */}
+          <div className="bg-[#121821] border border-[#1E293B] p-5">
+            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Layers className="w-4 h-4" /> Features to Develop
+              </span>
+              <span className="text-[10px] text-[#0EA5E9]">{selectedFeatures.length} selected</span>
+            </h3>
             
             {scopeData.features.length === 0 ? (
-              <Card className="p-6 text-center text-muted-foreground">
-                <Layers className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                <p>No features defined yet. Add features in Scope & Planning first.</p>
-              </Card>
+              <div className="p-8 text-center">
+                <Layers className="w-10 h-10 mx-auto mb-3 text-gray-600" />
+                <p className="text-[#94A3B8] text-sm">No features defined yet. Add features in Scope & Planning first.</p>
+              </div>
             ) : (
-              <div className="grid gap-2">
+              <div className="grid gap-2 max-h-[300px] overflow-y-auto">
                 {scopeData.features.map((feature) => (
                   <div
                     key={feature.id}
                     onClick={() => toggleFeature(feature.id)}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
+                      "flex items-center gap-3 p-3 border cursor-pointer transition-all rounded",
                       selectedFeatures.includes(feature.id)
-                        ? "bg-primary/10 border-primary"
-                        : "bg-card border-border hover:border-primary/50"
+                        ? "bg-[#0EA5E9]/10 border-[#0EA5E9]/50"
+                        : "bg-black/20 border-[#1E293B] hover:border-[#0EA5E9]/30"
                     )}
                   >
-                    <Checkbox checked={selectedFeatures.includes(feature.id)} />
-                    <div className="flex-1">
-                      <p className="font-medium">{feature.name}</p>
+                    <div className={cn(
+                      "w-5 h-5 rounded border flex items-center justify-center flex-shrink-0",
+                      selectedFeatures.includes(feature.id) 
+                        ? "bg-[#0EA5E9] border-[#0EA5E9]" 
+                        : "border-[#1E293B]"
+                    )}>
+                      {selectedFeatures.includes(feature.id) && <Check className="w-3 h-3 text-white" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-white text-sm truncate">{feature.name}</p>
                       {feature.description && (
-                        <p className="text-xs text-muted-foreground">{feature.description}</p>
+                        <p className="text-[10px] text-[#94A3B8] truncate">{feature.description}</p>
                       )}
                     </div>
-                    <Badge variant="outline" className="text-xs">
-                      {feature.category.toUpperCase()}
-                    </Badge>
+                    <span className={cn(
+                      "text-[10px] font-mono uppercase px-2 py-0.5 rounded flex-shrink-0",
+                      feature.category === "mvp" 
+                        ? "bg-[#0EA5E9]/10 text-[#0EA5E9]" 
+                        : "bg-gray-800 text-gray-500"
+                    )}>
+                      {feature.category?.toUpperCase() || "MVP"}
+                    </span>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Select User Stories</h3>
-            <p className="text-sm text-muted-foreground mb-4">Choose user stories to implement</p>
+          {/* User Stories Selection */}
+          <div className="bg-[#121821] border border-[#1E293B] p-5">
+            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Users className="w-4 h-4" /> User Stories
+              </span>
+              <span className="text-[10px] text-[#0EA5E9]">{selectedStories.length} selected</span>
+            </h3>
             
             {scopeData.userStories.length === 0 ? (
-              <Card className="p-6 text-center text-muted-foreground">
-                <User className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                <p>No user stories defined yet. Add stories in Scope & Planning first.</p>
-              </Card>
+              <div className="p-8 text-center">
+                <User className="w-10 h-10 mx-auto mb-3 text-gray-600" />
+                <p className="text-[#94A3B8] text-sm">No user stories defined yet. Add stories in Scope & Planning first.</p>
+              </div>
             ) : (
-              <div className="grid gap-2 max-h-64 overflow-y-auto">
+              <div className="grid gap-2 max-h-[250px] overflow-y-auto">
                 {scopeData.userStories.map((story) => (
                   <div
                     key={story.id}
                     onClick={() => toggleStory(story.id)}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
+                      "flex items-center gap-3 p-3 border cursor-pointer transition-all rounded",
                       selectedStories.includes(story.id)
-                        ? "bg-primary/10 border-primary"
-                        : "bg-card border-border hover:border-primary/50"
+                        ? "bg-[#0EA5E9]/10 border-[#0EA5E9]/50"
+                        : "bg-black/20 border-[#1E293B] hover:border-[#0EA5E9]/30"
                     )}
                   >
-                    <Checkbox checked={selectedStories.includes(story.id)} />
-                    <p className="text-sm flex-1">
-                      As a <span className="font-medium text-violet-500">{story.persona}</span>, 
+                    <div className={cn(
+                      "w-5 h-5 rounded border flex items-center justify-center flex-shrink-0",
+                      selectedStories.includes(story.id) 
+                        ? "bg-[#0EA5E9] border-[#0EA5E9]" 
+                        : "border-[#1E293B]"
+                    )}>
+                      {selectedStories.includes(story.id) && <Check className="w-3 h-3 text-white" />}
+                    </div>
+                    <p className="text-sm flex-1 text-white">
+                      As a <span className="text-[#0EA5E9]">{story.persona}</span>, 
                       I want to <span className="font-medium">{story.action}</span>
                     </p>
                   </div>
@@ -519,9 +583,12 @@ export const DevelopmentSubmissionForm = ({
           </div>
 
           <div className="flex justify-end">
-            <Button onClick={() => setCurrentStep(2)}>
-              Continue <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+            <button 
+              onClick={() => setCurrentStep(2)}
+              className="flex items-center gap-2 px-6 py-2.5 bg-[#0EA5E9] text-white hover:bg-[#0EA5E9]/90 transition-colors text-xs font-bold uppercase shadow-[0_0_15px_-3px_rgba(14,165,233,0.3)]"
+            >
+              Continue <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       )}
@@ -529,9 +596,15 @@ export const DevelopmentSubmissionForm = ({
       {/* Step 2: Hosting & GitHub */}
       {currentStep === 2 && (
         <div className="space-y-6 animate-fade-in">
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Hosting Platform</h3>
-            <p className="text-sm text-muted-foreground mb-4">Where should we deploy your application?</p>
+          {/* Hosting Platform */}
+          <div className="bg-[#121821] border border-[#1E293B] p-5 relative">
+            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[#0EA5E9]" />
+            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-[#0EA5E9]" />
+            
+            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center gap-2">
+              <Cloud className="w-4 h-4" /> Hosting Platform
+            </h3>
+            <p className="text-sm text-[#94A3B8] mb-4">Where should we deploy your application?</p>
             
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {HOSTING_PLATFORMS.map((platform) => (
@@ -539,80 +612,101 @@ export const DevelopmentSubmissionForm = ({
                   key={platform.id}
                   onClick={() => setFormData({ ...formData, hostingPlatform: platform.id })}
                   className={cn(
-                    "p-4 rounded-xl border text-center transition-all hover:shadow-md",
+                    "p-4 border text-center transition-all",
                     formData.hostingPlatform === platform.id
-                      ? "bg-primary/10 border-primary ring-2 ring-primary"
-                      : "bg-card border-border hover:border-primary/50"
+                      ? "bg-[#0EA5E9]/10 border-[#0EA5E9] ring-1 ring-[#0EA5E9]"
+                      : "bg-black/20 border-[#1E293B] hover:border-[#0EA5E9]/50"
                   )}
                 >
                   <span className="text-2xl block mb-2">{platform.icon}</span>
-                  <p className="font-medium text-sm">{platform.name}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{platform.description}</p>
+                  <p className="font-medium text-sm text-white">{platform.name}</p>
+                  <p className="text-[10px] text-[#94A3B8] mt-1">{platform.description}</p>
                 </button>
               ))}
             </div>
 
             <div className="mt-4">
-              <Label>Additional hosting notes (optional)</Label>
+              <Label className="text-[#94A3B8] text-xs font-mono uppercase">Additional hosting notes (optional)</Label>
               <Textarea
                 value={formData.hostingNotes}
                 onChange={(e) => setFormData({ ...formData, hostingNotes: e.target.value })}
                 placeholder="Any specific hosting requirements or preferences..."
                 rows={2}
+                className="bg-black/30 border-[#1E293B] focus:border-[#0EA5E9] text-white placeholder:text-[#94A3B8]/50"
               />
             </div>
           </div>
 
-          <div>
-            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <Github className="w-5 h-5" />
-              GitHub Repository
+          {/* GitHub Repository */}
+          <div className="bg-[#121821] border border-[#1E293B] p-5">
+            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center gap-2">
+              <Github className="w-4 h-4" /> GitHub Repository
             </h3>
             
             <RadioGroup
               value={formData.githubOption}
               onValueChange={(value) => setFormData({ ...formData, githubOption: value as "existing" | "new_repo" })}
-              className="mb-4"
+              className="mb-4 space-y-2"
             >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="new_repo" id="new_repo" />
-                <Label htmlFor="new_repo">Create a new repository for me</Label>
+              <div className={cn(
+                "flex items-center space-x-3 p-3 border rounded cursor-pointer transition-all",
+                formData.githubOption === "new_repo" 
+                  ? "bg-[#0EA5E9]/10 border-[#0EA5E9]/50" 
+                  : "bg-black/20 border-[#1E293B] hover:border-[#0EA5E9]/30"
+              )}>
+                <RadioGroupItem value="new_repo" id="new_repo" className="border-[#0EA5E9]" />
+                <Label htmlFor="new_repo" className="text-white cursor-pointer">Create a new repository for me</Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="existing" id="existing" />
-                <Label htmlFor="existing">I have an existing repository</Label>
+              <div className={cn(
+                "flex items-center space-x-3 p-3 border rounded cursor-pointer transition-all",
+                formData.githubOption === "existing" 
+                  ? "bg-[#0EA5E9]/10 border-[#0EA5E9]/50" 
+                  : "bg-black/20 border-[#1E293B] hover:border-[#0EA5E9]/30"
+              )}>
+                <RadioGroupItem value="existing" id="existing" className="border-[#0EA5E9]" />
+                <Label htmlFor="existing" className="text-white cursor-pointer">I have an existing repository</Label>
               </div>
             </RadioGroup>
 
             {formData.githubOption === "existing" && (
               <div className="mb-4">
-                <Label>Repository URL</Label>
+                <Label className="text-[#94A3B8] text-xs font-mono uppercase">Repository URL</Label>
                 <Input
                   value={formData.githubRepoUrl}
                   onChange={(e) => setFormData({ ...formData, githubRepoUrl: e.target.value })}
                   placeholder="https://github.com/username/repo"
+                  className="bg-black/30 border-[#1E293B] focus:border-[#0EA5E9] text-white placeholder:text-[#94A3B8]/50"
                 />
               </div>
             )}
 
             <div>
-              <Label>GitHub Username *</Label>
+              <Label className="text-[#94A3B8] text-xs font-mono uppercase">GitHub Username *</Label>
               <Input
                 value={formData.githubUsername}
                 onChange={(e) => setFormData({ ...formData, githubUsername: e.target.value })}
                 placeholder="Your GitHub username to share the repo with"
+                className="bg-black/30 border-[#1E293B] focus:border-[#0EA5E9] text-white placeholder:text-[#94A3B8]/50"
               />
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[10px] text-[#94A3B8] mt-1 font-mono">
                 We'll add you as a collaborator to the repository
               </p>
             </div>
           </div>
 
           <div className="flex justify-between">
-            <Button variant="outline" onClick={() => setCurrentStep(1)}>Back</Button>
-            <Button onClick={() => setCurrentStep(3)}>
-              Continue <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+            <button 
+              onClick={() => setCurrentStep(1)}
+              className="flex items-center gap-2 px-4 py-2 border border-[#1E293B] bg-[#121821] hover:border-[#0EA5E9]/50 transition-colors text-xs font-medium uppercase text-[#94A3B8]"
+            >
+              Back
+            </button>
+            <button 
+              onClick={() => setCurrentStep(3)}
+              className="flex items-center gap-2 px-6 py-2.5 bg-[#0EA5E9] text-white hover:bg-[#0EA5E9]/90 transition-colors text-xs font-bold uppercase shadow-[0_0_15px_-3px_rgba(14,165,233,0.3)]"
+            >
+              Continue <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       )}
@@ -620,25 +714,34 @@ export const DevelopmentSubmissionForm = ({
       {/* Step 3: Development Options */}
       {currentStep === 3 && (
         <div className="space-y-6 animate-fade-in">
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Development Configuration</h3>
+          <div className="bg-[#121821] border border-[#1E293B] p-5 relative">
+            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[#0EA5E9]" />
+            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-[#0EA5E9]" />
             
-            <div className="grid gap-4">
+            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center gap-2">
+              <Settings className="w-4 h-4" /> Development Configuration
+            </h3>
+            
+            <div className="grid gap-3">
               {/* CI/CD */}
-              <Card className="p-4">
+              <div className={cn(
+                "p-4 border rounded transition-all",
+                formData.enableCicd ? "bg-blue-500/10 border-blue-500/30" : "bg-black/20 border-[#1E293B]"
+              )}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                      <Settings className="w-5 h-5 text-blue-500" />
+                    <div className="w-10 h-10 rounded bg-blue-500/20 flex items-center justify-center">
+                      <Settings className="w-5 h-5 text-blue-400" />
                     </div>
                     <div>
-                      <p className="font-medium">CI/CD Pipeline</p>
-                      <p className="text-sm text-muted-foreground">Automated build, test, and deployment</p>
+                      <p className="font-medium text-white">CI/CD Pipeline</p>
+                      <p className="text-xs text-[#94A3B8]">Automated build, test, and deployment</p>
                     </div>
                   </div>
                   <Checkbox
                     checked={formData.enableCicd}
                     onCheckedChange={(checked) => setFormData({ ...formData, enableCicd: !!checked })}
+                    className="border-[#0EA5E9] data-[state=checked]:bg-[#0EA5E9]"
                   />
                 </div>
                 {formData.enableCicd && (
@@ -647,138 +750,163 @@ export const DevelopmentSubmissionForm = ({
                       value={formData.cicdPlatform}
                       onValueChange={(value) => setFormData({ ...formData, cicdPlatform: value })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-black/30 border-[#1E293B] text-white">
                         <SelectValue placeholder="Select CI/CD platform" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-[#121821] border-[#1E293B]">
                         {CICD_PLATFORMS.map((platform) => (
-                          <SelectItem key={platform} value={platform}>{platform}</SelectItem>
+                          <SelectItem key={platform} value={platform} className="text-white">{platform}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                 )}
-              </Card>
+              </div>
 
               {/* Testing */}
-              <Card className="p-4">
+              <div className={cn(
+                "p-4 border rounded transition-all",
+                formData.enableTesting ? "bg-green-500/10 border-green-500/30" : "bg-black/20 border-[#1E293B]"
+              )}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    <div className="w-10 h-10 rounded bg-green-500/20 flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-green-400" />
                     </div>
                     <div>
-                      <p className="font-medium">Automated Testing</p>
-                      <p className="text-sm text-muted-foreground">Unit tests, integration tests, E2E tests</p>
+                      <p className="font-medium text-white">Automated Testing</p>
+                      <p className="text-xs text-[#94A3B8]">Unit tests, integration tests, E2E tests</p>
                     </div>
                   </div>
                   <Checkbox
                     checked={formData.enableTesting}
                     onCheckedChange={(checked) => setFormData({ ...formData, enableTesting: !!checked })}
+                    className="border-[#0EA5E9] data-[state=checked]:bg-[#0EA5E9]"
                   />
                 </div>
-              </Card>
+              </div>
 
               {/* Monitoring */}
-              <Card className="p-4">
+              <div className={cn(
+                "p-4 border rounded transition-all",
+                formData.enableMonitoring ? "bg-purple-500/10 border-purple-500/30" : "bg-black/20 border-[#1E293B]"
+              )}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                      <Activity className="w-5 h-5 text-purple-500" />
+                    <div className="w-10 h-10 rounded bg-purple-500/20 flex items-center justify-center">
+                      <Activity className="w-5 h-5 text-purple-400" />
                     </div>
                     <div>
-                      <p className="font-medium">Monitoring & Analytics</p>
-                      <p className="text-sm text-muted-foreground">Error tracking, performance monitoring</p>
+                      <p className="font-medium text-white">Monitoring & Analytics</p>
+                      <p className="text-xs text-[#94A3B8]">Error tracking, performance monitoring</p>
                     </div>
                   </div>
                   <Checkbox
                     checked={formData.enableMonitoring}
                     onCheckedChange={(checked) => setFormData({ ...formData, enableMonitoring: !!checked })}
+                    className="border-[#0EA5E9] data-[state=checked]:bg-[#0EA5E9]"
                   />
                 </div>
-              </Card>
+              </div>
 
               {/* SSL */}
-              <Card className="p-4">
+              <div className={cn(
+                "p-4 border rounded transition-all",
+                formData.enableSsl ? "bg-amber-500/10 border-amber-500/30" : "bg-black/20 border-[#1E293B]"
+              )}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                      <Shield className="w-5 h-5 text-amber-500" />
+                    <div className="w-10 h-10 rounded bg-amber-500/20 flex items-center justify-center">
+                      <Shield className="w-5 h-5 text-amber-400" />
                     </div>
                     <div>
-                      <p className="font-medium">SSL/TLS Certificate</p>
-                      <p className="text-sm text-muted-foreground">Secure HTTPS connection</p>
+                      <p className="font-medium text-white">SSL/TLS Certificate</p>
+                      <p className="text-xs text-[#94A3B8]">Secure HTTPS connection</p>
                     </div>
                   </div>
                   <Checkbox
                     checked={formData.enableSsl}
                     onCheckedChange={(checked) => setFormData({ ...formData, enableSsl: !!checked })}
+                    className="border-[#0EA5E9] data-[state=checked]:bg-[#0EA5E9]"
                   />
                 </div>
-              </Card>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Custom Domain (optional)</Label>
-              <Input
-                value={formData.customDomain}
-                onChange={(e) => setFormData({ ...formData, customDomain: e.target.value })}
-                placeholder="example.com"
-              />
+          {/* Additional Settings */}
+          <div className="bg-[#121821] border border-[#1E293B] p-5">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <Label className="text-[#94A3B8] text-xs font-mono uppercase">Custom Domain (optional)</Label>
+                <Input
+                  value={formData.customDomain}
+                  onChange={(e) => setFormData({ ...formData, customDomain: e.target.value })}
+                  placeholder="example.com"
+                  className="bg-black/30 border-[#1E293B] focus:border-[#0EA5E9] text-white placeholder:text-[#94A3B8]/50"
+                />
+              </div>
+              <div>
+                <Label className="text-[#94A3B8] text-xs font-mono uppercase">Environment Type</Label>
+                <Select
+                  value={formData.environmentType}
+                  onValueChange={(value) => setFormData({ ...formData, environmentType: value as any })}
+                >
+                  <SelectTrigger className="bg-black/30 border-[#1E293B] text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#121821] border-[#1E293B]">
+                    <SelectItem value="development" className="text-white">Development</SelectItem>
+                    <SelectItem value="staging" className="text-white">Staging</SelectItem>
+                    <SelectItem value="production" className="text-white">Production</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div>
-              <Label>Environment Type</Label>
+
+            <div className="mb-4">
+              <Label className="text-[#94A3B8] text-xs font-mono uppercase">Priority</Label>
               <Select
-                value={formData.environmentType}
-                onValueChange={(value) => setFormData({ ...formData, environmentType: value as any })}
+                value={formData.priority}
+                onValueChange={(value) => setFormData({ ...formData, priority: value as any })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-black/30 border-[#1E293B] text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="development">Development</SelectItem>
-                  <SelectItem value="staging">Staging</SelectItem>
-                  <SelectItem value="production">Production</SelectItem>
+                <SelectContent className="bg-[#121821] border-[#1E293B]">
+                  <SelectItem value="low" className="text-white">Low - No rush</SelectItem>
+                  <SelectItem value="normal" className="text-white">Normal - Standard timeline</SelectItem>
+                  <SelectItem value="high" className="text-white">High - Prioritize this</SelectItem>
+                  <SelectItem value="urgent" className="text-white">Urgent - ASAP</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          <div>
-            <Label>Priority</Label>
-            <Select
-              value={formData.priority}
-              onValueChange={(value) => setFormData({ ...formData, priority: value as any })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low - No rush</SelectItem>
-                <SelectItem value="normal">Normal - Standard timeline</SelectItem>
-                <SelectItem value="high">High - Prioritize this</SelectItem>
-                <SelectItem value="urgent">Urgent - ASAP</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label>Additional Requirements (optional)</Label>
-            <Textarea
-              value={formData.additionalRequirements}
-              onChange={(e) => setFormData({ ...formData, additionalRequirements: e.target.value })}
-              placeholder="Any other requirements, preferences, or notes for the development team..."
-              rows={3}
-            />
+            <div>
+              <Label className="text-[#94A3B8] text-xs font-mono uppercase">Additional Requirements (optional)</Label>
+              <Textarea
+                value={formData.additionalRequirements}
+                onChange={(e) => setFormData({ ...formData, additionalRequirements: e.target.value })}
+                placeholder="Any other requirements, preferences, or notes for the development team..."
+                rows={3}
+                className="bg-black/30 border-[#1E293B] focus:border-[#0EA5E9] text-white placeholder:text-[#94A3B8]/50"
+              />
+            </div>
           </div>
 
           <div className="flex justify-between">
-            <Button variant="outline" onClick={() => setCurrentStep(2)}>Back</Button>
-            <Button onClick={() => setCurrentStep(4)}>
-              Review Submission <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+            <button 
+              onClick={() => setCurrentStep(2)}
+              className="flex items-center gap-2 px-4 py-2 border border-[#1E293B] bg-[#121821] hover:border-[#0EA5E9]/50 transition-colors text-xs font-medium uppercase text-[#94A3B8]"
+            >
+              Back
+            </button>
+            <button 
+              onClick={() => setCurrentStep(4)}
+              className="flex items-center gap-2 px-6 py-2.5 bg-[#0EA5E9] text-white hover:bg-[#0EA5E9]/90 transition-colors text-xs font-bold uppercase shadow-[0_0_15px_-3px_rgba(14,165,233,0.3)]"
+            >
+              Review Submission <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       )}
@@ -786,89 +914,134 @@ export const DevelopmentSubmissionForm = ({
       {/* Step 4: Review & Submit */}
       {currentStep === 4 && (
         <div className="space-y-6 animate-fade-in">
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-4">
+          {/* Header */}
+          <div className="bg-[#121821] border border-[#1E293B] p-8 text-center relative">
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-[#0EA5E9]" />
+            <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-[#0EA5E9]" />
+            <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-[#0EA5E9]" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#0EA5E9]" />
+            
+            <div className="w-16 h-16 mx-auto rounded bg-gradient-to-br from-[#0EA5E9] to-[#0EA5E9]/50 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(14,165,233,0.3)]">
               <Rocket className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-semibold">Review Your Submission</h3>
-            <p className="text-muted-foreground">Please review your development request before submitting</p>
+            <h3 className="text-xl font-bold text-white uppercase tracking-wide">Review Your Submission</h3>
+            <p className="text-[#94A3B8] text-sm font-mono">Please review your development request before submitting</p>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             {/* Project Summary */}
-            <Card className="p-4">
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <Code className="w-4 h-4" />
-                Project
+            <div className="bg-[#121821] border border-[#1E293B] p-5">
+              <h4 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center gap-2">
+                <Code className="w-4 h-4" /> Project
               </h4>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <p className="text-muted-foreground">Name:</p>
-                <p className="font-medium">{formData.projectName}</p>
-                <p className="text-muted-foreground">Features:</p>
-                <p className="font-medium">{selectedFeatures.length} selected</p>
-                <p className="text-muted-foreground">User Stories:</p>
-                <p className="font-medium">{selectedStories.length} selected</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-[#94A3B8]">Name:</span>
+                  <span className="text-white font-medium">{formData.projectName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#94A3B8]">Features:</span>
+                  <span className="text-[#0EA5E9] font-medium">{selectedFeatures.length} selected</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#94A3B8]">User Stories:</span>
+                  <span className="text-[#0EA5E9] font-medium">{selectedStories.length} selected</span>
+                </div>
               </div>
-            </Card>
+            </div>
 
             {/* Hosting Summary */}
-            <Card className="p-4">
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <Cloud className="w-4 h-4" />
-                Hosting & Repository
+            <div className="bg-[#121821] border border-[#1E293B] p-5">
+              <h4 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center gap-2">
+                <Cloud className="w-4 h-4" /> Hosting & Repository
               </h4>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <p className="text-muted-foreground">Platform:</p>
-                <p className="font-medium">
-                  {HOSTING_PLATFORMS.find(p => p.id === formData.hostingPlatform)?.name || "-"}
-                </p>
-                <p className="text-muted-foreground">GitHub:</p>
-                <p className="font-medium">
-                  {formData.githubOption === "new_repo" ? "New repository" : formData.githubRepoUrl}
-                </p>
-                <p className="text-muted-foreground">Username:</p>
-                <p className="font-medium">{formData.githubUsername}</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-[#94A3B8]">Platform:</span>
+                  <span className="text-white font-medium">
+                    {HOSTING_PLATFORMS.find(p => p.id === formData.hostingPlatform)?.name || "-"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#94A3B8]">GitHub:</span>
+                  <span className="text-white font-medium truncate ml-2">
+                    {formData.githubOption === "new_repo" ? "New repository" : formData.githubRepoUrl || "-"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#94A3B8]">Username:</span>
+                  <span className="text-[#0EA5E9] font-medium">{formData.githubUsername}</span>
+                </div>
               </div>
-            </Card>
+            </div>
+          </div>
 
-            {/* Options Summary */}
-            <Card className="p-4">
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                Development Options
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {formData.enableCicd && (
-                  <Badge variant="secondary">CI/CD: {formData.cicdPlatform}</Badge>
-                )}
-                {formData.enableTesting && <Badge variant="secondary">Automated Testing</Badge>}
-                {formData.enableMonitoring && <Badge variant="secondary">Monitoring</Badge>}
-                {formData.enableSsl && <Badge variant="secondary">SSL/TLS</Badge>}
-                <Badge variant="outline">{formData.environmentType}</Badge>
-                <Badge variant="outline">Priority: {formData.priority}</Badge>
-              </div>
-            </Card>
+          {/* Options Summary */}
+          <div className="bg-[#121821] border border-[#1E293B] p-5">
+            <h4 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center gap-2">
+              <Settings className="w-4 h-4" /> Development Options
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {formData.enableCicd && (
+                <span className="px-3 py-1 text-xs font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded">
+                  CI/CD: {formData.cicdPlatform}
+                </span>
+              )}
+              {formData.enableTesting && (
+                <span className="px-3 py-1 text-xs font-mono bg-green-500/10 text-green-400 border border-green-500/30 rounded">
+                  Automated Testing
+                </span>
+              )}
+              {formData.enableMonitoring && (
+                <span className="px-3 py-1 text-xs font-mono bg-purple-500/10 text-purple-400 border border-purple-500/30 rounded">
+                  Monitoring
+                </span>
+              )}
+              {formData.enableSsl && (
+                <span className="px-3 py-1 text-xs font-mono bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded">
+                  SSL/TLS
+                </span>
+              )}
+              <span className="px-3 py-1 text-xs font-mono bg-[#1E293B] text-[#94A3B8] rounded uppercase">
+                {formData.environmentType}
+              </span>
+              <span className="px-3 py-1 text-xs font-mono bg-[#1E293B] text-[#94A3B8] rounded uppercase">
+                Priority: {formData.priority}
+              </span>
+            </div>
           </div>
 
           {!user && (
-            <Card className="p-4 bg-amber-500/10 border-amber-500/30">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-500" />
-                <p className="text-sm">You need to sign in to submit a development request.</p>
-              </div>
-            </Card>
+            <div className="bg-amber-500/10 border border-amber-500/30 p-4 flex items-center gap-3 rounded">
+              <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+              <p className="text-sm text-amber-300">You need to sign in to submit a development request.</p>
+            </div>
           )}
 
           <div className="flex justify-between">
-            <Button variant="outline" onClick={() => setCurrentStep(3)}>Back</Button>
-            <Button 
+            <button 
+              onClick={() => setCurrentStep(3)}
+              className="flex items-center gap-2 px-4 py-2 border border-[#1E293B] bg-[#121821] hover:border-[#0EA5E9]/50 transition-colors text-xs font-medium uppercase text-[#94A3B8]"
+            >
+              Back
+            </button>
+            <button 
               onClick={handleSubmit} 
               disabled={isSubmitting || !user}
-              className="bg-gradient-to-r from-primary to-accent"
+              className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#0EA5E9] to-[#0EA5E9]/70 text-white hover:brightness-110 transition-all text-sm font-bold uppercase shadow-[0_0_30px_rgba(14,165,233,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Submitting..." : "Submit Development Request"}
-              <Rocket className="w-4 h-4 ml-2" />
-            </Button>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  Submit Development Request
+                  <Rocket className="w-4 h-4" />
+                </>
+              )}
+            </button>
           </div>
         </div>
       )}
