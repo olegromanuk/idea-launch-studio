@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useNavigate } from "react-router-dom";
@@ -789,12 +789,14 @@ const Canvas = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <TooltipProvider>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-8 bg-[#0A0A0A] border border-white/5 p-1 rounded-sm">
-                {canvasTabs.map((tab) => {
+              {/* Redesigned Tabs - Clean Blueprint Style */}
+              <TabsList className="flex w-full mb-8 bg-transparent border-0 p-0 h-auto gap-2">
+                {canvasTabs.map((tab, index) => {
                   const Icon = tab.icon;
                   const progress = calculateCanvasProgress(tab.id);
                   const isLocked = isBlockLocked(tab.id);
                   const isUnlocking = unlockedBlock === tab.id;
+                  const isActive = activeTab === tab.id;
                   const getPreviousBlockName = (tabId: string) => {
                     if (tabId === "scope") return "Business Logic";
                     if (tabId === "development") return "Scope & Planning";
@@ -803,66 +805,110 @@ const Canvas = () => {
                   };
                   const previousBlockName = getPreviousBlockName(tab.id);
                   
-                    return (
-                     <TabsTrigger
-                       key={tab.id}
-                       value={tab.id}
-                       className={cn(
-                         "flex flex-col items-center gap-1 py-3 transition-all rounded-sm font-mono text-xs uppercase tracking-wider",
-                         "data-[state=active]:bg-[#00f0ff]/10 data-[state=active]:text-[#00f0ff] data-[state=active]:border-[#00f0ff]/30",
-                         "text-slate-500 hover:text-slate-300",
-                         isLocked && "opacity-50",
-                         isUnlocking && "animate-[pulse_0.5s_ease-in-out_3] scale-105"
-                       )}
-                       onClick={(e) => {
-                         if (isLocked) {
-                           e.preventDefault();
-                           e.stopPropagation();
-                           toast({
-                             title: "Block Locked",
-                             description: "Please complete and validate the previous block first.",
-                             variant: "destructive",
-                           });
-                         }
-                       }}
-                     >
-                      <div className="flex items-center gap-2 relative">
-                        <Icon className={cn("w-4 h-4", isUnlocking && "animate-scale-in")} />
-                        <span className="hidden sm:inline">{tab.title}</span>
-                        {isLocked && !isUnlocking && (
-                          <div className="flex items-center gap-1">
-                            <Lock className="w-3 h-3" />
-                            <Tooltip delayDuration={100}>
-                              <TooltipTrigger asChild>
-                                <span 
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="inline-flex items-center justify-center cursor-help"
-                                >
-                                  <Info className="w-3.5 h-3.5 text-slate-600 hover:text-[#00f0ff] transition-colors" />
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent 
-                                side="bottom" 
-                                className="max-w-xs bg-[#0A0A0A] text-slate-300 border-white/10 shadow-lg z-50 p-3"
-                                sideOffset={5}
-                              >
-                                <p className="text-sm font-semibold mb-2 flex items-center gap-2 text-white">
-                                  <Lock className="w-4 h-4" />
-                                  Block Locked
-                                </p>
-                                <p className="text-xs leading-relaxed">
-                                  Complete and validate <strong className="text-[#00f0ff] font-semibold">{previousBlockName}</strong> to unlock this block.
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
+                  return (
+                    <React.Fragment key={tab.id}>
+                      <TabsTrigger
+                        value={tab.id}
+                        className={cn(
+                          "relative flex-1 flex items-center justify-center gap-3 py-4 px-4 transition-all font-mono text-xs uppercase tracking-wider",
+                          "bg-[#0A0E14] border border-[#1E293B] rounded-none shadow-none",
+                          "hover:border-[#00f0ff]/30 hover:bg-[#0A0E14]/80",
+                          "data-[state=active]:bg-[#0A0E14] data-[state=active]:border-[#00f0ff] data-[state=active]:text-[#00f0ff] data-[state=active]:shadow-[0_0_20px_-5px_rgba(0,240,255,0.3)]",
+                          "text-slate-500",
+                          isLocked && "opacity-50 cursor-not-allowed",
+                          isUnlocking && "animate-[pulse_0.5s_ease-in-out_3] scale-105"
                         )}
+                        onClick={(e) => {
+                          if (isLocked) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toast({
+                              title: "Block Locked",
+                              description: "Please complete and validate the previous block first.",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      >
+                        {/* Corner accents for active tab */}
+                        {isActive && (
+                          <>
+                            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[#00f0ff]" />
+                            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-[#00f0ff]" />
+                            <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-[#00f0ff]" />
+                            <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-[#00f0ff]" />
+                          </>
+                        )}
+                        
+                        {/* Tab content */}
+                        <div className="flex items-center gap-2">
+                          <Icon className={cn(
+                            "w-4 h-4 transition-colors",
+                            isActive && "text-[#00f0ff]",
+                            isUnlocking && "animate-scale-in"
+                          )} />
+                          <span className="hidden sm:inline font-medium">{tab.title}</span>
+                        </div>
+                        
+                        {/* Progress indicator */}
+                        <div className="flex items-center gap-2">
+                          <div className="w-12 h-1 bg-slate-800 rounded-full overflow-hidden">
+                            <div 
+                              className={cn(
+                                "h-full rounded-full transition-all duration-500",
+                                isActive ? "bg-[#00f0ff]" : "bg-slate-600"
+                              )}
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                          <span className={cn(
+                            "text-[10px] font-mono",
+                            isActive ? "text-[#00f0ff]" : "text-slate-600"
+                          )}>
+                            {Math.round(progress)}%
+                          </span>
+                        </div>
+
+                        {/* Lock indicator */}
+                        {isLocked && !isUnlocking && (
+                          <Tooltip delayDuration={100}>
+                            <TooltipTrigger asChild>
+                              <span 
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-1 cursor-help"
+                              >
+                                <Lock className="w-3 h-3 text-slate-600" />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent 
+                              side="bottom" 
+                              className="max-w-xs bg-[#0A0A0A] text-slate-300 border-white/10 shadow-lg z-50 p-3"
+                              sideOffset={5}
+                            >
+                              <p className="text-sm font-semibold mb-2 flex items-center gap-2 text-white">
+                                <Lock className="w-4 h-4" />
+                                Block Locked
+                              </p>
+                              <p className="text-xs leading-relaxed">
+                                Complete and validate <strong className="text-[#00f0ff] font-semibold">{previousBlockName}</strong> to unlock.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                        
                         {isUnlocking && <span className="text-xs animate-fade-in">🔓</span>}
-                      </div>
-                      <span className="text-[10px] text-slate-600">
-                        {Math.round(progress)}%
-                      </span>
-                    </TabsTrigger>
+                      </TabsTrigger>
+                      
+                      {/* Connector line between tabs */}
+                      {index < canvasTabs.length - 1 && (
+                        <div className="flex items-center">
+                          <div className={cn(
+                            "w-4 h-0.5 transition-colors",
+                            progress >= 100 ? "bg-[#00f0ff]/50" : "bg-slate-800"
+                          )} />
+                        </div>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </TabsList>
