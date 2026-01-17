@@ -32,7 +32,19 @@ import {
   Loader2,
   Users,
   Cpu,
-  Check
+  Check,
+  Play,
+  Download,
+  FolderOpen,
+  Plus,
+  Filter,
+  AlertTriangle,
+  Flag,
+  Laptop,
+  Database,
+  Workflow,
+  Bot,
+  Verified
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -116,6 +128,7 @@ export const DevelopmentSubmissionForm = ({
   const [isLoading, setIsLoading] = useState(true);
   const [existingSubmission, setExistingSubmission] = useState<ExistingSubmission | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
+  const [timelineView, setTimelineView] = useState<"weeks" | "months">("weeks");
   
   // Form state
   const [formData, setFormData] = useState({
@@ -293,6 +306,19 @@ export const DevelopmentSubmissionForm = ({
     });
   };
 
+  // Calculate projection metrics
+  const estimatedHours = selectedFeatures.length * 40 + selectedStories.length * 8;
+  const complexityScore = Math.min(10, (selectedFeatures.length * 0.5 + scopeData.risks.length * 1.5)).toFixed(1);
+  const estimatedBudget = estimatedHours * 50;
+
+  // Group features by category for display
+  const groupedFeatures = scopeData.features.reduce((acc, feature) => {
+    const category = feature.category || "core";
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(feature);
+    return acc;
+  }, {} as Record<string, any[]>);
+
   // Show loading state
   if (isLoading) {
     return (
@@ -394,19 +420,450 @@ export const DevelopmentSubmissionForm = ({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3 mb-1">
+          <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-mono text-[#0EA5E9] uppercase">Module: 03_Development</span>
-            <span className="bg-[#0EA5E9]/10 text-[#0EA5E9] text-[10px] px-2 py-0.5 border border-[#0EA5E9]/30 rounded font-bold">
-              STEP {currentStep}/4
-            </span>
           </div>
-          <h1 className="text-2xl font-bold uppercase tracking-tight mb-1 text-white">Development Submission</h1>
+          <h1 className="text-3xl font-bold uppercase tracking-tight mb-2 text-white">Architectural Blueprint</h1>
           <p className="text-[#94A3B8] text-sm max-w-xl">
-            Configure and submit your project for development. Our team will review and build your {projectData?.idea || "project"}.
+            Define the structural boundaries of your MVP. Identify critical path features, estimate technical risks, and visualize the execution timeline.
           </p>
+        </div>
+        <div className="flex gap-3">
+          <button className="flex items-center gap-2 px-4 py-2 border border-[#1E293B] bg-[#121821] hover:border-[#0EA5E9]/50 transition-colors text-sm font-medium">
+            <Download className="w-4 h-4" />
+            Export PDF
+          </button>
+          <button 
+            onClick={() => setCurrentStep(4)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#0EA5E9] text-white hover:bg-[#0EA5E9]/90 transition-colors text-sm font-medium shadow-[0_0_15px_-3px_rgba(14,165,233,0.3)]"
+          >
+            <Play className="w-4 h-4" />
+            Start Build Phase
+          </button>
+        </div>
+      </div>
+
+      {/* Main Grid Layout */}
+      <div className="grid grid-cols-12 gap-6">
+        {/* Left Sidebar - Metrics & Risks */}
+        <div className="col-span-12 lg:col-span-3 space-y-6">
+          {/* Projection Metrics */}
+          <div className="bg-[#121821] border border-[#1E293B] p-5">
+            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2">
+              Projection Metrics
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-500">Estimated Effort</span>
+                  <span className="font-mono text-white">{estimatedHours} Hours</span>
+                </div>
+                <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                  <div className="bg-[#0EA5E9] h-full rounded-full transition-all" style={{ width: `${Math.min(100, (estimatedHours / 500) * 100)}%` }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-500">Budget Usage</span>
+                  <span className="font-mono text-white">${estimatedBudget.toLocaleString()} / $10k</span>
+                </div>
+                <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                  <div className="bg-green-500 h-full rounded-full transition-all" style={{ width: `${Math.min(100, (estimatedBudget / 10000) * 100)}%` }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-500">Complexity Score</span>
+                  <span className={cn(
+                    "font-mono",
+                    parseFloat(complexityScore) >= 7 ? "text-orange-400" : parseFloat(complexityScore) >= 4 ? "text-yellow-400" : "text-green-400"
+                  )}>
+                    {parseFloat(complexityScore) >= 7 ? "High" : parseFloat(complexityScore) >= 4 ? "Medium" : "Low"} ({complexityScore})
+                  </span>
+                </div>
+                <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                  <div className={cn(
+                    "h-full rounded-full transition-all",
+                    parseFloat(complexityScore) >= 7 ? "bg-orange-500" : parseFloat(complexityScore) >= 4 ? "bg-yellow-500" : "bg-green-500"
+                  )} style={{ width: `${parseFloat(complexityScore) * 10}%` }} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Identified Risks */}
+          <div className="bg-[#121821] border border-[#1E293B] p-5">
+            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2">
+              Identified Risks
+            </h3>
+            <div className="space-y-3">
+              {scopeData.risks.length === 0 ? (
+                <p className="text-xs text-[#94A3B8] text-center py-4">No risks identified yet</p>
+              ) : (
+                (scopeData.risks as any[]).slice(0, 3).map((risk, index) => (
+                  <div 
+                    key={index} 
+                    className={cn(
+                      "p-3 border-l-2",
+                      risk.severity === "critical" || risk.priority === "high" 
+                        ? "bg-red-500/10 border-red-500" 
+                        : "bg-yellow-500/10 border-yellow-500"
+                    )}
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <span className={cn(
+                        "text-xs font-bold uppercase",
+                        risk.severity === "critical" || risk.priority === "high" ? "text-red-500" : "text-yellow-500"
+                      )}>
+                        {risk.severity === "critical" || risk.priority === "high" ? "Critical" : "Warning"}
+                      </span>
+                      <span className="text-[10px] font-mono text-gray-500">
+                        {risk.category?.toUpperCase().replace(/\s+/g, "_") || "RISK"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-300">{risk.name || risk.description}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Active Agents */}
+          <div className="bg-[#121821] border border-[#1E293B] p-5">
+            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2">
+              Active Agents
+            </h3>
+            <ul className="space-y-3">
+              <li className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded bg-[#0EA5E9]/20 flex items-center justify-center text-[#0EA5E9] border border-[#0EA5E9]/30">
+                  <Workflow className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Architect.ai</div>
+                  <div className="text-[10px] text-[#94A3B8]">Validating data models</div>
+                </div>
+                <span className="ml-auto w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+              </li>
+              <li className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded bg-purple-500/20 flex items-center justify-center text-purple-400 border border-purple-500/30">
+                  <Code className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Coder.dev</div>
+                  <div className="text-[10px] text-[#94A3B8]">Scaffolding backend</div>
+                </div>
+                <span className="ml-auto w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+              </li>
+              <li className="flex items-center gap-3 opacity-50">
+                <div className="w-8 h-8 rounded bg-gray-700/20 flex items-center justify-center text-gray-400 border border-gray-600/30">
+                  <Verified className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">QA.bot</div>
+                  <div className="text-[10px] text-[#94A3B8]">Waiting for build</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Center - Core Features */}
+        <div className="col-span-12 lg:col-span-5 flex flex-col gap-6">
+          <div className="bg-[#121821] border border-[#1E293B] flex flex-col h-full">
+            <div className="p-4 border-b border-[#1E293B] flex justify-between items-center">
+              <h3 className="text-xs font-mono uppercase text-[#94A3B8]">Core Features (MVP Scope)</h3>
+              <div className="flex gap-2">
+                <button className="p-1 hover:bg-gray-800 rounded">
+                  <Filter className="w-4 h-4 text-gray-500" />
+                </button>
+                <button className="p-1 hover:bg-gray-800 rounded">
+                  <Plus className="w-4 h-4 text-gray-500" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-grow overflow-y-auto max-h-[500px] p-2 space-y-4">
+              {Object.entries(groupedFeatures).length === 0 ? (
+                <div className="p-8 text-center">
+                  <Layers className="w-10 h-10 mx-auto mb-3 text-gray-600" />
+                  <p className="text-[#94A3B8] text-sm">No features defined yet. Add features in Scope & Planning first.</p>
+                </div>
+              ) : (
+                Object.entries(groupedFeatures).map(([category, features], catIndex) => (
+                  <div key={category} className="mb-4">
+                    <div className="flex items-center gap-2 px-2 py-1 mb-1">
+                      <FolderOpen className={cn(
+                        "w-4 h-4",
+                        catIndex === 0 ? "text-[#0EA5E9]" : catIndex === 1 ? "text-purple-400" : "text-green-400"
+                      )} />
+                      <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                        {category.replace(/_/g, " ")}
+                      </span>
+                    </div>
+                    {features.map((feature) => (
+                      <div 
+                        key={feature.id}
+                        onClick={() => toggleFeature(feature.id)}
+                        className="group flex items-start gap-3 p-3 bg-[#161B22] border border-[#1E293B] hover:border-[#0EA5E9]/40 transition-colors cursor-pointer mt-2"
+                      >
+                        <div className="mt-0.5">
+                          <div className={cn(
+                            "w-4 h-4 rounded border flex items-center justify-center",
+                            selectedFeatures.includes(feature.id) 
+                              ? "bg-[#0EA5E9] border-[#0EA5E9]" 
+                              : "border-gray-600 bg-transparent"
+                          )}>
+                            {selectedFeatures.includes(feature.id) && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                        </div>
+                        <div className="flex-grow">
+                          <div className="flex justify-between items-start">
+                            <h4 className="text-sm font-medium text-white group-hover:text-[#0EA5E9] transition-colors">
+                              {feature.name}
+                            </h4>
+                            <span className={cn(
+                              "text-[10px] font-mono px-1.5 py-0.5 rounded",
+                              selectedFeatures.includes(feature.id) 
+                                ? "bg-green-500/10 text-green-500" 
+                                : "bg-gray-700 text-gray-300"
+                            )}>
+                              {selectedFeatures.includes(feature.id) ? "SELECTED" : "TODO"}
+                            </span>
+                          </div>
+                          {feature.description && (
+                            <p className="text-xs text-[#94A3B8] mt-1 line-clamp-2">{feature.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))
+              )}
+
+              {/* User Stories Section */}
+              {scopeData.userStories.length > 0 && (
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 px-2 py-1 mb-1">
+                    <Users className="w-4 h-4 text-amber-400" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                      User Stories
+                    </span>
+                  </div>
+                  {scopeData.userStories.map((story) => (
+                    <div 
+                      key={story.id}
+                      onClick={() => toggleStory(story.id)}
+                      className="group flex items-start gap-3 p-3 bg-[#161B22] border border-[#1E293B] hover:border-[#0EA5E9]/40 transition-colors cursor-pointer mt-2"
+                    >
+                      <div className="mt-0.5">
+                        <div className={cn(
+                          "w-4 h-4 rounded border flex items-center justify-center",
+                          selectedStories.includes(story.id) 
+                            ? "bg-[#0EA5E9] border-[#0EA5E9]" 
+                            : "border-gray-600 bg-transparent"
+                        )}>
+                          {selectedStories.includes(story.id) && <Check className="w-3 h-3 text-white" />}
+                        </div>
+                      </div>
+                      <div className="flex-grow">
+                        <p className="text-sm text-white">
+                          As a <span className="text-[#0EA5E9]">{story.persona}</span>, 
+                          I want to <span className="font-medium">{story.action}</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="p-3 border-t border-[#1E293B] bg-[#161B22] text-center">
+              <button className="text-xs text-[#0EA5E9] hover:text-white transition-colors uppercase tracking-wider font-bold flex items-center justify-center gap-1 w-full">
+                <Plus className="w-4 h-4" />
+                Add User Story
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Sidebar - Timeline */}
+        <div className="col-span-12 lg:col-span-4">
+          <div className="bg-[#121821] border border-[#1E293B] h-full flex flex-col">
+            <div className="p-4 border-b border-[#1E293B] flex justify-between items-center">
+              <h3 className="text-xs font-mono uppercase text-[#94A3B8]">Execution Timeline</h3>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setTimelineView("weeks")}
+                  className={cn(
+                    "text-[10px] uppercase font-bold px-2 py-1 rounded",
+                    timelineView === "weeks" ? "text-[#0EA5E9] bg-[#0EA5E9]/10" : "text-gray-500 hover:text-gray-300"
+                  )}
+                >
+                  Weeks
+                </button>
+                <button 
+                  onClick={() => setTimelineView("months")}
+                  className={cn(
+                    "text-[10px] uppercase font-bold px-2 py-1 rounded",
+                    timelineView === "months" ? "text-[#0EA5E9] bg-[#0EA5E9]/10" : "text-gray-500 hover:text-gray-300"
+                  )}
+                >
+                  Months
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-4 flex-grow relative overflow-hidden">
+              {/* Timeline Header */}
+              <div className="flex border-b border-[#1E293B] pb-2 mb-4 text-[10px] text-gray-500 font-mono uppercase">
+                {timelineView === "weeks" ? (
+                  <>
+                    <div className="w-1/4">Week 1</div>
+                    <div className="w-1/4">Week 2</div>
+                    <div className="w-1/4">Week 3</div>
+                    <div className="w-1/4">Week 4</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-1/3">Month 1</div>
+                    <div className="w-1/3">Month 2</div>
+                    <div className="w-1/3">Month 3</div>
+                  </>
+                )}
+              </div>
+
+              {/* Current Progress Line */}
+              <div className="absolute top-12 bottom-4 w-px bg-[#0EA5E9] z-10 shadow-[0_0_10px_rgba(14,165,233,0.5)] left-[35%]">
+                <div className="absolute -top-1 -left-1 w-2 h-2 rounded-full bg-[#0EA5E9] shadow-[0_0_10px_rgba(14,165,233,1)]" />
+              </div>
+
+              {/* Phases */}
+              <div className="space-y-6">
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-bold text-white">Foundation Setup</span>
+                  </div>
+                  <div className="relative h-6 bg-gray-800 rounded-sm w-full overflow-hidden">
+                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "repeating-linear-gradient(45deg, #000, #000 10px, transparent 10px, transparent 20px)" }} />
+                    <div className="absolute left-0 w-[40%] h-full bg-green-500/20 border border-green-500/50 rounded-sm flex items-center px-2">
+                      <span className="text-[10px] font-mono text-green-400">COMPLETED</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-bold text-[#0EA5E9]">Core Development</span>
+                  </div>
+                  <div className="relative h-6 bg-gray-800 rounded-sm w-full">
+                    <div className="absolute left-[30%] w-[50%] h-full bg-[#0EA5E9]/20 border border-[#0EA5E9]/50 rounded-sm flex items-center px-2 shadow-[0_0_15px_-5px_rgba(14,165,233,0.5)]">
+                      <span className="text-[10px] font-mono text-[#0EA5E9] animate-pulse">ACTIVE</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-bold text-gray-500">Integration & Testing</span>
+                  </div>
+                  <div className="relative h-6 bg-gray-800 rounded-sm w-full">
+                    <div className="absolute left-[70%] w-[25%] h-full bg-gray-600/20 border border-gray-600/50 rounded-sm flex items-center px-2">
+                      <span className="text-[10px] font-mono text-gray-500">PENDING</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-bold text-gray-500">Deployment</span>
+                  </div>
+                  <div className="relative h-6 bg-gray-800 rounded-sm w-full">
+                    <div className="absolute left-[90%] w-[10%] h-full bg-purple-500/10 border border-purple-500/30 rounded-sm" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Launch Milestone */}
+              <div className="mt-8 pt-4 border-t border-[#1E293B]">
+                <div className="flex items-center gap-2">
+                  <Flag className="w-4 h-4 text-[#0EA5E9]" />
+                  <span className="text-xs font-bold text-[#0EA5E9] uppercase">Alpha Launch</span>
+                  <span className="text-[10px] text-gray-500 font-mono ml-auto">EST: {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase()}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Full Width - System Architecture */}
+        <div className="col-span-12 mt-2">
+          <div className="bg-[#121821] border border-[#1E293B] p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-20">
+              <Workflow className="w-16 h-16 text-gray-800" />
+            </div>
+            
+            <div className="flex justify-between items-end mb-6 relative z-10">
+              <div>
+                <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-1">System Architecture</h3>
+                <h2 className="text-xl font-bold text-white">Data Flow & Dependencies</h2>
+              </div>
+              <div className="flex gap-4 text-xs">
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+                  <span className="text-gray-400">Client</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-purple-500" />
+                  <span className="text-gray-400">Server</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-orange-500" />
+                  <span className="text-gray-400">Database</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative h-48 border border-dashed border-gray-700 rounded bg-[#0A0E14] flex items-center justify-around px-12">
+              {/* Web App Node */}
+              <div className="flex flex-col items-center gap-2 relative z-10 group">
+                <div className="w-16 h-16 rounded-lg bg-blue-500/10 border border-blue-500 flex items-center justify-center group-hover:bg-blue-500/20 transition-all shadow-[0_0_15px_-5px_rgba(59,130,246,0.5)]">
+                  <Laptop className="w-6 h-6 text-blue-400" />
+                </div>
+                <span className="text-xs font-mono text-blue-400">Web App</span>
+              </div>
+
+              {/* Connection Line 1 */}
+              <div className="h-0.5 flex-grow bg-gray-700 relative mx-4">
+                <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 px-2 bg-[#0A0E14] text-[10px] text-gray-500 font-mono">HTTPS/JSON</div>
+                <div className="absolute right-0 -top-1 w-2 h-2 border-t-2 border-r-2 border-gray-700 transform rotate-45" />
+              </div>
+
+              {/* API Gateway Node */}
+              <div className="flex flex-col items-center gap-2 relative z-10 group">
+                <div className="w-16 h-16 rounded-lg bg-purple-500/10 border border-purple-500 flex items-center justify-center group-hover:bg-purple-500/20 transition-all shadow-[0_0_15px_-5px_rgba(168,85,247,0.5)]">
+                  <Server className="w-6 h-6 text-purple-400" />
+                </div>
+                <span className="text-xs font-mono text-purple-400">API Gateway</span>
+              </div>
+
+              {/* Connection Line 2 */}
+              <div className="h-0.5 flex-grow bg-gray-700 relative mx-4">
+                <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 px-2 bg-[#0A0E14] text-[10px] text-gray-500 font-mono">PostgreSQL</div>
+                <div className="absolute right-0 -top-1 w-2 h-2 border-t-2 border-r-2 border-gray-700 transform rotate-45" />
+              </div>
+
+              {/* Database Node */}
+              <div className="flex flex-col items-center gap-2 relative z-10 group">
+                <div className="w-16 h-16 rounded-lg bg-orange-500/10 border border-orange-500 flex items-center justify-center group-hover:bg-orange-500/20 transition-all shadow-[0_0_15px_-5px_rgba(249,115,22,0.5)]">
+                  <Database className="w-6 h-6 text-orange-400" />
+                </div>
+                <span className="text-xs font-mono text-orange-400">Primary DB</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -448,7 +905,7 @@ export const DevelopmentSubmissionForm = ({
         </div>
       </div>
 
-      {/* Step 1: Scope Selection */}
+      {/* Step Content */}
       {currentStep === 1 && (
         <div className="space-y-6 animate-fade-in">
           {/* Project Information */}
@@ -482,106 +939,6 @@ export const DevelopmentSubmissionForm = ({
             </div>
           </div>
 
-          {/* Features Selection */}
-          <div className="bg-[#121821] border border-[#1E293B] p-5">
-            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Layers className="w-4 h-4" /> Features to Develop
-              </span>
-              <span className="text-[10px] text-[#0EA5E9]">{selectedFeatures.length} selected</span>
-            </h3>
-            
-            {scopeData.features.length === 0 ? (
-              <div className="p-8 text-center">
-                <Layers className="w-10 h-10 mx-auto mb-3 text-gray-600" />
-                <p className="text-[#94A3B8] text-sm">No features defined yet. Add features in Scope & Planning first.</p>
-              </div>
-            ) : (
-              <div className="grid gap-2 max-h-[300px] overflow-y-auto">
-                {scopeData.features.map((feature) => (
-                  <div
-                    key={feature.id}
-                    onClick={() => toggleFeature(feature.id)}
-                    className={cn(
-                      "flex items-center gap-3 p-3 border cursor-pointer transition-all rounded",
-                      selectedFeatures.includes(feature.id)
-                        ? "bg-[#0EA5E9]/10 border-[#0EA5E9]/50"
-                        : "bg-black/20 border-[#1E293B] hover:border-[#0EA5E9]/30"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-5 h-5 rounded border flex items-center justify-center flex-shrink-0",
-                      selectedFeatures.includes(feature.id) 
-                        ? "bg-[#0EA5E9] border-[#0EA5E9]" 
-                        : "border-[#1E293B]"
-                    )}>
-                      {selectedFeatures.includes(feature.id) && <Check className="w-3 h-3 text-white" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-white text-sm truncate">{feature.name}</p>
-                      {feature.description && (
-                        <p className="text-[10px] text-[#94A3B8] truncate">{feature.description}</p>
-                      )}
-                    </div>
-                    <span className={cn(
-                      "text-[10px] font-mono uppercase px-2 py-0.5 rounded flex-shrink-0",
-                      feature.category === "mvp" 
-                        ? "bg-[#0EA5E9]/10 text-[#0EA5E9]" 
-                        : "bg-gray-800 text-gray-500"
-                    )}>
-                      {feature.category?.toUpperCase() || "MVP"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* User Stories Selection */}
-          <div className="bg-[#121821] border border-[#1E293B] p-5">
-            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Users className="w-4 h-4" /> User Stories
-              </span>
-              <span className="text-[10px] text-[#0EA5E9]">{selectedStories.length} selected</span>
-            </h3>
-            
-            {scopeData.userStories.length === 0 ? (
-              <div className="p-8 text-center">
-                <User className="w-10 h-10 mx-auto mb-3 text-gray-600" />
-                <p className="text-[#94A3B8] text-sm">No user stories defined yet. Add stories in Scope & Planning first.</p>
-              </div>
-            ) : (
-              <div className="grid gap-2 max-h-[250px] overflow-y-auto">
-                {scopeData.userStories.map((story) => (
-                  <div
-                    key={story.id}
-                    onClick={() => toggleStory(story.id)}
-                    className={cn(
-                      "flex items-center gap-3 p-3 border cursor-pointer transition-all rounded",
-                      selectedStories.includes(story.id)
-                        ? "bg-[#0EA5E9]/10 border-[#0EA5E9]/50"
-                        : "bg-black/20 border-[#1E293B] hover:border-[#0EA5E9]/30"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-5 h-5 rounded border flex items-center justify-center flex-shrink-0",
-                      selectedStories.includes(story.id) 
-                        ? "bg-[#0EA5E9] border-[#0EA5E9]" 
-                        : "border-[#1E293B]"
-                    )}>
-                      {selectedStories.includes(story.id) && <Check className="w-3 h-3 text-white" />}
-                    </div>
-                    <p className="text-sm flex-1 text-white">
-                      As a <span className="text-[#0EA5E9]">{story.persona}</span>, 
-                      I want to <span className="font-medium">{story.action}</span>
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
           <div className="flex justify-end">
             <button 
               onClick={() => setCurrentStep(2)}
@@ -593,7 +950,6 @@ export const DevelopmentSubmissionForm = ({
         </div>
       )}
 
-      {/* Step 2: Hosting & GitHub */}
       {currentStep === 2 && (
         <div className="space-y-6 animate-fade-in">
           {/* Hosting Platform */}
@@ -711,7 +1067,6 @@ export const DevelopmentSubmissionForm = ({
         </div>
       )}
 
-      {/* Step 3: Development Options */}
       {currentStep === 3 && (
         <div className="space-y-6 animate-fade-in">
           <div className="bg-[#121821] border border-[#1E293B] p-5 relative">
@@ -911,7 +1266,6 @@ export const DevelopmentSubmissionForm = ({
         </div>
       )}
 
-      {/* Step 4: Review & Submit */}
       {currentStep === 4 && (
         <div className="space-y-6 animate-fade-in">
           {/* Header */}
@@ -946,6 +1300,10 @@ export const DevelopmentSubmissionForm = ({
                 <div className="flex justify-between">
                   <span className="text-[#94A3B8]">User Stories:</span>
                   <span className="text-[#0EA5E9] font-medium">{selectedStories.length} selected</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#94A3B8]">Est. Hours:</span>
+                  <span className="text-white font-medium">{estimatedHours} hrs</span>
                 </div>
               </div>
             </div>
