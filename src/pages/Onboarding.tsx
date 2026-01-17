@@ -8,8 +8,8 @@ import { JourneyInfographic } from "@/components/onboarding/JourneyInfographic";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { AuthButton } from "@/components/auth/AuthButton";
 import { AuthPromptModal } from "@/components/auth/AuthPromptModal";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { cn } from "@/lib/utils";
 
 type IdeaStage = "new" | "existing" | "wireframes";
@@ -257,7 +257,7 @@ const Onboarding = () => {
   // Show idea selector
   if (showIdeaSelector) {
     return (
-      <div className="min-h-screen bg-[#0B1017] text-gray-100 flex flex-col relative">
+      <div className="min-h-screen bg-[#050505] text-gray-100 flex flex-col relative">
         {/* Grid background */}
         <div 
           className="fixed inset-0 pointer-events-none z-0 opacity-10"
@@ -265,6 +265,10 @@ const Onboarding = () => {
             backgroundImage: 'linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)',
             backgroundSize: '40px 40px'
           }}
+        />
+        <AppHeader 
+          currentStep="Step_02_Ideas"
+          showStepIndicator
         />
         <div className="relative z-10 flex-grow flex items-center justify-center p-6">
           <div className="w-full max-w-4xl">
@@ -290,7 +294,7 @@ const Onboarding = () => {
         description="Create an account to save your project and continue later. Don't lose your work!"
       />
       
-      <div className="min-h-screen bg-[#0B1017] text-gray-100 flex flex-col relative">
+      <div className="min-h-screen bg-[#050505] text-gray-100 flex flex-col relative">
         {/* Grid background */}
         <div 
           className="fixed inset-0 pointer-events-none z-0 opacity-10"
@@ -300,30 +304,11 @@ const Onboarding = () => {
           }}
         />
 
-        {/* Header */}
-        <header className="relative z-10 border-b border-[#1E293B] bg-[#121821] sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-8">
-              <a className="flex items-center gap-2 group" href="/">
-                <span className="text-[#0EA5E9] text-2xl">◈</span>
-                <span className="font-bold tracking-widest uppercase text-sm">Logomir OS</span>
-              </a>
-              <nav className="hidden md:flex gap-6">
-                <span className="text-xs uppercase tracking-wider text-[#94A3B8]">Dashboard</span>
-                <span className="text-xs uppercase tracking-wider text-[#0EA5E9] border-b border-[#0EA5E9] pb-0.5">Product Concept</span>
-                <span className="text-xs uppercase tracking-wider text-[#94A3B8]">Build</span>
-                <span className="text-xs uppercase tracking-wider text-[#94A3B8]">Launch</span>
-              </nav>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-3 py-1 bg-gray-900 rounded border border-[#1E293B]">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[10px] font-mono text-[#94A3B8] uppercase">Onboarding_Active</span>
-              </div>
-              <AuthButton />
-            </div>
-          </div>
-        </header>
+        {/* Shared Header */}
+        <AppHeader 
+          currentStep="Step_02_Concept"
+          showStepIndicator
+        />
 
         {/* Main content */}
         <main className="relative z-10 flex-grow p-4 sm:p-6 lg:p-12 max-w-4xl mx-auto w-full">
