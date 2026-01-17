@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CanvasCell } from "@/components/canvas/CanvasCell";
+import { BusinessLogicSection } from "@/components/canvas/BusinessLogicSection";
 import { ExpandedCanvasEditor } from "@/components/canvas/ExpandedCanvasEditor";
 import { TeamChat } from "@/components/canvas/TeamChat";
 import { AIChat } from "@/components/canvas/AIChat";
@@ -27,7 +28,7 @@ import { CampaignPlanner, Campaign } from "@/components/canvas/gtm/CampaignPlann
 import { ContentCalendar, ContentPost } from "@/components/canvas/gtm/ContentCalendar";
 import { AdsManager, AdSet } from "@/components/canvas/gtm/AdsManager";
 import { LaunchStrategy, LaunchPhase } from "@/components/canvas/gtm/LaunchStrategy";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen, LogIn, Users, Layers, ListTodo, Clock, AlertTriangle, Cpu, Map, Rocket, Target, Image, Calendar, DollarSign } from "lucide-react";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen, LogIn, Users, Layers, ListTodo, Clock, AlertTriangle, Cpu, Map, Rocket, Target, Image, Calendar, DollarSign, Settings } from "lucide-react";
 import { DevelopmentSubmissionForm } from "@/components/development/DevelopmentSubmissionForm";
 import { HorizontalRoadmap } from "@/components/canvas/HorizontalRoadmap";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -708,101 +709,85 @@ const Canvas = () => {
   if (!projectData) return null;
 
   return (
-    <div className="min-h-screen gradient-subtle">
+    <div className="min-h-screen bg-[#050505] text-gray-100 relative">
+      {/* Tech grid background */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{
+          backgroundSize: '40px 40px',
+          backgroundImage: 'linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px)',
+        }}
+      />
+
       {/* Header */}
-      <header className="sticky top-0 z-50 glass border-b border-border/50 backdrop-blur-md">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => user ? navigate("/projects") : navigate("/onboarding")}
-                className="hover-scale"
-                title={user ? "My Projects" : "New Project"}
-              >
-                <FolderOpen className="w-5 h-5" />
-              </Button>
-              <div>
-                <h2 className="font-semibold text-foreground">
-                  {projectData?.idea || "Your Product Journey"}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {Math.round(overallProgress)}% complete across all canvases
-                  {!user && <span className="ml-2 text-amber-500">(Not saved)</span>}
-                </p>
-              </div>
+      <header className="sticky top-0 z-50 border-b border-white/5 bg-[#050505]/80 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
+            <div className="flex items-center gap-2">
+              <span className="text-[#00f0ff] text-2xl">◈</span>
+              <span className="font-bold text-lg tracking-widest text-white">LOGOMIR</span>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <AuthButton />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/dashboard")}
-                className="hover-lift"
+            <div className="hidden md:flex items-center space-x-8 text-xs font-mono tracking-widest uppercase">
+              <button 
+                onClick={() => user ? navigate("/projects") : navigate("/onboarding")}
+                className="text-slate-500 hover:text-[#00f0ff] transition-colors"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Dashboard</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
+                Dashboard
+              </button>
+              <span className="text-[#00f0ff] font-bold shadow-[0_1px_0_0_#00f0ff]">Projects</span>
+              <button
                 onClick={() => setIsRoadmapOpen(true)}
-                className="hover-lift"
+                className="text-slate-500 hover:text-[#00f0ff] transition-colors"
               >
-                <Map className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Roadmap</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/board")}
-                className="hover-lift"
-              >
-                <Briefcase className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Board</span>
-              </Button>
+                Roadmap
+              </button>
+            </div>
+            <div className="flex items-center gap-4">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    size="sm"
-                    className="gradient-accent text-white hover-accent-glow"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    <span className="hidden sm:inline">Export</span>
-                  </Button>
+                  <button className="p-2 text-slate-500 hover:text-[#00f0ff] transition-colors">
+                    <Download className="w-4 h-4" />
+                  </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="bg-[#0A0A0A] border-white/10">
                   <DropdownMenuItem 
                     onClick={handleExportPDF}
-                    className="cursor-pointer"
+                    className="cursor-pointer text-slate-300 hover:text-white hover:bg-white/5"
                   >
                     <File className="w-4 h-4 mr-2" />
                     Export as PDF
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={handleExportText}
-                    className="cursor-pointer"
+                    className="cursor-pointer text-slate-300 hover:text-white hover:bg-white/5"
                   >
                     <FileText className="w-4 h-4 mr-2" />
                     Export as Text
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              <button className="p-2 text-slate-500 hover:text-[#00f0ff] transition-colors">
+                <Settings className="w-4 h-4" />
+              </button>
+              <AuthButton />
             </div>
           </div>
-          <div className="mt-4">
-            <Progress value={overallProgress} className="h-2" />
-          </div>
+        </div>
+        {/* Progress bar */}
+        <div className="h-1 bg-slate-900">
+          <div 
+            className="h-full bg-[#00f0ff] shadow-[0_0_10px_rgba(0,240,255,0.4)] transition-all duration-500"
+            style={{ width: `${overallProgress}%` }}
+          />
         </div>
       </header>
 
       {/* Canvas Tabs */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-7xl mx-auto">
+      <main className="relative z-10 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <TooltipProvider>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-8">
+              <TabsList className="grid w-full grid-cols-4 mb-8 bg-[#0A0A0A] border border-white/5 p-1 rounded-sm">
                 {canvasTabs.map((tab) => {
                   const Icon = tab.icon;
                   const progress = calculateCanvasProgress(tab.id);
@@ -821,9 +806,11 @@ const Canvas = () => {
                        key={tab.id}
                        value={tab.id}
                        className={cn(
-                         "flex flex-col items-center gap-1 py-3 transition-all",
+                         "flex flex-col items-center gap-1 py-3 transition-all rounded-sm font-mono text-xs uppercase tracking-wider",
+                         "data-[state=active]:bg-[#00f0ff]/10 data-[state=active]:text-[#00f0ff] data-[state=active]:border-[#00f0ff]/30",
+                         "text-slate-500 hover:text-slate-300",
                          isLocked && "opacity-50",
-                         isUnlocking && "animate-[pulse_0.5s_ease-in-out_3] scale-105 shadow-glow"
+                         isUnlocking && "animate-[pulse_0.5s_ease-in-out_3] scale-105"
                        )}
                        onClick={(e) => {
                          if (isLocked) {
@@ -849,20 +836,20 @@ const Canvas = () => {
                                   onClick={(e) => e.stopPropagation()}
                                   className="inline-flex items-center justify-center cursor-help"
                                 >
-                                  <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-primary transition-colors" />
+                                  <Info className="w-3.5 h-3.5 text-slate-600 hover:text-[#00f0ff] transition-colors" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent 
                                 side="bottom" 
-                                className="max-w-xs bg-popover text-popover-foreground border-border shadow-lg z-50 p-3"
+                                className="max-w-xs bg-[#0A0A0A] text-slate-300 border-white/10 shadow-lg z-50 p-3"
                                 sideOffset={5}
                               >
-                                <p className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                <p className="text-sm font-semibold mb-2 flex items-center gap-2 text-white">
                                   <Lock className="w-4 h-4" />
                                   Block Locked
                                 </p>
                                 <p className="text-xs leading-relaxed">
-                                  Complete and validate <strong className="text-foreground font-semibold">{previousBlockName}</strong> to unlock this block.
+                                  Complete and validate <strong className="text-[#00f0ff] font-semibold">{previousBlockName}</strong> to unlock this block.
                                 </p>
                               </TooltipContent>
                             </Tooltip>
@@ -870,7 +857,7 @@ const Canvas = () => {
                         )}
                         {isUnlocking && <span className="text-xs animate-fade-in">🔓</span>}
                       </div>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-[10px] text-slate-600">
                         {Math.round(progress)}%
                       </span>
                     </TabsTrigger>
@@ -890,80 +877,55 @@ const Canvas = () => {
                 
                 return (
                 <TabsContent key={tab.id} value={tab.id} className="space-y-8">
-                  {/* Tab Header with premium styling */}
-                  <div className="relative overflow-hidden rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6">
-                    {/* Background decoration */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5" />
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                    
-                    <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className={cn(
-                          "w-14 h-14 rounded-xl flex items-center justify-center",
-                          "bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/30"
-                        )}>
-                          <tab.icon className="w-7 h-7 text-primary-foreground" />
-                        </div>
-                        <div>
-                          <h3 className="text-2xl font-bold text-foreground mb-1">
-                            {tab.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            Complete all {tab.sections.length} sections to proceed
-                          </p>
-                        </div>
-                      </div>
+                  {/* Tab Header - Blueprint Style */}
+                  {tab.id !== "business" && (
+                    <div className="relative overflow-hidden bg-[#0A0A0A] border border-white/[0.08] p-6 mb-6">
+                      {/* Corner accents */}
+                      <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+                      <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
                       
-                      <div className="flex items-center gap-3">
-                        {/* Progress circle */}
-                        <div className="relative w-16 h-16">
-                          <svg className="w-16 h-16 -rotate-90">
-                            <circle
-                              cx="32"
-                              cy="32"
-                              r="28"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                              fill="none"
-                              className="text-muted"
-                            />
-                            <circle
-                              cx="32"
-                              cy="32"
-                              r="28"
-                              stroke="url(#progressGradient)"
-                              strokeWidth="4"
-                              fill="none"
-                              strokeLinecap="round"
-                              strokeDasharray={`${calculateCanvasProgress(tab.id) * 1.76} 176`}
-                              className="transition-all duration-500"
-                            />
-                            <defs>
-                              <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="hsl(var(--primary))" />
-                                <stop offset="100%" stopColor="hsl(var(--accent))" />
-                              </linearGradient>
-                            </defs>
-                          </svg>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-sm font-bold text-foreground">
-                              {Math.round(calculateCanvasProgress(tab.id))}%
-                            </span>
+                      <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-sm bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center">
+                            <tab.icon className="w-6 h-6 text-[#00f0ff]" />
+                          </div>
+                          <div>
+                            <h3 className="text-2xl font-bold text-white mb-1 tracking-tight">
+                              {tab.title}
+                            </h3>
+                            <p className="text-sm text-slate-500 font-mono uppercase tracking-wider">
+                              Complete all {tab.sections.length} sections to proceed
+                            </p>
                           </div>
                         </div>
                         
-                        {!isLocked && tab.id !== "development" && (
-                          <Button
-                            onClick={() => setValidationBlock({ id: tab.id, title: tab.title })}
-                            className="bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all"
-                          >
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Validate
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-4">
+                          {/* Progress indicator */}
+                          <div className="flex items-center gap-3">
+                            <div className="w-32 h-1 bg-slate-900 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-[#00f0ff] shadow-[0_0_10px_rgba(0,240,255,0.4)] transition-all duration-500"
+                                style={{ width: `${calculateCanvasProgress(tab.id)}%` }}
+                              />
+                            </div>
+                            <span className="text-sm font-mono text-[#00f0ff]">
+                              {Math.round(calculateCanvasProgress(tab.id))}%
+                            </span>
+                          </div>
+                          
+                          {!isLocked && tab.id !== "development" && (
+                            <button
+                              onClick={() => setValidationBlock({ id: tab.id, title: tab.title })}
+                              className="px-4 py-2 bg-[#00f0ff] text-black font-bold text-xs uppercase tracking-widest hover:brightness-110 transition-all shadow-[0_0_20px_rgba(0,240,255,0.3)]"
+                            >
+                              <CheckCircle2 className="w-4 h-4 inline mr-2" />
+                              Validate
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {isLocked ? (
                     <div className="relative overflow-hidden rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-8 text-center space-y-6">
@@ -1593,6 +1555,16 @@ const Canvas = () => {
                         />
                       </MarketingEditorDrawer>
                     </div>
+                  ) : tab.id === "business" ? (
+                    <BusinessLogicSection
+                      sections={tab.sections}
+                      canvasData={canvasData}
+                      onCanvasChange={handleCanvasChange}
+                      onAIGenerate={(key) => generateSuggestions(key)}
+                      onExpand={(key) => handleExpandSection(key)}
+                      loadingSection={loadingSection}
+                      projectData={projectData}
+                    />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {tab.sections.map((section, index) => (
