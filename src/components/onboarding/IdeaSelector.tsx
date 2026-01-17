@@ -613,6 +613,111 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel, persona = "solo" }: IdeaS
                 </BlueprintButton>
               </div>
             </motion.div>
+          ) : loading && ideas.length === 0 ? (
+            // Skeleton Loading State
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <BlueprintHeader 
+                step="Analyzing / Please Wait"
+                title="Synthesizing Ideas"
+                subtitle="Our orchestration engine is analyzing your profile and generating personalized opportunities..."
+              />
+
+              {/* Skeleton Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className="relative border border-[#1E293B] bg-[#0A0F16]/80 p-6 flex flex-col gap-4 rounded-sm overflow-hidden"
+                  >
+                    {/* Animated scan line */}
+                    <div className="absolute inset-0 overflow-hidden">
+                      <motion.div
+                        className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-[#0EA5E9]/50 to-transparent"
+                        animate={{
+                          top: ['-10%', '110%'],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: 'linear',
+                          delay: i * 0.2,
+                        }}
+                      />
+                    </div>
+
+                    {/* Title skeleton */}
+                    <div className="space-y-2">
+                      <div className="h-5 bg-[#1E293B] rounded-sm w-4/5 animate-pulse" />
+                      <div className="h-5 bg-[#1E293B] rounded-sm w-3/5 animate-pulse" />
+                    </div>
+                    
+                    {/* Description skeleton */}
+                    <div className="space-y-2">
+                      <div className="h-3 bg-[#1E293B]/60 rounded-sm w-full animate-pulse" />
+                      <div className="h-3 bg-[#1E293B]/60 rounded-sm w-5/6 animate-pulse" />
+                      <div className="h-3 bg-[#1E293B]/60 rounded-sm w-4/6 animate-pulse" />
+                    </div>
+
+                    {/* For/Solves skeleton */}
+                    <div className="space-y-3 pt-2">
+                      <div>
+                        <div className="h-2 bg-[#0EA5E9]/20 rounded-sm w-8 mb-2" />
+                        <div className="h-3 bg-[#1E293B]/50 rounded-sm w-3/4 animate-pulse" />
+                      </div>
+                      <div>
+                        <div className="h-2 bg-[#0EA5E9]/20 rounded-sm w-12 mb-2" />
+                        <div className="h-3 bg-[#1E293B]/50 rounded-sm w-5/6 animate-pulse" />
+                      </div>
+                    </div>
+
+                    {/* Corner accent */}
+                    <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-[#0EA5E9]/30" />
+                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-[#0EA5E9]/30" />
+                  </div>
+                ))}
+
+                {/* Status card */}
+                <div className="border border-dashed border-[#0EA5E9]/30 p-6 flex flex-col items-center justify-center text-center gap-4 bg-[#0EA5E9]/5 rounded-sm">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                  >
+                    <Brain className="w-8 h-8 text-[#0EA5E9]" />
+                  </motion.div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-[#0EA5E9] font-mono uppercase">AI Engine Active</p>
+                    <p className="text-[10px] text-[#94A3B8] font-mono">Processing neural pathways...</p>
+                  </div>
+                  <div className="flex gap-1">
+                    {[0, 1, 2].map((dot) => (
+                      <motion.div
+                        key={dot}
+                        className="w-1.5 h-1.5 rounded-full bg-[#0EA5E9]"
+                        animate={{ opacity: [0.3, 1, 0.3] }}
+                        transition={{
+                          duration: 1.2,
+                          repeat: Infinity,
+                          delay: dot * 0.2,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Cancel button */}
+              <div className="flex justify-center pt-4">
+                <BlueprintButton variant="outline" onClick={() => setLoading(false)}>
+                  Cancel Generation
+                </BlueprintButton>
+              </div>
+            </motion.div>
           ) : ideas.length === 0 ? (
             <motion.div
               key="interests"
@@ -744,14 +849,6 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel, persona = "solo" }: IdeaS
                     </motion.div>
                   );
                 })}
-
-                {/* Loading More Placeholder */}
-                {loading && (
-                  <div className="border border-dashed border-[#1E293B] p-6 flex flex-col items-center justify-center text-center gap-4 bg-transparent">
-                    <Brain className="w-6 h-6 text-[#94A3B8] animate-pulse" />
-                    <p className="text-xs text-[#94A3B8] font-mono uppercase">Analyzing more options...</p>
-                  </div>
-                )}
               </div>
 
               {/* Action Buttons */}
