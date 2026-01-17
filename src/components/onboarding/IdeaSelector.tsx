@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2, Check, RefreshCw } from "lucide-react";
+import { Sparkles, Loader2, Check, RefreshCw, ArrowRight, ArrowLeft, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ProductIdea {
   title: string;
@@ -443,243 +442,360 @@ export const IdeaSelector = ({ onIdeaSelect, onCancel, persona = "solo" }: IdeaS
     ? !!quizAnswers[currentQuestion.field]
     : quizAnswers[currentQuestion?.field]?.trim().length > 0;
 
+  // Blueprint styled components
+  const BlueprintHeader = ({ step, title, subtitle }: { step: string; title: string; subtitle: string }) => (
+    <div className="text-center mb-8">
+      <div className="flex items-center justify-center gap-3 mb-3">
+        <span className="text-xs font-mono text-[#0EA5E9] uppercase tracking-widest">{step}</span>
+        <span className="bg-[#0EA5E9]/10 text-[#0EA5E9] text-[10px] px-2 py-0.5 border border-[#0EA5E9]/30 rounded font-bold uppercase tracking-tighter">
+          AI Analysis Active
+        </span>
+      </div>
+      <h1 className="text-3xl font-bold uppercase tracking-tight mb-3 text-white">{title}</h1>
+      <p className="text-[#94A3B8] text-sm max-w-2xl mx-auto leading-relaxed">{subtitle}</p>
+    </div>
+  );
+
+  const BlueprintButton = ({ 
+    children, 
+    onClick, 
+    disabled, 
+    variant = "default",
+    className = ""
+  }: { 
+    children: React.ReactNode; 
+    onClick?: () => void; 
+    disabled?: boolean;
+    variant?: "default" | "primary" | "outline";
+    className?: string;
+  }) => {
+    const baseStyles = "px-6 py-3 text-xs font-bold uppercase tracking-widest rounded-sm transition-all flex items-center justify-center gap-2";
+    const variants = {
+      default: "border border-[#1E293B] bg-[#0A0F16] hover:bg-[#111827] text-white",
+      primary: "bg-[#0EA5E9] text-white hover:brightness-110 shadow-[0_0_30px_rgba(14,165,233,0.3)]",
+      outline: "border border-[#1E293B] bg-transparent hover:border-[#0EA5E9]/50 text-[#94A3B8] hover:text-white"
+    };
+
+    return (
+      <button 
+        onClick={onClick} 
+        disabled={disabled}
+        className={`${baseStyles} ${variants[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+      >
+        {children}
+      </button>
+    );
+  };
+
   return (
-    <div className="space-y-6">
-      {showQuiz ? (
-        <>
-          <div className="text-center mb-4">
-            <h3 className="text-xl font-semibold mb-2">
-              Let's get to know you better
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Question {quizStep + 1} of {QUIZ_QUESTIONS.length}
-            </p>
-            <div className="w-full bg-muted rounded-full h-2 mt-2">
-              <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300"
-                style={{ width: `${((quizStep + 1) / QUIZ_QUESTIONS.length) * 100}%` }}
-              />
-            </div>
-          </div>
+    <div className="relative">
+      {/* Grid Background */}
+      <div 
+        className="absolute inset-0 pointer-events-none z-0 opacity-15"
+        style={{
+          backgroundImage: 'linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)',
+          backgroundSize: '40px 40px'
+        }}
+      />
 
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-lg font-semibold text-foreground mb-1">
-                {currentQuestion.title}
-              </h4>
-              <p className="text-sm text-muted-foreground mb-4">
-                {currentQuestion.description}
-              </p>
-            </div>
-            
-            {currentQuestion.type === "textarea" ? (
-              <Textarea
-                value={quizAnswers[currentQuestion.field]}
-                onChange={(e) =>
-                  setQuizAnswers({
-                    ...quizAnswers,
-                    [currentQuestion.field]: e.target.value,
-                  })
-                }
-                placeholder={currentQuestion.placeholder}
-                className="min-h-[120px] resize-none"
-              />
-            ) : (
-              <RadioGroup
-                value={quizAnswers[currentQuestion.field]}
-                onValueChange={(value) =>
-                  setQuizAnswers({
-                    ...quizAnswers,
-                    [currentQuestion.field]: value,
-                  })
-                }
-              >
-                {currentQuestion.options?.map((option) => (
-                  <div key={option.value} className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:border-primary transition-colors cursor-pointer">
-                    <RadioGroupItem value={option.value} id={option.value} />
-                    <Label htmlFor={option.value} className="flex-1 cursor-pointer">
-                      {option.label}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            )}
-          </div>
-
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={handleQuizBack}>
-              {quizStep === 0 ? "Cancel" : "Back"}
-            </Button>
-            <Button
-              onClick={handleQuizNext}
-              disabled={!isQuizStepValid || loading}
-              className="flex-1 gradient-primary"
+      <div className="relative z-10">
+        <AnimatePresence mode="wait">
+          {showQuiz ? (
+            <motion.div
+              key="quiz"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating...
-                </>
-              ) : quizStep === QUIZ_QUESTIONS.length - 1 ? (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Generate Personalized Ideas
-                </>
-              ) : (
-                "Next"
-              )}
-            </Button>
-          </div>
-        </>
-      ) : ideas.length === 0 ? (
-        <>
-          <div className="text-center">
-            <h3 className="text-xl font-semibold mb-2">
-              {persona === 'enterprise' 
-                ? "What areas does your organization focus on?" 
-                : persona === 'agency' 
-                  ? "What services does your agency specialize in?" 
-                  : "What interests you?"}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {persona === 'enterprise'
-                ? "Select focus areas, and we'll suggest enterprise solutions"
-                : persona === 'agency'
-                  ? "Select your expertise areas, and we'll suggest agency products"
-                  : "Select areas that excite you, and we'll suggest product ideas"}
-            </p>
-          </div>
+              <BlueprintHeader 
+                step={`Question ${quizStep + 1} / ${QUIZ_QUESTIONS.length}`}
+                title="Let's Get to Know You"
+                subtitle="Our orchestration engine needs more context to generate personalized opportunities."
+              />
 
-          <div className="flex flex-wrap gap-2">
-            {INTEREST_OPTIONS_BY_PERSONA[persona].map((interest) => (
-              <Badge
-                key={interest}
-                variant={
-                  selectedInterests.includes(interest) ? "default" : "outline"
-                }
-                className="cursor-pointer hover-scale"
-                onClick={() => toggleInterest(interest)}
-              >
-                {interest}
-                {selectedInterests.includes(interest) && (
-                  <Check className="w-3 h-3 ml-1" />
-                )}
-              </Badge>
-            ))}
-          </div>
+              {/* Progress Bar */}
+              <div className="w-full bg-[#1E293B] rounded-full h-1 mb-8">
+                <motion.div 
+                  className="bg-[#0EA5E9] h-1 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${((quizStep + 1) / QUIZ_QUESTIONS.length) * 100}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
 
-          <div className="flex gap-3">
-            <Button
-              onClick={() => generateIdeas()}
-              disabled={loading || selectedInterests.length === 0}
-              className="flex-1 gradient-primary"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating Ideas...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Generate Ideas
-                </>
-              )}
-            </Button>
-            <Button variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="text-center">
-            <h3 className="text-xl font-semibold mb-2">
-              Here are your personalized ideas
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Select one to get started
-            </p>
-          </div>
-
-          <div className="space-y-3 max-h-[400px] overflow-y-auto">
-            {ideas.map((idea, index) => (
-              <Card
-                key={index}
-                className={`p-4 cursor-pointer transition-all hover-lift ${
-                  selectedIdea === index
-                    ? "border-primary shadow-lg"
-                    : "border-border"
-                }`}
-                onClick={() => handleIdeaClick(index)}
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                      selectedIdea === index
-                        ? "border-primary bg-primary"
-                        : "border-muted"
-                    }`}
-                  >
-                    {selectedIdea === index && (
-                      <Check className="w-3 h-3 text-primary-foreground" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold mb-1">{idea.title}</h4>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {idea.description}
-                    </p>
-                    <div className="space-y-1 text-xs">
-                      <p>
-                        <span className="font-medium">For:</span> {idea.audience}
-                      </p>
-                      <p>
-                        <span className="font-medium">Solves:</span>{" "}
-                        {idea.problem}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <div className="flex gap-3">
-              <Button
-                onClick={confirmSelection}
-                disabled={selectedIdea === null}
-                className="flex-1 gradient-primary"
-              >
-                Use This Idea
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={regenerateIdeas}
-                disabled={loading}
-              >
-                {loading ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              {/* Question Card */}
+              <div className="border border-[#1E293B] bg-[#0A0F16]/80 p-6 rounded-sm">
+                <h4 className="text-lg font-bold uppercase tracking-tight text-white mb-2">
+                  {currentQuestion.title}
+                </h4>
+                <p className="text-xs text-[#94A3B8] mb-6">
+                  {currentQuestion.description}
+                </p>
+                
+                {currentQuestion.type === "textarea" ? (
+                  <Textarea
+                    value={quizAnswers[currentQuestion.field]}
+                    onChange={(e) =>
+                      setQuizAnswers({
+                        ...quizAnswers,
+                        [currentQuestion.field]: e.target.value,
+                      })
+                    }
+                    placeholder={currentQuestion.placeholder}
+                    className="min-h-[120px] resize-none bg-[#000] border-[#1E293B] text-white placeholder:text-[#475569] focus:border-[#0EA5E9] focus:ring-[#0EA5E9]/20"
+                  />
                 ) : (
-                  <RefreshCw className="w-4 h-4 mr-2" />
+                  <RadioGroup
+                    value={quizAnswers[currentQuestion.field]}
+                    onValueChange={(value) =>
+                      setQuizAnswers({
+                        ...quizAnswers,
+                        [currentQuestion.field]: value,
+                      })
+                    }
+                    className="space-y-2"
+                  >
+                    {currentQuestion.options?.map((option) => (
+                      <div 
+                        key={option.value} 
+                        className={`flex items-center space-x-3 p-4 rounded-sm border transition-all cursor-pointer ${
+                          quizAnswers[currentQuestion.field] === option.value
+                            ? 'border-[#0EA5E9] bg-[#0EA5E9]/5'
+                            : 'border-[#1E293B] bg-[#0A0F16] hover:border-[#0EA5E9]/50'
+                        }`}
+                      >
+                        <RadioGroupItem 
+                          value={option.value} 
+                          id={option.value} 
+                          className="border-[#1E293B] text-[#0EA5E9]"
+                        />
+                        <Label 
+                          htmlFor={option.value} 
+                          className="flex-1 cursor-pointer text-sm text-gray-300"
+                        >
+                          {option.label}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
                 )}
-                Regenerate
-              </Button>
-              <Button variant="outline" onClick={() => setIdeas([])}>
-                Back
-              </Button>
-            </div>
-            <Button
-              variant="ghost"
-              onClick={handleRefineIdeas}
-              className="text-muted-foreground hover:text-foreground"
+              </div>
+
+              {/* Navigation */}
+              <div className="flex gap-4 pt-4">
+                <BlueprintButton variant="outline" onClick={handleQuizBack} className="flex-1">
+                  <ArrowLeft className="w-4 h-4" />
+                  {quizStep === 0 ? "Cancel" : "Back"}
+                </BlueprintButton>
+                <BlueprintButton
+                  variant="primary"
+                  onClick={handleQuizNext}
+                  disabled={!isQuizStepValid || loading}
+                  className="flex-1"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : quizStep === QUIZ_QUESTIONS.length - 1 ? (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      Generate Ideas
+                    </>
+                  ) : (
+                    <>
+                      Next
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </BlueprintButton>
+              </div>
+            </motion.div>
+          ) : ideas.length === 0 ? (
+            <motion.div
+              key="interests"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
             >
-              None of these fit me - Take the quiz again
-            </Button>
-          </div>
-        </>
-      )}
+              <BlueprintHeader 
+                step="Step 01 / Interest Selection"
+                title={
+                  persona === 'enterprise' 
+                    ? "Select Focus Areas" 
+                    : persona === 'agency' 
+                      ? "Select Your Expertise" 
+                      : "Select Your Interests"
+                }
+                subtitle={
+                  persona === 'enterprise'
+                    ? "Our orchestration engine will analyze your focus areas and synthesize enterprise solutions."
+                    : persona === 'agency'
+                      ? "Select your expertise areas, and we'll suggest agency products tailored to your services."
+                      : "Select areas that excite you, and our AI will synthesize personalized product opportunities."
+                }
+              />
+
+              {/* Interest Tags Grid */}
+              <div className="flex flex-wrap gap-2 justify-center">
+                {INTEREST_OPTIONS_BY_PERSONA[persona].map((interest) => {
+                  const isSelected = selectedInterests.includes(interest);
+                  return (
+                    <motion.button
+                      key={interest}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => toggleInterest(interest)}
+                      className={`px-4 py-2 text-xs font-medium uppercase tracking-wider rounded-sm border transition-all ${
+                        isSelected 
+                          ? 'border-[#0EA5E9] bg-[#0EA5E9]/10 text-[#0EA5E9]' 
+                          : 'border-[#1E293B] bg-[#0A0F16] text-[#94A3B8] hover:border-[#0EA5E9]/50 hover:text-white'
+                      }`}
+                    >
+                      {interest}
+                      {isSelected && <Check className="w-3 h-3 ml-2 inline" />}
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 pt-6 max-w-xl mx-auto">
+                <BlueprintButton variant="outline" onClick={onCancel} className="flex-1">
+                  Cancel
+                </BlueprintButton>
+                <BlueprintButton
+                  variant="primary"
+                  onClick={() => generateIdeas()}
+                  disabled={loading || selectedInterests.length === 0}
+                  className="flex-1"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      Generate Ideas
+                    </>
+                  )}
+                </BlueprintButton>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="ideas"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <BlueprintHeader 
+                step="Step 03 / Idea Selection"
+                title="AI Generated Business Ideas"
+                subtitle="Our orchestration engine has analyzed your profile and synthesized these opportunities. Choose the architectural foundation for your venture."
+              />
+
+              {/* Ideas Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {ideas.map((idea, index) => {
+                  const isSelected = selectedIdea === index;
+                  return (
+                    <motion.div
+                      key={index}
+                      whileHover={{ scale: 1.01 }}
+                      onClick={() => handleIdeaClick(index)}
+                      className={`relative border p-6 flex flex-col gap-4 transition-all cursor-pointer rounded-sm ${
+                        isSelected 
+                          ? 'border-[#0EA5E9] bg-[#0EA5E9]/5 ring-1 ring-[#0EA5E9]/40' 
+                          : 'border-[#1E293B] bg-[#0A0F16]/80 hover:border-[#0EA5E9]/50'
+                      }`}
+                    >
+                      {/* Selected Indicator */}
+                      {isSelected && (
+                        <div className="absolute top-4 right-4 text-[#0EA5E9]">
+                          <Check className="w-5 h-5" />
+                        </div>
+                      )}
+
+                      <h3 className="text-lg font-bold uppercase tracking-tight pr-8 leading-tight text-white">
+                        {idea.title}
+                      </h3>
+                      
+                      <p className="text-xs text-[#94A3B8] leading-relaxed">
+                        {idea.description}
+                      </p>
+
+                      <div className="space-y-3 pt-2">
+                        <div>
+                          <span className="text-[10px] font-mono text-[#0EA5E9] uppercase block mb-1">For:</span>
+                          <p className="text-[11px] font-medium text-gray-300">{idea.audience}</p>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-mono text-[#0EA5E9] uppercase block mb-1">Solves:</span>
+                          <p className="text-[11px] font-medium text-gray-300">{idea.problem}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+
+                {/* Loading More Placeholder */}
+                {loading && (
+                  <div className="border border-dashed border-[#1E293B] p-6 flex flex-col items-center justify-center text-center gap-4 bg-transparent">
+                    <Brain className="w-6 h-6 text-[#94A3B8] animate-pulse" />
+                    <p className="text-xs text-[#94A3B8] font-mono uppercase">Analyzing more options...</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col items-center gap-6 border-t border-[#1E293B] pt-8">
+                <div className="flex flex-col md:flex-row gap-4 w-full justify-center max-w-2xl">
+                  <BlueprintButton variant="outline" onClick={() => setIdeas([])} className="flex-1">
+                    <ArrowLeft className="w-4 h-4" />
+                    Back
+                  </BlueprintButton>
+                  <BlueprintButton 
+                    variant="outline" 
+                    onClick={regenerateIdeas}
+                    disabled={loading}
+                    className="flex-1"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                    Regenerate
+                  </BlueprintButton>
+                  <BlueprintButton
+                    variant="primary"
+                    onClick={confirmSelection}
+                    disabled={selectedIdea === null}
+                    className="flex-1"
+                  >
+                    Use This Idea
+                    <ArrowRight className="w-4 h-4" />
+                  </BlueprintButton>
+                </div>
+                
+                <button
+                  onClick={handleRefineIdeas}
+                  className="text-xs text-[#94A3B8] hover:text-[#0EA5E9] transition-colors font-medium border-b border-transparent hover:border-[#0EA5E9] pb-0.5"
+                >
+                  None of these fit me - Take the quiz again
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
