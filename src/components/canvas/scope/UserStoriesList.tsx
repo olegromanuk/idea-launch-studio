@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { 
   Sparkles, 
   Plus, 
@@ -16,7 +14,6 @@ import {
 import { cn } from "@/lib/utils";
 import { UserStoryDetailDrawer, UserStory, AcceptanceCriteria } from "./UserStoryDetailDrawer";
 
-// Re-export UserStory for use in other components
 export type { UserStory, AcceptanceCriteria };
 
 interface UserStoriesListProps {
@@ -38,7 +35,7 @@ const PRIORITY_CONFIG = {
 };
 
 const STATUS_CONFIG = {
-  backlog: { label: "Backlog", color: "bg-muted text-muted-foreground" },
+  backlog: { label: "Backlog", color: "bg-slate-800 text-slate-400" },
   ready: { label: "Ready", color: "bg-blue-500/10 text-blue-500" },
   "in-progress": { label: "In Progress", color: "bg-amber-500/10 text-amber-500" },
   review: { label: "Review", color: "bg-purple-500/10 text-purple-500" },
@@ -109,89 +106,110 @@ export const UserStoriesList = ({
 
   return (
     <>
-      <Card className="relative overflow-hidden">
-        {/* Header accent */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 to-purple-500" />
+      <div className="relative bg-[#0A0A0A] border border-white/[0.08] overflow-hidden">
+        {/* Blueprint corner accents */}
+        <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+        <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
         
         <div className="p-6">
           {/* Header */}
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-lg shadow-violet-500/20">
-                <User className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg text-foreground">User Stories</h3>
-                <p className="text-sm text-muted-foreground">
-                  {stories.length} stories • {completedCount} completed
-                </p>
-              </div>
+          <div className="flex justify-between items-start mb-6 border-b border-white/5 pb-4">
+            <h2 className="font-mono text-xs text-[#00f0ff] uppercase tracking-widest flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-[#00f0ff] rounded-full shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
+              User_Stories
+            </h2>
+            <User className="w-5 h-5 text-slate-700" />
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="p-3 bg-[#0F0F0F] border-l-2 border-[#00f0ff]">
+              <span className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Total Stories</span>
+              <span className="text-2xl font-bold text-white tracking-tight font-mono">{stories.length}</span>
             </div>
-            
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsAdding(!isAdding)}
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add
-              </Button>
-              <Button
-                size="sm"
-                onClick={onAIGenerate}
-                disabled={isGenerating}
-                className="bg-gradient-to-r from-violet-500 to-purple-500 text-white"
-              >
-                <Sparkles className={cn("w-4 h-4 mr-1", isGenerating && "animate-spin")} />
-                {isGenerating ? "Adding..." : "AI Generate"}
-              </Button>
+            <div className="p-3 bg-[#0F0F0F] border-l-2 border-slate-800 hover:border-[#00f0ff] transition-colors">
+              <span className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Completed</span>
+              <span className="text-2xl font-bold text-white tracking-tight font-mono">{completedCount}</span>
             </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-2 mb-6">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAdding(!isAdding)}
+              className="flex-1 font-mono text-xs uppercase tracking-wider border-white/10 hover:border-[#00f0ff]/30 hover:text-[#00f0ff] bg-transparent"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              Add Story
+            </Button>
+            <Button
+              size="sm"
+              onClick={onAIGenerate}
+              disabled={isGenerating}
+              className="flex-1 font-mono text-xs uppercase tracking-wider bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20 text-[#00f0ff] border border-[#00f0ff]/30 hover:border-[#00f0ff]/50 shadow-[0_0_10px_rgba(0,240,255,0.1)] hover:shadow-[0_0_20px_rgba(0,240,255,0.2)]"
+            >
+              <Sparkles className={cn("w-4 h-4 mr-1.5", isGenerating && "animate-spin")} />
+              {isGenerating ? "Generating..." : "AI Generate"}
+            </Button>
           </div>
 
           {/* Add new story form */}
           {isAdding && (
-            <div className="mb-6 p-4 rounded-xl bg-muted/50 border border-border animate-fade-in">
-              <p className="text-sm font-medium text-foreground mb-3">
-                As a <span className="text-violet-500">[persona]</span>, I want to <span className="text-violet-500">[action]</span>, so that <span className="text-violet-500">[benefit]</span>
+            <div className="mb-6 p-4 bg-[#0F0F0F] border border-white/10 animate-in fade-in-0 slide-in-from-top-2">
+              <p className="text-xs font-mono text-slate-400 mb-3 uppercase tracking-wider">
+                As a <span className="text-[#00f0ff]">[persona]</span>, I want to <span className="text-[#00f0ff]">[action]</span>, so that <span className="text-[#00f0ff]">[benefit]</span>
               </p>
               <div className="grid gap-3">
                 <Input
                   placeholder="Who is the user? (e.g., busy professional)"
                   value={newStory.persona}
                   onChange={(e) => setNewStory({ ...newStory, persona: e.target.value })}
+                  className="bg-[#0A0A0A] border-white/10 focus:border-[#00f0ff]/50 font-mono text-sm"
                 />
                 <Input
-                  placeholder="What do they want to do? (e.g., quickly schedule meetings)"
+                  placeholder="What do they want to do?"
                   value={newStory.action}
                   onChange={(e) => setNewStory({ ...newStory, action: e.target.value })}
+                  className="bg-[#0A0A0A] border-white/10 focus:border-[#00f0ff]/50 font-mono text-sm"
                 />
                 <Input
-                  placeholder="What's the benefit? (e.g., I can save time)"
+                  placeholder="What's the benefit?"
                   value={newStory.benefit}
                   onChange={(e) => setNewStory({ ...newStory, benefit: e.target.value })}
+                  className="bg-[#0A0A0A] border-white/10 focus:border-[#00f0ff]/50 font-mono text-sm"
                 />
                 <div className="flex gap-2">
                   {(["high", "medium", "low"] as const).map((p) => (
-                    <Button
+                    <button
                       key={p}
-                      variant="outline"
-                      size="sm"
                       onClick={() => setNewStory({ ...newStory, priority: p })}
                       className={cn(
-                        "flex-1",
-                        newStory.priority === p && PRIORITY_CONFIG[p].color
+                        "flex-1 py-2 text-xs font-mono uppercase tracking-wider border transition-all",
+                        newStory.priority === p 
+                          ? "border-[#00f0ff]/50 bg-[#00f0ff]/10 text-[#00f0ff]"
+                          : "border-white/10 text-slate-500 hover:border-white/20"
                       )}
                     >
-                      {PRIORITY_CONFIG[p].label}
-                    </Button>
+                      {p}
+                    </button>
                   ))}
                 </div>
                 <div className="flex gap-2 justify-end">
-                  <Button variant="ghost" size="sm" onClick={() => setIsAdding(false)}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setIsAdding(false)}
+                    className="font-mono text-xs uppercase text-slate-500"
+                  >
                     Cancel
                   </Button>
-                  <Button size="sm" onClick={addStory}>
+                  <Button 
+                    size="sm" 
+                    onClick={addStory}
+                    className="font-mono text-xs uppercase bg-[#00f0ff] text-black hover:bg-[#00f0ff]/90"
+                  >
                     Add Story
                   </Button>
                 </div>
@@ -200,12 +218,12 @@ export const UserStoriesList = ({
           )}
 
           {/* Stories list */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             {stories.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <User className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p className="text-sm">No user stories yet</p>
-                <p className="text-xs mt-1">Add manually or generate with AI</p>
+              <div className="text-center py-8 border border-dashed border-white/10 bg-[#0F0F0F]">
+                <User className="w-10 h-10 mx-auto mb-3 text-slate-700" />
+                <p className="text-sm text-slate-500 font-mono">NO_STORIES</p>
+                <p className="text-xs text-slate-600 mt-1 font-mono">Add manually or generate with AI</p>
               </div>
             ) : (
               stories.map((story, index) => (
@@ -213,84 +231,87 @@ export const UserStoriesList = ({
                   key={story.id}
                   onClick={() => handleStoryClick(story)}
                   className={cn(
-                    "group relative rounded-xl border transition-all duration-200 cursor-pointer",
+                    "group relative p-4 border transition-all duration-300 cursor-pointer",
                     story.completed 
-                      ? "bg-success/5 border-success/30" 
-                      : "bg-card hover:shadow-md hover:border-primary/30"
+                      ? "bg-green-500/5 border-green-500/20" 
+                      : "bg-[#0F0F0F] border-white/5 hover:border-[#00f0ff]/30"
                   )}
                 >
-                  <div className="p-4">
-                    <div className="flex items-start gap-3">
-                      <button
-                        onClick={(e) => toggleComplete(story.id, e)}
-                        className="mt-1 flex-shrink-0"
-                      >
-                        {story.completed ? (
-                          <CheckCircle2 className="w-5 h-5 text-success" />
-                        ) : (
-                          <Circle className="w-5 h-5 text-muted-foreground hover:text-primary" />
-                        )}
-                      </button>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="text-xs font-medium text-muted-foreground">#{index + 1}</span>
-                          <Badge variant="outline" className={cn("text-xs", PRIORITY_CONFIG[story.priority].color)}>
-                            {PRIORITY_CONFIG[story.priority].label}
-                          </Badge>
-                          {story.status && story.status !== "backlog" && (
-                            <Badge variant="secondary" className={cn("text-xs", STATUS_CONFIG[story.status]?.color)}>
-                              {STATUS_CONFIG[story.status]?.label}
-                            </Badge>
-                          )}
-                          {story.storyPoints && story.storyPoints > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              {story.storyPoints} pts
-                            </Badge>
-                          )}
-                        </div>
-                        <p className={cn(
-                          "text-sm",
-                          story.completed && "line-through text-muted-foreground"
+                  {/* Hover glow effect */}
+                  <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#00f0ff]/30 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                  
+                  <div className="flex items-start gap-3">
+                    <button
+                      onClick={(e) => toggleComplete(story.id, e)}
+                      className="mt-0.5 flex-shrink-0"
+                    >
+                      {story.completed ? (
+                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <Circle className="w-5 h-5 text-slate-600 hover:text-[#00f0ff]" />
+                      )}
+                    </button>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="text-[10px] font-mono text-slate-600">#{String(index + 1).padStart(2, '0')}</span>
+                        <span className={cn(
+                          "px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider border",
+                          story.priority === "high" ? "border-red-500/30 text-red-500 bg-red-500/10" :
+                          story.priority === "medium" ? "border-amber-500/30 text-amber-500 bg-amber-500/10" :
+                          "border-green-500/30 text-green-500 bg-green-500/10"
                         )}>
-                          As a <span className="font-medium text-violet-500">{story.persona}</span>, 
-                          I want to <span className="font-medium text-foreground">{story.action}</span>, 
-                          so that <span className="font-medium text-purple-500">{story.benefit}</span>
-                        </p>
-                        
-                        {/* Acceptance criteria progress */}
-                        {story.acceptanceCriteria && story.acceptanceCriteria.length > 0 && (
-                          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                            <CheckCircle2 className="w-3 h-3" />
-                            <span>
-                              {story.acceptanceCriteria.filter(c => c.completed).length}/{story.acceptanceCriteria.length} criteria
-                            </span>
-                          </div>
+                          {story.priority}
+                        </span>
+                        {story.status && story.status !== "backlog" && (
+                          <span className={cn("px-2 py-0.5 text-[10px] font-mono uppercase", STATUS_CONFIG[story.status]?.color)}>
+                            {STATUS_CONFIG[story.status]?.label}
+                          </span>
                         )}
                       </div>
+                      <p className={cn(
+                        "text-sm leading-relaxed",
+                        story.completed && "line-through text-slate-500"
+                      )}>
+                        <span className="text-slate-400">As a </span>
+                        <span className="font-medium text-[#00f0ff]">{story.persona}</span>
+                        <span className="text-slate-400">, I want to </span>
+                        <span className="font-medium text-white">{story.action}</span>
+                        <span className="text-slate-400">, so that </span>
+                        <span className="font-medium text-purple-400">{story.benefit}</span>
+                      </p>
                       
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStoryClick(story);
-                          }}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => removeStory(story.id, e)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                      </div>
+                      {story.acceptanceCriteria && story.acceptanceCriteria.length > 0 && (
+                        <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span className="font-mono">
+                            {story.acceptanceCriteria.filter(c => c.completed).length}/{story.acceptanceCriteria.length} criteria
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 hover:text-[#00f0ff]"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStoryClick(story);
+                        }}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => removeStory(story.id, e)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                      <ChevronRight className="w-4 h-4 text-slate-600" />
                     </div>
                   </div>
                 </div>
@@ -298,7 +319,7 @@ export const UserStoriesList = ({
             )}
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Detail Drawer */}
       <UserStoryDetailDrawer

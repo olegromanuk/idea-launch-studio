@@ -1,11 +1,7 @@
 import { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { 
   Sparkles,
-  CheckCircle2,
-  Circle,
   ArrowRight,
   LucideIcon
 } from "lucide-react";
@@ -16,12 +12,13 @@ interface ScopeBlockCardProps {
   subtitle: string;
   icon: LucideIcon;
   gradient: string;
-  children: ReactNode; // Summary content (latest 5 items)
+  children: ReactNode;
   itemCount?: number;
   completedCount?: number;
   onViewAll: () => void;
   onAIGenerate?: () => void;
   isGenerating?: boolean;
+  sectionNumber?: string;
 }
 
 export const ScopeBlockCard = ({
@@ -35,86 +32,87 @@ export const ScopeBlockCard = ({
   onViewAll,
   onAIGenerate,
   isGenerating = false,
+  sectionNumber,
 }: ScopeBlockCardProps) => {
   const hasContent = itemCount > 0;
-  const isComplete = completedCount > 0 && completedCount === itemCount;
 
   return (
-    <Card className="overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm">
-      {/* Gradient accent bar */}
-      <div className={cn("h-1 bg-gradient-to-r", gradient)} />
+    <div className="relative bg-[#0A0A0A] border border-white/[0.08] overflow-hidden group">
+      {/* Blueprint corner accents */}
+      <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+      <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
       
       {/* Header */}
-      <div className="p-5 pb-4 flex items-center gap-4">
-        {/* Icon */}
-        <div className={cn(
-          "w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0",
-          "bg-gradient-to-br shadow-lg",
-          gradient
-        )}>
-          <Icon className="w-6 h-6 text-white" />
-        </div>
-        
-        {/* Title & Stats */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-bold text-lg text-foreground">{title}</h3>
-            {hasContent ? (
-              isComplete ? (
-                <Badge variant="outline" className="bg-success/10 text-success border-success/30 text-xs">
-                  <CheckCircle2 className="w-3 h-3 mr-1" />
-                  Complete
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-xs">
-                  {itemCount} items
-                </Badge>
-              )
-            ) : (
-              <Badge variant="outline" className="bg-muted text-muted-foreground text-xs">
-                <Circle className="w-3 h-3 mr-1" />
-                Empty
-              </Badge>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
-        </div>
-        
-        {/* Actions */}
+      <div className="flex justify-between items-start p-5 border-b border-white/5">
+        <h2 className="font-mono text-xs text-[#00f0ff] uppercase tracking-widest flex items-center gap-2">
+          <span className="w-1.5 h-1.5 bg-[#00f0ff] rounded-full shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
+          {sectionNumber && <span className="text-slate-600">{sectionNumber}_</span>}
+          {title.replace(/\s+/g, '_')}
+        </h2>
         <div className="flex items-center gap-2">
-          {onAIGenerate && !hasContent && (
+          {onAIGenerate && (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={onAIGenerate}
               disabled={isGenerating}
-              className="gap-1.5"
+              className="h-8 px-3 text-xs font-mono uppercase tracking-wider text-slate-400 hover:text-[#00f0ff] hover:bg-[#00f0ff]/5 border border-white/10 hover:border-[#00f0ff]/30 transition-all"
             >
-              <Sparkles className={cn("w-4 h-4", isGenerating && "animate-spin")} />
-              Generate
+              <Sparkles className={cn("w-3.5 h-3.5 mr-1.5", isGenerating && "animate-spin")} />
+              {isGenerating ? "..." : "AI"}
             </Button>
           )}
+          <Icon className="w-5 h-5 text-slate-700" />
         </div>
       </div>
       
-      {/* Content - Latest items summary */}
-      <div className="px-5 pb-4">
+      {/* Stats bar */}
+      <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Items</span>
+            <span className="text-lg font-bold text-white font-mono">{itemCount}</span>
+          </div>
+          {completedCount > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Done</span>
+              <span className="text-lg font-bold text-[#00f0ff] font-mono">{completedCount}</span>
+            </div>
+          )}
+        </div>
+        {hasContent && (
+          <div className="flex items-center gap-2">
+            <div className="text-[10px] font-mono text-slate-500 uppercase">
+              {Math.round((completedCount / itemCount) * 100)}%
+            </div>
+            <div className="w-16 h-1 bg-slate-900 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-[#00f0ff] shadow-[0_0_10px_rgba(0,240,255,0.5)] transition-all duration-500"
+                style={{ width: `${(completedCount / itemCount) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Content */}
+      <div className="p-5">
         {hasContent ? (
           <div className="space-y-2">
             {children}
           </div>
         ) : (
-          <div className="py-8 text-center rounded-lg bg-muted/30 border border-dashed border-border">
-            <p className="text-sm text-muted-foreground mb-3">No items yet</p>
+          <div className="py-8 text-center border border-dashed border-white/10 bg-[#0F0F0F]">
+            <p className="text-sm text-slate-500 font-mono mb-3">NO_DATA</p>
             {onAIGenerate && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={onAIGenerate}
                 disabled={isGenerating}
-                className="gap-1.5"
+                className="gap-1.5 font-mono text-xs uppercase tracking-wider border-[#00f0ff]/30 text-[#00f0ff] hover:bg-[#00f0ff]/5 hover:border-[#00f0ff]/50"
               >
-                <Sparkles className={cn("w-4 h-4", isGenerating && "animate-spin")} />
+                <Sparkles className={cn("w-3.5 h-3.5", isGenerating && "animate-spin")} />
                 Generate with AI
               </Button>
             )}
@@ -122,17 +120,18 @@ export const ScopeBlockCard = ({
         )}
       </div>
       
-      {/* Footer - View All button */}
+      {/* Footer */}
       <div className="px-5 pb-5">
-        <Button
-          variant="outline"
-          className="w-full justify-between group"
+        <button
           onClick={onViewAll}
+          className="w-full p-3 bg-[#0F0F0F] border border-white/5 hover:border-[#00f0ff]/30 transition-all duration-300 group/btn flex items-center justify-between"
         >
-          <span>{hasContent ? `View & Edit All ${itemCount} Items` : "Add Items"}</span>
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-        </Button>
+          <span className="text-xs font-mono uppercase tracking-wider text-slate-400 group-hover/btn:text-[#00f0ff] transition-colors">
+            {hasContent ? `View & Edit All ${itemCount} Items` : "Add Items"}
+          </span>
+          <ArrowRight className="w-4 h-4 text-slate-600 group-hover/btn:text-[#00f0ff] group-hover/btn:translate-x-1 transition-all" />
+        </button>
       </div>
-    </Card>
+    </div>
   );
 };

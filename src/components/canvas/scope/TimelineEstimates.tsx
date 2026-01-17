@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { 
@@ -19,7 +18,7 @@ interface TimelinePhase {
   name: string;
   weeks: number;
   color: string;
-  duration?: number; // Legacy field from AI
+  duration?: number;
 }
 
 interface TimelineEstimatesProps {
@@ -30,8 +29,8 @@ interface TimelineEstimatesProps {
 }
 
 const COLORS = [
+  "from-[#00f0ff] to-cyan-600",
   "from-violet-500 to-purple-500",
-  "from-blue-500 to-cyan-500",
   "from-emerald-500 to-teal-500",
   "from-amber-500 to-orange-500",
   "from-rose-500 to-pink-500",
@@ -84,64 +83,78 @@ export const TimelineEstimates = ({
     onChange(phases.map(p => p.id === id ? { ...p, name } : p));
   };
 
-  // Calculate cumulative start positions for visualization
   const getPhaseStart = (index: number) => {
     return phases.slice(0, index).reduce((acc, p) => acc + p.weeks, 0);
   };
 
   return (
-    <Card className="relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
+    <div className="relative bg-[#0A0A0A] border border-white/[0.08] overflow-hidden">
+      {/* Blueprint corner accents */}
+      <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+      <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
       
       <div className="p-6">
         {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
-              <Calendar className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="font-bold text-lg text-foreground">Timeline & Estimates</h3>
-              <p className="text-sm text-muted-foreground">
-                {phases.length} phases • {totalWeeks} weeks ({totalMonths} months)
-              </p>
-            </div>
+        <div className="flex justify-between items-start mb-6 border-b border-white/5 pb-4">
+          <h2 className="font-mono text-xs text-[#00f0ff] uppercase tracking-widest flex items-center gap-2">
+            <span className="w-1.5 h-1.5 bg-[#00f0ff] rounded-full shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
+            Timeline_Estimates
+          </h2>
+          <Calendar className="w-5 h-5 text-slate-700" />
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="p-3 bg-[#0F0F0F] border-l-2 border-[#00f0ff]">
+            <span className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Phases</span>
+            <span className="text-2xl font-bold text-white tracking-tight font-mono">{phases.length}</span>
           </div>
-          
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAdding(!isAdding)}
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              Add Phase
-            </Button>
-            <Button
-              size="sm"
-              onClick={onAIGenerate}
-              disabled={isGenerating}
-              className="bg-gradient-to-r from-amber-500 to-orange-500 text-white"
-            >
-              <Sparkles className={cn("w-4 h-4 mr-1", isGenerating && "animate-spin")} />
-              {isGenerating ? "Generating..." : "AI Generate"}
-            </Button>
+          <div className="p-3 bg-[#0F0F0F] border-l-2 border-slate-800">
+            <span className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Weeks</span>
+            <span className="text-2xl font-bold text-white tracking-tight font-mono">{totalWeeks}</span>
           </div>
+          <div className="p-3 bg-[#0F0F0F] border-l-2 border-slate-800">
+            <span className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Months</span>
+            <span className="text-2xl font-bold text-white tracking-tight font-mono">~{totalMonths}</span>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-2 mb-6">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAdding(!isAdding)}
+            className="flex-1 font-mono text-xs uppercase tracking-wider border-white/10 hover:border-[#00f0ff]/30 hover:text-[#00f0ff] bg-transparent"
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            Add Phase
+          </Button>
+          <Button
+            size="sm"
+            onClick={onAIGenerate}
+            disabled={isGenerating}
+            className="flex-1 font-mono text-xs uppercase tracking-wider bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20 text-[#00f0ff] border border-[#00f0ff]/30 hover:border-[#00f0ff]/50 shadow-[0_0_10px_rgba(0,240,255,0.1)] hover:shadow-[0_0_20px_rgba(0,240,255,0.2)]"
+          >
+            <Sparkles className={cn("w-4 h-4 mr-1.5", isGenerating && "animate-spin")} />
+            {isGenerating ? "Generating..." : "AI Generate"}
+          </Button>
         </div>
 
         {/* Add phase form */}
         {isAdding && (
-          <div className="mb-6 p-4 rounded-xl bg-muted/50 border border-border animate-fade-in">
+          <div className="mb-6 p-4 bg-[#0F0F0F] border border-white/10 animate-in fade-in-0 slide-in-from-top-2">
             <div className="grid gap-4">
               <Input
                 placeholder="Phase name (e.g., MVP Development)"
                 value={newPhase.name}
                 onChange={(e) => setNewPhase({ ...newPhase, name: e.target.value })}
+                className="bg-[#0A0A0A] border-white/10 focus:border-[#00f0ff]/50 font-mono text-sm"
               />
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-muted-foreground">Duration</span>
-                  <span className="font-medium">{newPhase.weeks} weeks</span>
+                  <span className="text-xs font-mono text-slate-500 uppercase tracking-wider">Duration</span>
+                  <span className="font-mono text-sm text-white">{newPhase.weeks} weeks</span>
                 </div>
                 <Slider
                   value={[newPhase.weeks]}
@@ -149,11 +162,25 @@ export const TimelineEstimates = ({
                   min={1}
                   max={12}
                   step={1}
+                  className="w-full"
                 />
               </div>
               <div className="flex gap-2 justify-end">
-                <Button variant="ghost" size="sm" onClick={() => setIsAdding(false)}>Cancel</Button>
-                <Button size="sm" onClick={addPhase}>Add Phase</Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setIsAdding(false)}
+                  className="font-mono text-xs uppercase text-slate-500"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={addPhase}
+                  className="font-mono text-xs uppercase bg-[#00f0ff] text-black hover:bg-[#00f0ff]/90"
+                >
+                  Add Phase
+                </Button>
               </div>
             </div>
           </div>
@@ -163,12 +190,12 @@ export const TimelineEstimates = ({
         {phases.length > 0 && (
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">Timeline Overview</span>
+              <Clock className="w-4 h-4 text-slate-500" />
+              <span className="text-xs font-mono text-slate-500 uppercase tracking-wider">Timeline Overview</span>
             </div>
             
             {/* Timeline bar */}
-            <div className="relative h-12 rounded-xl bg-muted overflow-hidden">
+            <div className="relative h-10 bg-[#0F0F0F] overflow-hidden border border-white/5">
               {phases.map((phase, index) => {
                 const startPercent = (getPhaseStart(index) / totalWeeks) * 100;
                 const widthPercent = (phase.weeks / totalWeeks) * 100;
@@ -177,7 +204,7 @@ export const TimelineEstimates = ({
                   <div
                     key={phase.id}
                     className={cn(
-                      "absolute top-0 bottom-0 flex items-center justify-center text-white text-xs font-medium bg-gradient-to-r transition-all duration-300",
+                      "absolute top-0 bottom-0 flex items-center justify-center text-white text-[10px] font-mono uppercase tracking-wider bg-gradient-to-r transition-all duration-300",
                       phase.color
                     )}
                     style={{
@@ -195,7 +222,7 @@ export const TimelineEstimates = ({
             </div>
             
             {/* Week markers */}
-            <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+            <div className="flex justify-between mt-2 text-[10px] font-mono text-slate-600">
               <span>Week 0</span>
               <span>Week {Math.ceil(totalWeeks / 2)}</span>
               <span>Week {totalWeeks}</span>
@@ -203,27 +230,27 @@ export const TimelineEstimates = ({
           </div>
         )}
 
-        {/* Phase list with adjustable sliders */}
-        <div className="space-y-4">
+        {/* Phase list */}
+        <div className="space-y-3">
           {phases.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-xl">
-              <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No timeline phases yet</p>
-              <p className="text-xs mt-1">Add phases to build your project timeline</p>
+            <div className="text-center py-8 border border-dashed border-white/10 bg-[#0F0F0F]">
+              <Calendar className="w-10 h-10 mx-auto mb-3 text-slate-700" />
+              <p className="text-sm text-slate-500 font-mono">NO_PHASES</p>
+              <p className="text-xs text-slate-600 mt-1 font-mono">Add phases to build timeline</p>
             </div>
           ) : (
             phases.map((phase, index) => (
               <div
                 key={phase.id}
-                className="group p-4 rounded-xl bg-card border border-border hover:shadow-sm transition-all"
+                className="group p-4 bg-[#0F0F0F] border border-white/5 hover:border-white/10 transition-all"
               >
                 <div className="flex items-start gap-4">
-                  {/* Color indicator */}
+                  {/* Phase number */}
                   <div className={cn(
-                    "w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center text-white font-bold text-sm flex-shrink-0",
+                    "w-10 h-10 flex items-center justify-center text-white font-bold text-sm font-mono flex-shrink-0 bg-gradient-to-br",
                     phase.color
                   )}>
-                    {index + 1}
+                    {String(index + 1).padStart(2, '0')}
                   </div>
                   
                   <div className="flex-1 min-w-0">
@@ -231,12 +258,12 @@ export const TimelineEstimates = ({
                       <Input
                         value={phase.name}
                         onChange={(e) => updatePhaseName(phase.id, e.target.value)}
-                        className="font-medium border-0 bg-transparent p-0 h-auto text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                        className="font-mono text-sm border-0 bg-transparent p-0 h-auto text-white focus-visible:ring-0 focus-visible:ring-offset-0 uppercase tracking-wider"
                       />
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+                        className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 hover:text-red-500"
                         onClick={() => removePhase(phase.id)}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -254,22 +281,22 @@ export const TimelineEstimates = ({
                           className="w-full"
                         />
                       </div>
-                      <div className="flex items-center gap-1 min-w-[80px]">
+                      <div className="flex items-center gap-1 min-w-[100px]">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 w-7 p-0"
+                          className="h-7 w-7 p-0 text-slate-600 hover:text-[#00f0ff]"
                           onClick={() => updatePhaseWeeks(phase.id, Math.max(1, phase.weeks - 1))}
                         >
                           <ChevronLeft className="w-4 h-4" />
                         </Button>
-                        <span className="text-sm font-medium w-16 text-center">
-                          {phase.weeks} {phase.weeks === 1 ? "week" : "weeks"}
+                        <span className="text-xs font-mono w-16 text-center text-white">
+                          {phase.weeks} {phase.weeks === 1 ? "wk" : "wks"}
                         </span>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 w-7 p-0"
+                          className="h-7 w-7 p-0 text-slate-600 hover:text-[#00f0ff]"
                           onClick={() => updatePhaseWeeks(phase.id, Math.min(16, phase.weeks + 1))}
                         >
                           <ChevronRight className="w-4 h-4" />
@@ -285,20 +312,19 @@ export const TimelineEstimates = ({
 
         {/* Summary */}
         {phases.length > 0 && (
-          <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
+          <div className="mt-6 p-4 bg-[#0F0F0F] border border-[#00f0ff]/20">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-semibold text-foreground">Total Project Duration</p>
-                <p className="text-sm text-muted-foreground">Based on current estimates</p>
+                <p className="font-mono text-xs text-slate-500 uppercase tracking-wider">Total Duration</p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-foreground">{totalWeeks} weeks</p>
-                <p className="text-sm text-muted-foreground">≈ {totalMonths} months</p>
+                <p className="text-2xl font-bold text-white font-mono">{totalWeeks} <span className="text-sm text-slate-500">weeks</span></p>
+                <p className="text-xs text-[#00f0ff] font-mono">≈ {totalMonths} months</p>
               </div>
             </div>
           </div>
         )}
       </div>
-    </Card>
+    </div>
   );
 };

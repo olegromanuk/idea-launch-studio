@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { 
   Sparkles, 
   Plus, 
@@ -12,8 +10,7 @@ import {
   CheckCircle2,
   Circle,
   ChevronDown,
-  ChevronUp,
-  GripVertical
+  ChevronUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -43,12 +40,6 @@ const PRIORITY_CONFIG = {
   high: { color: "text-red-500", bg: "bg-red-500" },
   medium: { color: "text-amber-500", bg: "bg-amber-500" },
   low: { color: "text-green-500", bg: "bg-green-500" },
-};
-
-const STATUS_CONFIG = {
-  todo: { label: "To Do", color: "bg-muted text-muted-foreground" },
-  "in-progress": { label: "In Progress", color: "bg-blue-500/10 text-blue-500" },
-  done: { label: "Done", color: "bg-success/10 text-success" },
 };
 
 export const TasksMilestones = ({ 
@@ -130,58 +121,85 @@ export const TasksMilestones = ({
   const doneTasks = milestones.reduce((acc, m) => acc + m.tasks.filter(t => t.status === "done").length, 0);
 
   return (
-    <Card className="relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-500" />
+    <div className="relative bg-[#0A0A0A] border border-white/[0.08] overflow-hidden">
+      {/* Blueprint corner accents */}
+      <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+      <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
       
       <div className="p-6">
         {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <ListTodo className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="font-bold text-lg text-foreground">Tasks & Milestones</h3>
-              <p className="text-sm text-muted-foreground">
-                {milestones.length} milestones • {doneTasks}/{totalTasks} tasks done
-              </p>
-            </div>
+        <div className="flex justify-between items-start mb-6 border-b border-white/5 pb-4">
+          <h2 className="font-mono text-xs text-[#00f0ff] uppercase tracking-widest flex items-center gap-2">
+            <span className="w-1.5 h-1.5 bg-[#00f0ff] rounded-full shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
+            Tasks_Milestones
+          </h2>
+          <ListTodo className="w-5 h-5 text-slate-700" />
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="p-3 bg-[#0F0F0F] border-l-2 border-[#00f0ff]">
+            <span className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Milestones</span>
+            <span className="text-2xl font-bold text-white tracking-tight font-mono">{milestones.length}</span>
           </div>
-          
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAddingMilestone(!isAddingMilestone)}
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              Milestone
-            </Button>
-            <Button
-              size="sm"
-              onClick={onAIGenerate}
-              disabled={isGenerating}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
-            >
-              <Sparkles className={cn("w-4 h-4 mr-1", isGenerating && "animate-spin")} />
-              {isGenerating ? "Generating..." : "AI Generate"}
-            </Button>
+          <div className="p-3 bg-[#0F0F0F] border-l-2 border-slate-800">
+            <span className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Tasks</span>
+            <span className="text-2xl font-bold text-white tracking-tight font-mono">{totalTasks}</span>
           </div>
+          <div className="p-3 bg-[#0F0F0F] border-l-2 border-green-500">
+            <span className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Done</span>
+            <span className="text-2xl font-bold text-green-400 tracking-tight font-mono">{doneTasks}</span>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-2 mb-6">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAddingMilestone(!isAddingMilestone)}
+            className="flex-1 font-mono text-xs uppercase tracking-wider border-white/10 hover:border-[#00f0ff]/30 hover:text-[#00f0ff] bg-transparent"
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            Milestone
+          </Button>
+          <Button
+            size="sm"
+            onClick={onAIGenerate}
+            disabled={isGenerating}
+            className="flex-1 font-mono text-xs uppercase tracking-wider bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20 text-[#00f0ff] border border-[#00f0ff]/30 hover:border-[#00f0ff]/50 shadow-[0_0_10px_rgba(0,240,255,0.1)] hover:shadow-[0_0_20px_rgba(0,240,255,0.2)]"
+          >
+            <Sparkles className={cn("w-4 h-4 mr-1.5", isGenerating && "animate-spin")} />
+            {isGenerating ? "Generating..." : "AI Generate"}
+          </Button>
         </div>
 
         {/* Add milestone form */}
         {isAddingMilestone && (
-          <div className="mb-6 p-4 rounded-xl bg-muted/50 border border-border animate-fade-in">
+          <div className="mb-6 p-4 bg-[#0F0F0F] border border-white/10 animate-in fade-in-0 slide-in-from-top-2">
             <div className="flex gap-2">
               <Input
                 placeholder="Milestone name (e.g., Phase 1: MVP)"
                 value={newMilestoneName}
                 onChange={(e) => setNewMilestoneName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addMilestone()}
-                className="flex-1"
+                className="flex-1 bg-[#0A0A0A] border-white/10 focus:border-[#00f0ff]/50 font-mono text-sm"
               />
-              <Button size="sm" onClick={addMilestone}>Add</Button>
-              <Button variant="ghost" size="sm" onClick={() => setIsAddingMilestone(false)}>Cancel</Button>
+              <Button 
+                size="sm" 
+                onClick={addMilestone}
+                className="font-mono text-xs uppercase bg-[#00f0ff] text-black hover:bg-[#00f0ff]/90"
+              >
+                Add
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsAddingMilestone(false)}
+                className="font-mono text-xs uppercase text-slate-500"
+              >
+                Cancel
+              </Button>
             </div>
           </div>
         )}
@@ -189,10 +207,10 @@ export const TasksMilestones = ({
         {/* Milestones list */}
         <div className="space-y-4">
           {milestones.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-xl">
-              <Flag className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No milestones yet</p>
-              <p className="text-xs mt-1">Add milestones to organize your tasks</p>
+            <div className="text-center py-8 border border-dashed border-white/10 bg-[#0F0F0F]">
+              <Flag className="w-10 h-10 mx-auto mb-3 text-slate-700" />
+              <p className="text-sm text-slate-500 font-mono">NO_MILESTONES</p>
+              <p className="text-xs text-slate-600 mt-1 font-mono">Add milestones to organize tasks</p>
             </div>
           ) : (
             milestones.map((milestone, mIndex) => {
@@ -204,25 +222,25 @@ export const TasksMilestones = ({
               return (
                 <div
                   key={milestone.id}
-                  className="rounded-xl border border-border bg-card overflow-hidden"
+                  className="bg-[#0F0F0F] border border-white/5 overflow-hidden"
                 >
                   {/* Milestone header */}
                   <div 
-                    className="flex items-center gap-3 p-4 bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                    className="flex items-center gap-3 p-4 cursor-pointer hover:bg-white/[0.02] transition-colors border-b border-white/5"
                     onClick={() => toggleMilestone(milestone.id)}
                   >
-                    <Flag className="w-5 h-5 text-blue-500" />
+                    <Flag className="w-5 h-5 text-[#00f0ff]" />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <h4 className="font-semibold text-foreground">{milestone.name}</h4>
-                        <Badge variant="secondary" className="text-xs">
+                        <h4 className="font-mono text-sm text-white uppercase tracking-wider">{milestone.name}</h4>
+                        <span className="px-2 py-0.5 text-[10px] font-mono bg-slate-800 text-slate-400">
                           {completedTasks}/{milestone.tasks.length}
-                        </Badge>
+                        </span>
                       </div>
-                      {/* Mini progress bar */}
-                      <div className="w-32 h-1.5 bg-muted rounded-full mt-2">
+                      {/* Progress bar */}
+                      <div className="w-32 h-1 bg-slate-900 rounded-full mt-2 overflow-hidden">
                         <div 
-                          className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all"
+                          className="h-full bg-[#00f0ff] shadow-[0_0_10px_rgba(0,240,255,0.5)] transition-all"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
@@ -230,18 +248,18 @@ export const TasksMilestones = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 text-slate-600 hover:text-red-500"
                       onClick={(e) => {
                         e.stopPropagation();
                         removeMilestone(milestone.id);
                       }}
                     >
-                      <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                     {milestone.collapsed ? (
-                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                      <ChevronDown className="w-5 h-5 text-slate-600" />
                     ) : (
-                      <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                      <ChevronUp className="w-5 h-5 text-slate-600" />
                     )}
                   </div>
                   
@@ -251,7 +269,7 @@ export const TasksMilestones = ({
                       {milestone.tasks.map((task) => (
                         <div
                           key={task.id}
-                          className="group flex items-center gap-3 p-3 rounded-lg bg-background border border-transparent hover:border-border transition-all"
+                          className="group flex items-center gap-3 p-3 bg-[#0A0A0A] border border-transparent hover:border-white/10 transition-all"
                         >
                           <button
                             onClick={() => updateTaskStatus(
@@ -261,15 +279,15 @@ export const TasksMilestones = ({
                             )}
                           >
                             {task.status === "done" ? (
-                              <CheckCircle2 className="w-5 h-5 text-success" />
+                              <CheckCircle2 className="w-5 h-5 text-green-500" />
                             ) : (
-                              <Circle className="w-5 h-5 text-muted-foreground hover:text-primary" />
+                              <Circle className="w-5 h-5 text-slate-600 hover:text-[#00f0ff]" />
                             )}
                           </button>
                           
                           <span className={cn(
-                            "flex-1 text-sm",
-                            task.status === "done" && "line-through text-muted-foreground"
+                            "flex-1 text-sm font-mono",
+                            task.status === "done" && "line-through text-slate-500"
                           )}>
                             {task.title}
                           </span>
@@ -278,7 +296,7 @@ export const TasksMilestones = ({
                             <select
                               value={task.priority}
                               onChange={(e) => updateTaskPriority(milestone.id, task.id, e.target.value as Task["priority"])}
-                              className="text-xs bg-transparent border border-border rounded px-2 py-1"
+                              className="text-xs font-mono bg-transparent border border-white/10 rounded px-2 py-1 text-slate-400"
                             >
                               <option value="high">High</option>
                               <option value="medium">Medium</option>
@@ -287,7 +305,7 @@ export const TasksMilestones = ({
                             <select
                               value={task.status}
                               onChange={(e) => updateTaskStatus(milestone.id, task.id, e.target.value as Task["status"])}
-                              className="text-xs bg-transparent border border-border rounded px-2 py-1"
+                              className="text-xs font-mono bg-transparent border border-white/10 rounded px-2 py-1 text-slate-400"
                             >
                               <option value="todo">To Do</option>
                               <option value="in-progress">In Progress</option>
@@ -296,7 +314,7 @@ export const TasksMilestones = ({
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-7 w-7 p-0 text-destructive"
+                              className="h-7 w-7 p-0 text-red-500"
                               onClick={() => removeTask(milestone.id, task.id)}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -315,22 +333,33 @@ export const TasksMilestones = ({
                             value={newTaskTitle}
                             onChange={(e) => setNewTaskTitle(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && addTask(milestone.id)}
-                            className="flex-1"
+                            className="flex-1 bg-[#0A0A0A] border-white/10 focus:border-[#00f0ff]/50 font-mono text-sm"
                             autoFocus
                           />
-                          <Button size="sm" onClick={() => addTask(milestone.id)}>Add</Button>
-                          <Button variant="ghost" size="sm" onClick={() => setAddingTaskTo(null)}>Cancel</Button>
+                          <Button 
+                            size="sm" 
+                            onClick={() => addTask(milestone.id)}
+                            className="font-mono text-xs uppercase bg-[#00f0ff] text-black hover:bg-[#00f0ff]/90"
+                          >
+                            Add
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setAddingTaskTo(null)}
+                            className="font-mono text-xs uppercase text-slate-500"
+                          >
+                            Cancel
+                          </Button>
                         </div>
                       ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="w-full mt-2 text-muted-foreground hover:text-foreground"
+                        <button
+                          className="w-full mt-2 p-2 text-xs font-mono uppercase tracking-wider text-slate-500 hover:text-[#00f0ff] border border-dashed border-white/10 hover:border-[#00f0ff]/30 transition-all"
                           onClick={() => setAddingTaskTo(milestone.id)}
                         >
-                          <Plus className="w-4 h-4 mr-1" />
+                          <Plus className="w-4 h-4 inline mr-1" />
                           Add task
-                        </Button>
+                        </button>
                       )}
                     </div>
                   )}
@@ -340,6 +369,6 @@ export const TasksMilestones = ({
           )}
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
