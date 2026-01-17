@@ -1449,6 +1449,7 @@ const Canvas = () => {
                       onExpand={(key) => handleExpandSection(key)}
                       loadingSection={loadingSection}
                       projectData={projectData}
+                      onValidate={() => setValidationBlock({ id: "business", title: "Business Logic" })}
                     />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

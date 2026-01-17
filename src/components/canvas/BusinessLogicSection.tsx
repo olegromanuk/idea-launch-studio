@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Sparkles, Maximize2, ChevronRight, AlertTriangle, TrendingUp, Users, Gem, DollarSign, BarChart3, Loader2 } from "lucide-react";
+import { Sparkles, Maximize2, ChevronRight, AlertTriangle, TrendingUp, Users, Gem, DollarSign, BarChart3, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
 
 interface BusinessLogicSectionProps {
   sections: {
@@ -14,6 +15,7 @@ interface BusinessLogicSectionProps {
   onExpand: (key: string) => void;
   loadingSection: string | null;
   projectData?: any;
+  onValidate?: () => void;
 }
 
 const SECTION_CONFIG: Record<string, { 
@@ -29,6 +31,57 @@ const SECTION_CONFIG: Record<string, {
   successMetrics: { icon: BarChart3, sectionNumber: "06", displayKey: "Success_KPIs" },
 };
 
+// Helper component to render markdown content with blueprint styling
+const MarkdownText = ({ content, className }: { content: string; className?: string }) => (
+  <ReactMarkdown
+    components={{
+      p: ({ children }) => <p className={cn("text-sm text-slate-400 leading-relaxed mb-2 last:mb-0", className)}>{children}</p>,
+      strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+      em: ({ children }) => <em className="italic text-slate-300">{children}</em>,
+      ul: ({ children }) => <ul className="list-none space-y-1 mb-2">{children}</ul>,
+      ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 mb-2 text-slate-400">{children}</ol>,
+      li: ({ children }) => (
+        <li className="text-sm text-slate-400 flex items-start gap-2">
+          <span className="text-[#00f0ff] mt-1.5 flex-shrink-0">•</span>
+          <span>{children}</span>
+        </li>
+      ),
+      h1: ({ children }) => <h1 className="text-lg font-bold text-white mb-2">{children}</h1>,
+      h2: ({ children }) => <h2 className="text-base font-semibold text-white mb-2">{children}</h2>,
+      h3: ({ children }) => <h3 className="text-sm font-semibold text-white mb-1">{children}</h3>,
+      code: ({ children }) => <code className="px-1 py-0.5 bg-[#00f0ff]/10 text-[#00f0ff] text-xs font-mono rounded">{children}</code>,
+      blockquote: ({ children }) => (
+        <blockquote className="border-l-2 border-[#00f0ff]/50 pl-3 italic text-slate-500 my-2">{children}</blockquote>
+      ),
+    }}
+  >
+    {content}
+  </ReactMarkdown>
+);
+
+// Helper to parse markdown into clean text lines (stripping markdown symbols)
+const parseToLines = (content: string): string[] => {
+  return content
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .map(line => {
+      // Remove markdown list prefixes
+      let cleaned = line.replace(/^[-*+]\s+/, '');
+      // Remove numbered list prefixes
+      cleaned = cleaned.replace(/^\d+\.\s+/, '');
+      // Remove bold/italic markers
+      cleaned = cleaned.replace(/\*\*(.+?)\*\*/g, '$1');
+      cleaned = cleaned.replace(/\*(.+?)\*/g, '$1');
+      cleaned = cleaned.replace(/__(.+?)__/g, '$1');
+      cleaned = cleaned.replace(/_(.+?)_/g, '$1');
+      // Remove headers
+      cleaned = cleaned.replace(/^#+\s+/, '');
+      return cleaned.trim();
+    })
+    .filter(line => line.length > 0);
+};
+
 export const BusinessLogicSection = ({
   sections,
   canvasData,
@@ -37,6 +90,7 @@ export const BusinessLogicSection = ({
   onExpand,
   loadingSection,
   projectData,
+  onValidate,
 }: BusinessLogicSectionProps) => {
   const [editingSection, setEditingSection] = useState<string | null>(null);
 
@@ -46,21 +100,59 @@ export const BusinessLogicSection = ({
 
   return (
     <div className="space-y-6">
-      {/* Header with project info */}
-      <div className="border-l-2 border-[#00f0ff] pl-6 py-2 relative">
-        <div className="absolute -left-[3px] top-0 h-4 w-[2px] bg-[#00f0ff] shadow-[0_0_10px_rgba(0,240,255,0.4)]" />
-        <div className="flex items-center gap-3 mb-2">
-          <span className="px-2 py-0.5 bg-[#00f0ff]/5 border border-[#00f0ff]/20 text-[#00f0ff] text-[10px] font-mono uppercase tracking-widest rounded-sm">
-            Project: {projectData?.idea?.substring(0, 20) || "Canvas"}
-          </span>
-          <span className="text-slate-500 text-[10px] font-mono uppercase tracking-widest">
-            /// MODULE_01: ANALYSIS
-          </span>
+      {/* Header with project info and validate button */}
+      <div className="relative overflow-hidden bg-[#0A0A0A] border border-white/[0.08] p-6 mb-6">
+        {/* Corner accents */}
+        <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+        <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
+        
+        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-sm bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-[#00f0ff]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <span className="text-xs font-mono text-[#00f0ff] uppercase">Module: 01_Business_Logic</span>
+                <span className="bg-[#00f0ff]/10 text-[#00f0ff] text-[10px] px-2 py-0.5 border border-[#00f0ff]/30 rounded font-bold">
+                  {completionPercent}% COMPLETE
+                </span>
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-1 tracking-tight">
+                Business Analysis
+              </h3>
+              <p className="text-sm text-slate-500 font-mono uppercase tracking-wider">
+                Complete all {sections.length} sections to proceed
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            {/* Progress indicator */}
+            <div className="flex items-center gap-3">
+              <div className="w-32 h-1 bg-slate-900 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-[#00f0ff] shadow-[0_0_10px_rgba(0,240,255,0.4)] transition-all duration-500"
+                  style={{ width: `${completionPercent}%` }}
+                />
+              </div>
+              <span className="text-sm font-mono text-[#00f0ff]">
+                {completionPercent}%
+              </span>
+            </div>
+            
+            {/* Validate Button */}
+            {onValidate && (
+              <button
+                onClick={onValidate}
+                className="px-4 py-2 bg-[#00f0ff] text-black font-bold text-xs uppercase tracking-widest hover:brightness-110 transition-all shadow-[0_0_20px_rgba(0,240,255,0.3)]"
+              >
+                <CheckCircle2 className="w-4 h-4 inline mr-2" />
+                Validate
+              </button>
+            )}
+          </div>
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">Business Analysis</h1>
-        <p className="text-slate-400 max-w-2xl text-lg font-light">
-          Detailed architectural validation of market fit, revenue streams, and user segmentation.
-        </p>
       </div>
 
       {/* Main Grid */}
@@ -165,9 +257,7 @@ export const BusinessLogicSection = ({
                     <MarketDisplay content={canvasData[section.key]} />
                   ) : (
                     <div className="p-4 bg-[#0F0F0F] border border-white/5 hover:border-[#00f0ff]/30 transition-colors">
-                      <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">
-                        {canvasData[section.key]}
-                      </p>
+                      <MarkdownText content={canvasData[section.key]} />
                     </div>
                   )}
                   <p className="mt-4 text-[10px] text-slate-600 group-hover/content:text-slate-500 transition-colors font-mono uppercase tracking-wider flex items-center gap-1">
@@ -190,7 +280,7 @@ export const BusinessLogicSection = ({
               "w-1.5 h-1.5 rounded-full",
               completionPercent === 100 ? "bg-green-500 animate-pulse" : "bg-amber-500"
             )} />
-            {completionPercent === 100 ? "VALIDATED" : `${completionPercent}% COMPLETE`}
+            {completionPercent === 100 ? "READY TO VALIDATE" : `${completionPercent}% COMPLETE`}
           </span>
         </div>
         <div className="flex gap-6">
@@ -208,7 +298,7 @@ export const BusinessLogicSection = ({
 
 // Sub-components for styled content display
 const ProblemDisplay = ({ content }: { content: string }) => {
-  const points = content.split('\n').filter(line => line.trim());
+  const points = parseToLines(content);
   const displayPoints = points.slice(0, 3);
 
   return (
@@ -236,7 +326,7 @@ const ProblemDisplay = ({ content }: { content: string }) => {
 };
 
 const MetricsDisplay = ({ content }: { content: string }) => {
-  const lines = content.split('\n').filter(line => line.trim());
+  const lines = parseToLines(content);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
@@ -254,7 +344,7 @@ const MetricsDisplay = ({ content }: { content: string }) => {
 };
 
 const RevenueDisplay = ({ content }: { content: string }) => {
-  const streams = content.split('\n').filter(line => line.trim());
+  const streams = parseToLines(content);
 
   return (
     <div className="space-y-2">
@@ -284,7 +374,7 @@ const RevenueDisplay = ({ content }: { content: string }) => {
 };
 
 const AudienceDisplay = ({ content }: { content: string }) => {
-  const segments = content.split('\n').filter(line => line.trim());
+  const segments = parseToLines(content);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -304,7 +394,7 @@ const AudienceDisplay = ({ content }: { content: string }) => {
 };
 
 const ValuePropDisplay = ({ content }: { content: string }) => {
-  const points = content.split('\n').filter(line => line.trim());
+  const points = parseToLines(content);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-white/10">
@@ -346,7 +436,7 @@ const ValuePropDisplay = ({ content }: { content: string }) => {
 };
 
 const MarketDisplay = ({ content }: { content: string }) => {
-  const lines = content.split('\n').filter(line => line.trim());
+  const lines = parseToLines(content);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
