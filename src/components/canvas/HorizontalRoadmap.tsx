@@ -13,10 +13,29 @@ import {
   Clock,
   ChevronUp,
   BarChart3,
-  RefreshCw
+  RefreshCw,
+  LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+
+interface TimelinePhase {
+  id: string;
+  name: string;
+  weeks: number;
+  color: string;
+  duration?: number;
+}
+
+interface Milestone {
+  name: string;
+  tasks: Array<{ name: string; status: string; due_date?: string }>;
+}
+
+interface ScopeData {
+  timeline: TimelinePhase[];
+  milestones: Milestone[];
+}
 
 interface RoadmapPhase {
   id: string;
@@ -24,12 +43,13 @@ interface RoadmapPhase {
   shortTitle: string;
   description: string;
   duration: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: LucideIcon;
   status: "completed" | "in-progress" | "upcoming";
   tabId: string;
   startWeek: number;
   endWeek: number;
   progress: number;
+  milestones?: Array<{ name: string; week: number }>;
 }
 
 interface HorizontalRoadmapProps {
@@ -41,6 +61,7 @@ interface HorizontalRoadmapProps {
   };
   validatedBlocks: Set<string>;
   onPhaseClick?: (tabId: string) => void;
+  scopeData?: ScopeData;
 }
 
 export const HorizontalRoadmap = ({ 
@@ -48,7 +69,8 @@ export const HorizontalRoadmap = ({
   onOpenChange, 
   projectData, 
   validatedBlocks,
-  onPhaseClick 
+  onPhaseClick,
+  scopeData
 }: HorizontalRoadmapProps) => {
   
   const getPhaseStatus = (tabId: string): "completed" | "in-progress" | "upcoming" => {
@@ -62,15 +84,113 @@ export const HorizontalRoadmap = ({
     return "upcoming";
   };
 
-  const getPhaseProgress = (tabId: string): number => {
+  const getPhaseProgress = (tabId: string, milestones?: Milestone[]): number => {
     const status = getPhaseStatus(tabId);
     if (status === "completed") return 100;
     if (status === "upcoming") return 0;
-    // Simulate in-progress percentage
-    return 45;
+    
+    // Calculate actual progress from milestone tasks if available
+    if (milestones && milestones.length > 0) {
+      const allTasks = milestones.flatMap(m => m.tasks || []);
+      if (allTasks.length > 0) {
+        const doneTasks = allTasks.filter(t => t.status === 'done').length;
+        return Math.round((doneTasks / allTasks.length) * 100);
+      }
+    }
+    return 45; // Fallback
   };
 
-  const phases: RoadmapPhase[] = [
+  // Build timeline from scopeData or use defaults
+  const buildPhasesFromData = (): RoadmapPhase[] => {
+    const timeline = scopeData?.timeline || [];
+    const milestones = scopeData?.milestones || [];
+    
+    // If we have timeline data from scope planning, use it
+    if (timeline.length > 0) {
+      let currentWeek = 1;
+      const dynamicPhases: RoadmapPhase[] = [];
+      
+      // Map timeline phases to roadmap phases with icons
+      const phaseIcons: Record<string, LucideIcon> = {
+        'business': Lightbulb,
+        'ideation': Lightbulb,
+        'analysis': BarChart3,
+        'market': BarChart3,
+        'scope': ClipboardList,
+        'planning': ClipboardList,
+        'development': Code,
+        'mvp': Code,
+        'build': Code,
+        'gtm': Megaphone,
+        'launch': Megaphone,
+        'marketing': Megaphone,
+      };
+      
+      const phaseTabMapping: Record<string, string> = {
+        'business': 'business',
+        'ideation': 'business',
+        'analysis': 'business',
+        'market': 'business',
+        'scope': 'scope',
+        'planning': 'scope',
+        'development': 'development',
+        'mvp': 'development',
+        'build': 'development',
+        'gtm': 'gtm',
+        'launch': 'gtm',
+        'marketing': 'gtm',
+      };
+      
+      timeline.forEach((phase, index) => {
+        const weeks = phase.weeks || phase.duration || 2;
+        const phaseName = phase.name.toLowerCase();
+        
+        // Find matching icon and tab
+        let icon: LucideIcon = Code;
+        let tabId = 'scope';
+        
+        for (const key of Object.keys(phaseIcons)) {
+          if (phaseName.includes(key)) {
+            icon = phaseIcons[key];
+            tabId = phaseTabMapping[key] || 'scope';
+            break;
+          }
+        }
+        
+        // Find milestones that belong to this phase
+        const phaseMilestones = milestones
+          .filter((_, mIndex) => Math.floor(mIndex / Math.ceil(milestones.length / timeline.length)) === index)
+          .map((m, mIndex) => ({
+            name: m.name,
+            week: currentWeek + Math.floor(weeks * ((mIndex + 1) / 2))
+          }));
+        
+        dynamicPhases.push({
+          id: phase.id || `phase-${index}`,
+          tabId,
+          title: phase.name,
+          shortTitle: phase.name.split(' ')[0],
+          description: `${weeks} weeks`,
+          duration: `Week ${currentWeek}-${currentWeek + weeks - 1}`,
+          icon,
+          status: getPhaseStatus(tabId),
+          startWeek: currentWeek,
+          endWeek: currentWeek + weeks - 1,
+          progress: getPhaseProgress(tabId, milestones),
+          milestones: phaseMilestones,
+        });
+        
+        currentWeek += weeks;
+      });
+      
+      return dynamicPhases;
+    }
+    
+    // Fallback to default phases
+    return getDefaultPhases();
+  };
+  
+  const getDefaultPhases = (): RoadmapPhase[] => [
     {
       id: "ideation",
       tabId: "business",
@@ -138,8 +258,16 @@ export const HorizontalRoadmap = ({
     }
   ];
 
-  const totalWeeks = 8;
+  const phases = buildPhasesFromData();
+  
+  // Calculate total weeks from actual phases
+  const totalWeeks = phases.length > 0 
+    ? Math.max(...phases.map(p => p.endWeek)) 
+    : 8;
   const weeks = Array.from({ length: totalWeeks }, (_, i) => i + 1);
+  
+  // Get all milestones from scopeData for timeline pins
+  const allMilestones = scopeData?.milestones || [];
 
   const handlePhaseClick = (phase: RoadmapPhase) => {
     if (onPhaseClick && phase.tabId !== "launch") {

@@ -1702,6 +1702,10 @@ const Canvas = () => {
         projectData={projectData}
         validatedBlocks={validatedBlocks}
         onPhaseClick={(tabId) => setActiveTab(tabId)}
+        scopeData={{
+          timeline: scopeData.timeline,
+          milestones: scopeData.milestones
+        }}
       />
     </div>
   );
