@@ -899,13 +899,67 @@ const Canvas = () => {
                         {isUnlocking && <span className="text-xs animate-fade-in">🔓</span>}
                       </TabsTrigger>
                       
-                      {/* Connector line between tabs */}
+                      {/* Animated connector line between tabs */}
                       {index < canvasTabs.length - 1 && (
-                        <div className="flex items-center">
-                          <div className={cn(
-                            "w-4 h-0.5 transition-colors",
-                            progress >= 100 ? "bg-[#00f0ff]/50" : "bg-slate-800"
-                          )} />
+                        <div className="flex items-center px-1">
+                          <div className="relative w-8 h-4 flex items-center justify-center">
+                            {/* Base line */}
+                            <div className="absolute w-full h-0.5 bg-slate-800 rounded-full" />
+                            
+                            {/* Animated progress line */}
+                            <motion.div 
+                              className="absolute left-0 h-0.5 bg-[#00f0ff] rounded-full shadow-[0_0_8px_rgba(0,240,255,0.5)]"
+                              initial={{ width: 0 }}
+                              animate={{ 
+                                width: progress >= 100 ? "100%" : "0%",
+                                opacity: progress >= 100 ? 1 : 0
+                              }}
+                              transition={{ 
+                                duration: 0.6, 
+                                ease: "easeOut",
+                                delay: index * 0.1
+                              }}
+                            />
+                            
+                            {/* Pulse dot when complete */}
+                            {progress >= 100 && (
+                              <motion.div 
+                                className="absolute right-0 w-1.5 h-1.5 bg-[#00f0ff] rounded-full shadow-[0_0_6px_rgba(0,240,255,0.8)]"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: 0.4 + index * 0.1, duration: 0.3 }}
+                              >
+                                <motion.div 
+                                  className="absolute inset-0 bg-[#00f0ff] rounded-full"
+                                  animate={{ 
+                                    scale: [1, 1.5, 1],
+                                    opacity: [0.8, 0, 0.8]
+                                  }}
+                                  transition={{ 
+                                    duration: 2, 
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                  }}
+                                />
+                              </motion.div>
+                            )}
+                            
+                            {/* Arrow indicator */}
+                            <motion.div
+                              className={cn(
+                                "absolute -right-0.5 w-0 h-0 border-t-[3px] border-b-[3px] border-l-[4px] border-transparent",
+                                progress >= 100 ? "border-l-[#00f0ff]" : "border-l-slate-700"
+                              )}
+                              animate={{
+                                x: progress >= 100 ? [0, 2, 0] : 0
+                              }}
+                              transition={{
+                                duration: 1.5,
+                                repeat: progress >= 100 ? Infinity : 0,
+                                ease: "easeInOut"
+                              }}
+                            />
+                          </div>
                         </div>
                       )}
                     </React.Fragment>
