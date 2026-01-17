@@ -1226,17 +1226,38 @@ const Canvas = () => {
                     </>
                   ) : tab.id === "development" ? (
                     <div className="space-y-6">
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30">
-                          <Rocket className="w-7 h-7 text-primary-foreground" />
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-foreground">Submit for Development</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Configure your project settings and submit for development
-                          </p>
+                      {/* Blueprint-style Development Header */}
+                      <div className="bg-[#0A0E14] border border-[#1E293B] p-6 relative overflow-hidden">
+                        {/* Corner accents */}
+                        <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-[#00f0ff]" />
+                        <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-[#00f0ff]" />
+                        <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-[#00f0ff]" />
+                        <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#00f0ff]" />
+                        
+                        {/* Background grid effect */}
+                        <div className="absolute inset-0 opacity-5" style={{ 
+                          backgroundImage: "linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)",
+                          backgroundSize: "40px 40px"
+                        }} />
+                        
+                        <div className="relative flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center shadow-[0_0_20px_-5px_rgba(0,240,255,0.3)]">
+                              <Rocket className="w-7 h-7 text-[#00f0ff]" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs font-mono text-[#00f0ff] uppercase">Module: 04_Development</span>
+                              </div>
+                              <h3 className="text-xl font-bold text-white uppercase tracking-wide">Development Pipeline</h3>
+                              <p className="text-sm text-slate-400 font-mono">
+                                Submit projects for development and track progress
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
+                      
                       <DevelopmentSubmissionForm
                         projectId={projectId}
                         projectData={projectData || {}}
