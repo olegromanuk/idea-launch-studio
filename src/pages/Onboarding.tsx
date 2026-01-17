@@ -1,14 +1,11 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Rocket, Target, Users, Lightbulb, ArrowLeft, Building2, Layers, Monitor, Upload, X, Loader2, ArrowRight } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Rocket, Target, Users, Lightbulb, ArrowLeft, Building2, Layers, Upload, X, Loader2, Globe, Smartphone, Monitor } from "lucide-react";
 import { IdeaSelector } from "@/components/onboarding/IdeaSelector";
 import { PersonaSelector, PersonaType } from "@/components/onboarding/PersonaSelector";
 import { JourneyInfographic } from "@/components/onboarding/JourneyInfographic";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -20,15 +17,15 @@ type IdeaStage = "new" | "existing" | "wireframes";
 type Platform = "web" | "mobile" | "desktop";
 
 const STAGE_OPTIONS = [
-  { value: "new", label: "New Idea", description: "Starting from scratch" },
-  { value: "existing", label: "Existing Project", description: "Already have some work done" },
-  { value: "wireframes", label: "Have Wireframes/Designs", description: "Have visual mockups ready" },
+  { value: "new", label: "Just an Idea", description: "Initial concept, no research or documentation started.", icon: Lightbulb },
+  { value: "existing", label: "Detailed Specs", description: "Market research done, features mapped out.", icon: Target },
+  { value: "wireframes", label: "Prototype/MVP", description: "Early code exists, looking to scale with AI.", icon: Monitor },
 ];
 
 const PLATFORM_OPTIONS = [
-  { value: "web", label: "Web", icon: "🌐" },
-  { value: "mobile", label: "Mobile", icon: "📱" },
-  { value: "desktop", label: "Desktop", icon: "🖥️" },
+  { value: "web", label: "Web", icon: Globe },
+  { value: "mobile", label: "Mobile", icon: Smartphone },
+  { value: "desktop", label: "Desktop", icon: Monitor },
 ];
 
 const Onboarding = () => {
@@ -42,6 +39,7 @@ const Onboarding = () => {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [pendingProjectData, setPendingProjectData] = useState<any>(null);
+  const [aiHelpEnabled, setAiHelpEnabled] = useState(true);
   const [formData, setFormData] = useState({
     business: "",
     idea: "",
@@ -305,21 +303,24 @@ const Onboarding = () => {
         />
 
         {/* Header */}
-        <header className="relative z-10 border-b border-[#1E293B] bg-[#121821]/50 backdrop-blur-md">
+        <header className="relative z-10 border-b border-[#1E293B] bg-[#121821] sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div className="flex items-center gap-8">
               <a className="flex items-center gap-2 group" href="/">
                 <span className="text-[#0EA5E9] text-2xl">◈</span>
-                <span className="font-bold tracking-widest uppercase text-xs font-mono">Logomir OS</span>
+                <span className="font-bold tracking-widest uppercase text-sm">Logomir OS</span>
               </a>
+              <nav className="hidden md:flex gap-6">
+                <span className="text-xs uppercase tracking-wider text-[#94A3B8]">Dashboard</span>
+                <span className="text-xs uppercase tracking-wider text-[#0EA5E9] border-b border-[#0EA5E9] pb-0.5">Product Concept</span>
+                <span className="text-xs uppercase tracking-wider text-[#94A3B8]">Build</span>
+                <span className="text-xs uppercase tracking-wider text-[#94A3B8]">Launch</span>
+              </nav>
             </div>
-            <div className="flex items-center gap-6">
-              <span className="text-[10px] font-mono text-[#94A3B8] uppercase tracking-widest">Step 02 / 04</span>
-              <div className="flex gap-1">
-                <div className="w-8 h-1 bg-[#0EA5E9] rounded-full" />
-                <div className="w-8 h-1 bg-[#0EA5E9] rounded-full" />
-                <div className="w-8 h-1 bg-[#1E293B] rounded-full" />
-                <div className="w-8 h-1 bg-[#1E293B] rounded-full" />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-3 py-1 bg-gray-900 rounded border border-[#1E293B]">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[10px] font-mono text-[#94A3B8] uppercase">Onboarding_Active</span>
               </div>
               <AuthButton />
             </div>
@@ -327,246 +328,252 @@ const Onboarding = () => {
         </header>
 
         {/* Main content */}
-        <main className="relative z-10 flex-grow flex flex-col items-center justify-center p-6 lg:p-8">
-          <div className="max-w-3xl w-full">
-            {/* Title */}
-            <div className="text-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-tighter mb-4">
-                Define Your Vision
-              </h1>
-              <p className="text-[#94A3B8] text-sm max-w-2xl mx-auto font-mono uppercase tracking-wide">
-                Provide the core details of your product architecture
-              </p>
+        <main className="relative z-10 flex-grow p-4 sm:p-6 lg:p-12 max-w-4xl mx-auto w-full">
+          {/* Title Section */}
+          <div className="mb-10">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-xs font-mono text-[#0EA5E9] uppercase tracking-widest">Step 02 / Concept Definition</span>
+              <span className="bg-[#0EA5E9]/10 text-[#0EA5E9] text-[10px] px-2 py-0.5 border border-[#0EA5E9]/30 rounded font-bold uppercase tracking-tighter">
+                {formData.idea && formData.audience && formData.problem && formData.stage && formData.platforms.length > 0 ? "100%" : "In Progress"}
+              </span>
             </div>
+            <h1 className="text-4xl font-bold uppercase tracking-tight mb-3">Product Concept Form</h1>
+            <p className="text-[#94A3B8] text-sm max-w-2xl leading-relaxed">
+              Define the architectural foundation of your project. Provide specific details to help our AI orchestrate your development roadmap.
+            </p>
+          </div>
 
-            {/* Form card */}
-            <div className="relative bg-[#121821] border border-[#1E293B] p-6 md:p-8">
-              {/* Corner accents */}
-              <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#0EA5E9] opacity-70" />
-              <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#0EA5E9] opacity-70" />
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Back button */}
-                <button
-                  type="button"
-                  onClick={() => setSelectedPersona(null)}
-                  className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#94A3B8] hover:text-[#0EA5E9] transition-colors mb-4"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Change Path
-                </button>
-                
-                {/* Enterprise business field */}
-                {selectedPersona === 'enterprise' && (
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#0EA5E9]">
-                      <Building2 className="w-4 h-4" />
-                      {config.businessLabel}
-                    </label>
-                    <Textarea
-                      placeholder={config.businessPlaceholder}
-                      value={formData.business}
-                      onChange={(e) => setFormData({ ...formData, business: e.target.value })}
-                      className="min-h-[80px] resize-none bg-[#0B1017] border-[#1E293B] focus:border-[#0EA5E9]/50 text-gray-100 placeholder:text-[#94A3B8]/50 font-mono text-sm"
-                    />
-                  </div>
-                )}
-
-                {/* Idea field */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#0EA5E9]">
-                    <Rocket className="w-4 h-4" />
-                    {config.ideaLabel}
-                  </label>
-                  <Textarea
-                    placeholder={config.ideaPlaceholder}
-                    value={formData.idea}
-                    onChange={(e) => setFormData({ ...formData, idea: e.target.value })}
-                    className="min-h-[100px] resize-none bg-[#0B1017] border-[#1E293B] focus:border-[#0EA5E9]/50 text-gray-100 placeholder:text-[#94A3B8]/50 font-mono text-sm"
-                  />
-                </div>
-
-                {/* Stage of Idea */}
-                <div className="space-y-3">
-                  <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#0EA5E9]">
-                    <Layers className="w-4 h-4" />
-                    Stage of your idea
-                  </label>
-                  <RadioGroup
-                    value={formData.stage}
-                    onValueChange={(value) => setFormData({ ...formData, stage: value as IdeaStage })}
-                    className="grid grid-cols-1 md:grid-cols-3 gap-3"
-                  >
-                    {STAGE_OPTIONS.map((option) => (
-                      <div key={option.value} className="relative">
-                        <RadioGroupItem
-                          value={option.value}
-                          id={option.value}
-                          className="peer sr-only"
-                        />
-                        <Label
-                          htmlFor={option.value}
-                          className={cn(
-                            "flex flex-col items-center justify-center p-4 border bg-[#0B1017] cursor-pointer transition-all",
-                            "border-[#1E293B] hover:border-[#0EA5E9]/30",
-                            "peer-data-[state=checked]:border-[#0EA5E9] peer-data-[state=checked]:bg-[#0EA5E9]/5"
-                          )}
-                        >
-                          <span className="font-mono text-sm uppercase text-white">{option.label}</span>
-                          <span className="text-[10px] text-[#94A3B8] mt-1 font-mono">{option.description}</span>
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-
-                  {/* File Upload for Wireframes */}
-                  {formData.stage === 'wireframes' && (
-                    <div className="mt-4 p-4 border-2 border-dashed border-[#0EA5E9]/30 bg-[#0EA5E9]/5">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        multiple
-                        accept="image/*,.pdf,.fig,.sketch"
-                        className="hidden"
-                      />
-                      <div className="flex flex-col items-center gap-3">
-                        <Upload className="w-8 h-8 text-[#0EA5E9]/60" />
-                        <p className="text-xs text-[#94A3B8] text-center font-mono uppercase">
-                          Upload wireframes or designs
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="px-4 py-2 text-xs font-mono uppercase tracking-wider border border-[#0EA5E9]/30 text-[#0EA5E9] hover:bg-[#0EA5E9]/10 transition-all"
-                        >
-                          Choose Files
-                        </button>
-                      </div>
-                      
-                      {formData.wireframeFiles.length > 0 && (
-                        <div className="mt-4 space-y-2">
-                          {formData.wireframeFiles.map((file, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 bg-[#0B1017] border border-[#1E293B]">
-                              <span className="text-xs truncate max-w-[200px] font-mono text-[#94A3B8]">{file.name}</span>
-                              <button
-                                type="button"
-                                onClick={() => removeFile(index)}
-                                className="text-[#94A3B8] hover:text-red-500 transition-colors"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
+          <form onSubmit={handleSubmit} className="space-y-10">
+            {/* Stage of Idea Section */}
+            <section>
+              <h2 className="text-xs font-mono uppercase text-[#0EA5E9] mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 bg-[#0EA5E9] rounded-full" />
+                Stage of your idea
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {STAGE_OPTIONS.map((option) => {
+                  const Icon = option.icon;
+                  const isActive = formData.stage === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, stage: option.value as IdeaStage })}
+                      className={cn(
+                        "group p-5 border bg-[#121821] transition-all text-left flex flex-col gap-3 rounded-sm",
+                        isActive 
+                          ? "border-[#0EA5E9] bg-[#0EA5E9]/5 ring-1 ring-[#0EA5E9]/20" 
+                          : "border-[#1E293B] hover:border-[#0EA5E9]/50"
                       )}
+                    >
+                      <Icon className={cn(
+                        "w-5 h-5 transition-transform group-hover:scale-110",
+                        isActive ? "text-[#0EA5E9]" : "text-gray-400 group-hover:text-[#0EA5E9]"
+                      )} />
+                      <div>
+                        <div className={cn(
+                          "text-sm font-bold uppercase tracking-tight",
+                          isActive ? "text-white" : "text-gray-300"
+                        )}>
+                          {option.label}
+                        </div>
+                        <p className="text-[11px] text-[#94A3B8] mt-1 leading-snug">{option.description}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* File Upload for Wireframes */}
+              {formData.stage === 'wireframes' && (
+                <div className="mt-4 p-4 border-2 border-dashed border-[#0EA5E9]/30 bg-[#0EA5E9]/5 rounded-sm">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    multiple
+                    accept="image/*,.pdf,.fig,.sketch"
+                    className="hidden"
+                  />
+                  <div className="flex flex-col items-center gap-3">
+                    <Upload className="w-8 h-8 text-[#0EA5E9]/60" />
+                    <p className="text-xs text-[#94A3B8] text-center font-mono uppercase">
+                      Upload wireframes or designs
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-4 py-2 text-xs font-mono uppercase tracking-wider border border-[#0EA5E9]/30 text-[#0EA5E9] hover:bg-[#0EA5E9]/10 transition-all rounded-sm"
+                    >
+                      Choose Files
+                    </button>
+                  </div>
+                  
+                  {formData.wireframeFiles.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      {formData.wireframeFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-[#0B1017] border border-[#1E293B] rounded-sm">
+                          <span className="text-xs truncate max-w-[200px] font-mono text-[#94A3B8]">{file.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeFile(index)}
+                            className="text-[#94A3B8] hover:text-red-500 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
+              )}
+            </section>
 
-                {/* Target Platforms */}
-                <div className="space-y-3">
-                  <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#0EA5E9]">
-                    <Monitor className="w-4 h-4" />
-                    Target platforms
-                  </label>
-                  <div className="flex flex-wrap gap-3">
-                    {PLATFORM_OPTIONS.map((platform) => (
-                      <label 
-                        key={platform.value} 
-                        className={cn(
-                          "flex items-center gap-2 px-4 py-2 border cursor-pointer transition-all",
-                          formData.platforms.includes(platform.value as Platform)
-                            ? "border-[#0EA5E9] bg-[#0EA5E9]/10 text-[#0EA5E9]"
-                            : "border-[#1E293B] text-[#94A3B8] hover:border-[#0EA5E9]/30"
-                        )}
-                        onClick={() => handlePlatformToggle(platform.value as Platform)}
-                      >
-                        <span>{platform.icon}</span>
-                        <span className="text-xs font-mono uppercase">{platform.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
+            {/* Target Platforms Section */}
+            <section>
+              <h2 className="text-xs font-mono uppercase text-[#0EA5E9] mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 bg-[#0EA5E9] rounded-full" />
+                Target Platforms
+              </h2>
+              <div className="flex flex-wrap gap-4">
+                {PLATFORM_OPTIONS.map((platform) => {
+                  const Icon = platform.icon;
+                  const isActive = formData.platforms.includes(platform.value as Platform);
+                  return (
+                    <label key={platform.value} className="cursor-pointer">
+                      <input type="checkbox" className="hidden" checked={isActive} onChange={() => handlePlatformToggle(platform.value as Platform)} />
+                      <div className={cn(
+                        "flex items-center gap-3 px-6 py-3 border transition-all rounded-sm",
+                        isActive 
+                          ? "border-[#0EA5E9] bg-[#0EA5E9]/10" 
+                          : "border-[#1E293B] bg-[#121821] opacity-60 hover:opacity-100"
+                      )}>
+                        <Icon className="w-5 h-5" />
+                        <span className="text-xs font-bold uppercase tracking-wider">{platform.label}</span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </section>
 
-                {/* Audience field */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#0EA5E9]">
-                    <Users className="w-4 h-4" />
-                    {config.audienceLabel}
-                  </label>
-                  <Textarea
-                    placeholder={config.audiencePlaceholder}
-                    value={formData.audience}
-                    onChange={(e) => setFormData({ ...formData, audience: e.target.value })}
-                    className="min-h-[80px] resize-none bg-[#0B1017] border-[#1E293B] focus:border-[#0EA5E9]/50 text-gray-100 placeholder:text-[#94A3B8]/50 font-mono text-sm"
-                  />
-                </div>
+            {/* Enterprise business field */}
+            {selectedPersona === 'enterprise' && (
+              <section>
+                <h2 className="text-xs font-mono uppercase text-[#0EA5E9] mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-[#0EA5E9] rounded-full" />
+                  {config.businessLabel}
+                </h2>
+                <textarea
+                  placeholder={config.businessPlaceholder}
+                  value={formData.business}
+                  onChange={(e) => setFormData({ ...formData, business: e.target.value })}
+                  className="w-full h-32 bg-[#121821] border border-[#1E293B] focus:border-[#0EA5E9] focus:ring-0 focus:outline-none text-sm text-gray-200 p-4 rounded-sm placeholder:text-gray-600 resize-none"
+                />
+              </section>
+            )}
 
-                {/* Problem field */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#0EA5E9]">
-                    <Target className="w-4 h-4" />
-                    {config.problemLabel}
-                  </label>
-                  <Textarea
-                    placeholder={config.problemPlaceholder}
-                    value={formData.problem}
-                    onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
-                    className="min-h-[80px] resize-none bg-[#0B1017] border-[#1E293B] focus:border-[#0EA5E9]/50 text-gray-100 placeholder:text-[#94A3B8]/50 font-mono text-sm"
-                  />
-                </div>
-
-                {/* Helper buttons */}
-                <div className="flex items-center gap-4 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowIdeaSelector(true)}
-                    className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
-                  >
-                    <Lightbulb className="w-4 h-4" />
-                    {selectedPersona === 'solo' ? "Help me with idea" : "Help with product vision"}
-                  </button>
-                </div>
-
-                {/* Submit button */}
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    disabled={!isFormValid || isCreating}
-                    className={cn(
-                      "w-full py-4 font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all",
-                      isFormValid && !isCreating
-                        ? "bg-[#0EA5E9] text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_30px_-5px_rgba(14,165,233,0.4)]"
-                        : "bg-[#1E293B] text-[#94A3B8] cursor-not-allowed"
-                    )}
-                  >
-                    {isCreating ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Creating Project...
-                      </>
-                    ) : (
-                      <>
-                        Start Building
-                        <ArrowRight className="w-5 h-5" />
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
+            {/* Two Column Section: Audience & Problem */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <section>
+                <h2 className="text-xs font-mono uppercase text-[#0EA5E9] mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-[#0EA5E9] rounded-full" />
+                  {config.audienceLabel}
+                </h2>
+                <textarea
+                  placeholder={config.audiencePlaceholder}
+                  value={formData.audience}
+                  onChange={(e) => setFormData({ ...formData, audience: e.target.value })}
+                  className="w-full h-32 bg-[#121821] border border-[#1E293B] focus:border-[#0EA5E9] focus:ring-0 focus:outline-none text-sm text-gray-200 p-4 rounded-sm placeholder:text-gray-600 resize-none"
+                />
+              </section>
+              <section>
+                <h2 className="text-xs font-mono uppercase text-[#0EA5E9] mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-[#0EA5E9] rounded-full" />
+                  {config.problemLabel}
+                </h2>
+                <textarea
+                  placeholder={config.problemPlaceholder}
+                  value={formData.problem}
+                  onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
+                  className="w-full h-32 bg-[#121821] border border-[#1E293B] focus:border-[#0EA5E9] focus:ring-0 focus:outline-none text-sm text-gray-200 p-4 rounded-sm placeholder:text-gray-600 resize-none"
+                />
+              </section>
             </div>
-          </div>
+
+            {/* Product Idea Section */}
+            <section>
+              <h2 className="text-xs font-mono uppercase text-[#0EA5E9] mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 bg-[#0EA5E9] rounded-full" />
+                {config.ideaLabel}
+              </h2>
+              <textarea
+                placeholder={config.ideaPlaceholder}
+                value={formData.idea}
+                onChange={(e) => setFormData({ ...formData, idea: e.target.value })}
+                className="w-full h-32 bg-[#121821] border border-[#1E293B] focus:border-[#0EA5E9] focus:ring-0 focus:outline-none text-sm text-gray-200 p-4 rounded-sm placeholder:text-gray-600 resize-none"
+              />
+            </section>
+
+            {/* Footer Actions */}
+            <div className="pt-8 border-t border-[#1E293B] flex flex-col md:flex-row items-center justify-between gap-6">
+              {/* AI Help Toggle */}
+              <div className="flex items-center gap-4">
+                <Switch
+                  checked={aiHelpEnabled}
+                  onCheckedChange={setAiHelpEnabled}
+                  className="data-[state=checked]:bg-[#0EA5E9]"
+                />
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold uppercase tracking-tight text-gray-200">Help with product vision</span>
+                  <span className="text-[10px] text-[#94A3B8] uppercase">AI will suggest missing features & goals</span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 w-full md:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setSelectedPersona(null)}
+                  className="flex-1 md:flex-none px-8 py-3 border border-[#1E293B] bg-[#121821] hover:border-[#0EA5E9]/50 transition-colors text-xs font-bold uppercase tracking-widest rounded-sm"
+                >
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  disabled={!isFormValid || isCreating}
+                  className={cn(
+                    "flex-1 md:flex-none px-10 py-3 text-xs font-bold uppercase tracking-widest rounded-sm flex items-center justify-center gap-2 transition-all",
+                    isFormValid && !isCreating
+                      ? "bg-[#0EA5E9] text-white hover:brightness-110 shadow-[0_0_20px_rgba(14,165,233,0.3)]"
+                      : "bg-[#1E293B] text-[#94A3B8] cursor-not-allowed"
+                  )}
+                >
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      Start Building
+                      <Rocket className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
         </main>
 
         {/* Footer */}
-        <footer className="relative z-10 border-t border-[#1E293B] py-6 bg-[#121821]/50">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-[10px] uppercase text-gray-600 tracking-[0.2em]">Deployment Protocol v2.4.0</div>
-            <p className="text-[11px] text-[#94A3B8]">© 2024 Logomir OS. Secure Environment.</p>
+        <footer className="relative z-10 border-t border-[#1E293B] py-8 mt-auto bg-[#121821]">
+          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+            <div className="text-[10px] uppercase text-gray-600 tracking-[0.2em] font-mono">Module_02: Product_Concept_Form</div>
+            <p className="text-[11px] text-[#94A3B8]">© 2024 Logomir OS. Architectural Platform for Solo Founders.</p>
             <div className="flex gap-6">
-              <a className="text-[#94A3B8] hover:text-[#0EA5E9] transition-colors text-[10px] uppercase font-mono" href="#">Help Center</a>
-              <a className="text-[#94A3B8] hover:text-[#0EA5E9] transition-colors text-[10px] uppercase font-mono" href="#">Privacy Policy</a>
+              <a className="text-[#94A3B8] hover:text-[#0EA5E9] transition-colors text-[10px] uppercase font-mono" href="#">Help_Center</a>
+              <a className="text-[#94A3B8] hover:text-[#0EA5E9] transition-colors text-[10px] uppercase font-mono" href="#">Privacy_Policy</a>
             </div>
           </div>
         </footer>
