@@ -1,8 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Rocket, Target, Users, Lightbulb, ArrowLeft, Building2, Layers, Upload, X, Loader2, Globe, Smartphone, Monitor } from "lucide-react";
+import { Rocket, Target, Users, Lightbulb, ArrowLeft, Building2, Upload, X, Loader2, Globe, Smartphone, Monitor } from "lucide-react";
 import { IdeaSelector } from "@/components/onboarding/IdeaSelector";
 import { PersonaSelector, PersonaType } from "@/components/onboarding/PersonaSelector";
 import { JourneyInfographic } from "@/components/onboarding/JourneyInfographic";
@@ -39,7 +38,6 @@ const Onboarding = () => {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [pendingProjectData, setPendingProjectData] = useState<any>(null);
-  const [aiHelpEnabled, setAiHelpEnabled] = useState(true);
   const [formData, setFormData] = useState({
     business: "",
     idea: "",
@@ -517,18 +515,18 @@ const Onboarding = () => {
 
             {/* Footer Actions */}
             <div className="pt-8 border-t border-[#1E293B] flex flex-col md:flex-row items-center justify-between gap-6">
-              {/* AI Help Toggle */}
-              <div className="flex items-center gap-4">
-                <Switch
-                  checked={aiHelpEnabled}
-                  onCheckedChange={setAiHelpEnabled}
-                  className="data-[state=checked]:bg-[#0EA5E9]"
-                />
-                <div className="flex flex-col">
+              {/* AI Help Button */}
+              <button
+                type="button"
+                onClick={() => setShowIdeaSelector(true)}
+                className="flex items-center gap-3 px-5 py-3 border border-[#0EA5E9]/30 bg-[#0EA5E9]/5 hover:bg-[#0EA5E9]/10 transition-all rounded-sm group"
+              >
+                <Lightbulb className="w-5 h-5 text-[#0EA5E9] group-hover:scale-110 transition-transform" />
+                <div className="flex flex-col text-left">
                   <span className="text-xs font-bold uppercase tracking-tight text-gray-200">Help with product vision</span>
-                  <span className="text-[10px] text-[#94A3B8] uppercase">AI will suggest missing features & goals</span>
+                  <span className="text-[10px] text-[#94A3B8] uppercase">AI will suggest ideas & features</span>
                 </div>
-              </div>
+              </button>
 
               {/* Action Buttons */}
               <div className="flex gap-4 w-full md:w-auto">
