@@ -10,7 +10,9 @@ import {
   ListTodo,
   CheckCircle,
   Circle,
-  ChevronRight
+  ChevronRight,
+  Plus,
+  ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -106,20 +108,31 @@ export const ScopePlanningSection = ({
             <div className="p-4 border-b border-[#1E293B] flex justify-between items-center bg-black/20">
               <h3 className="text-xs font-mono uppercase text-[#94A3B8] flex items-center gap-2">
                 <Users className="w-4 h-4" /> User Stories
+                <span className="text-[#0EA5E9]">({scopeData.userStories.length})</span>
               </h3>
-              <button
-                onClick={() => onAIGenerate("userStories")}
-                disabled={loadingSection === "userStories"}
-                className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
-              >
-                {loadingSection === "userStories" ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Sparkles className="w-4 h-4" />
-                )}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenDrawer("userStories")}
+                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  title="Add new"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => onAIGenerate("userStories")}
+                  disabled={loadingSection === "userStories"}
+                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  title="Generate with AI"
+                >
+                  {loadingSection === "userStories" ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
-            <div className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
+            <div className="p-4 space-y-3 max-h-[350px] overflow-y-auto">
               {scopeData.userStories.length > 0 ? (
                 scopeData.userStories.slice(0, 5).map((story, i) => (
                   <div 
@@ -145,39 +158,56 @@ export const ScopePlanningSection = ({
                   icon={Users}
                   label="No user stories yet"
                   onGenerate={() => onAIGenerate("userStories")}
+                  onAdd={() => onOpenDrawer("userStories")}
                   isGenerating={loadingSection === "userStories"}
                 />
               )}
-              {scopeData.userStories.length > 5 && (
-                <button 
-                  onClick={() => onOpenDrawer("userStories")}
-                  className="w-full p-2 text-[10px] font-mono uppercase text-[#0EA5E9] hover:bg-[#0EA5E9]/5 transition-colors"
-                >
-                  +{scopeData.userStories.length - 5} more stories
-                </button>
-              )}
+            </div>
+            {/* View & Edit All Button */}
+            <div className="p-3 border-t border-[#1E293B] bg-black/10">
+              <button 
+                onClick={() => onOpenDrawer("userStories")}
+                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase text-[#0EA5E9] hover:bg-[#0EA5E9]/10 transition-colors rounded border border-[#1E293B] hover:border-[#0EA5E9]/30"
+              >
+                <ExternalLink className="w-3 h-3" />
+                View & Edit All Items
+                {scopeData.userStories.length > 5 && (
+                  <span className="text-[#94A3B8]">(+{scopeData.userStories.length - 5} more)</span>
+                )}
+              </button>
             </div>
           </div>
 
           {/* Risks & Constraints */}
-          <div className="bg-[#121821] border border-[#1E293B] p-4">
-            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center justify-between">
-              <span className="flex items-center gap-2">
+          <div className="bg-[#121821] border border-[#1E293B] flex flex-col">
+            <div className="p-4 border-b border-[#1E293B] flex justify-between items-center bg-black/20">
+              <h3 className="text-xs font-mono uppercase text-[#94A3B8] flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" /> Risks & Constraints
-              </span>
-              <button
-                onClick={() => onAIGenerate("risksConstraints")}
-                disabled={loadingSection === "risksConstraints"}
-                className="text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
-              >
-                {loadingSection === "risksConstraints" ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Sparkles className="w-4 h-4" />
-                )}
-              </button>
-            </h3>
-            <div className="space-y-2">
+                <span className="text-[#0EA5E9]">({scopeData.risks.length})</span>
+              </h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenDrawer("risksConstraints")}
+                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  title="Add new"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => onAIGenerate("risksConstraints")}
+                  disabled={loadingSection === "risksConstraints"}
+                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  title="Generate with AI"
+                >
+                  {loadingSection === "risksConstraints" ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+            <div className="p-4 space-y-2">
               {scopeData.risks.length > 0 ? (
                 scopeData.risks.slice(0, 5).map((risk, i) => {
                   const impactColors = {
@@ -208,10 +238,21 @@ export const ScopePlanningSection = ({
                   icon={AlertTriangle}
                   label="No risks identified"
                   onGenerate={() => onAIGenerate("risksConstraints")}
+                  onAdd={() => onOpenDrawer("risksConstraints")}
                   isGenerating={loadingSection === "risksConstraints"}
                   small
                 />
               )}
+            </div>
+            {/* View & Edit All Button */}
+            <div className="p-3 border-t border-[#1E293B] bg-black/10 mt-auto">
+              <button 
+                onClick={() => onOpenDrawer("risksConstraints")}
+                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase text-[#0EA5E9] hover:bg-[#0EA5E9]/10 transition-colors rounded border border-[#1E293B] hover:border-[#0EA5E9]/30"
+              >
+                <ExternalLink className="w-3 h-3" />
+                View & Edit All
+              </button>
             </div>
           </div>
         </div>
@@ -219,15 +260,26 @@ export const ScopePlanningSection = ({
         {/* Middle Column - Features & Technical (5 cols) */}
         <div className="col-span-12 lg:col-span-5 space-y-6">
           {/* Feature Scope Matrix */}
-          <div className="bg-[#121821] border border-[#1E293B] p-5">
-            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center justify-between">
-              <span>Feature Scope Matrix</span>
+          <div className="bg-[#121821] border border-[#1E293B] flex flex-col">
+            <div className="p-4 border-b border-[#1E293B] flex justify-between items-center bg-black/20">
+              <h3 className="text-xs font-mono uppercase text-[#94A3B8] flex items-center gap-2">
+                <Layers className="w-4 h-4" /> Feature Scope Matrix
+                <span className="text-[#0EA5E9]">({scopeData.features.length})</span>
+              </h3>
               <div className="flex items-center gap-3">
-                <span className="text-[10px] text-[#0EA5E9]">MVP v1.0</span>
+                <span className="text-[10px] text-[#0EA5E9] font-mono">MVP v1.0</span>
+                <button
+                  onClick={() => onOpenDrawer("featureScope")}
+                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  title="Add new"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
                 <button
                   onClick={() => onAIGenerate("featureScope")}
                   disabled={loadingSection === "featureScope"}
-                  className="text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  title="Generate with AI"
                 >
                   {loadingSection === "featureScope" ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -236,8 +288,8 @@ export const ScopePlanningSection = ({
                   )}
                 </button>
               </div>
-            </h3>
-            <div className="grid grid-cols-1 gap-3">
+            </div>
+            <div className="p-4 space-y-3">
               {scopeData.features.length > 0 ? (
                 scopeData.features.slice(0, 4).map((feature, i) => (
                   <div 
@@ -264,84 +316,136 @@ export const ScopePlanningSection = ({
                   icon={Layers}
                   label="No features defined"
                   onGenerate={() => onAIGenerate("featureScope")}
+                  onAdd={() => onOpenDrawer("featureScope")}
                   isGenerating={loadingSection === "featureScope"}
                 />
               )}
-              {scopeData.features.length > 4 && (
-                <button 
-                  onClick={() => onOpenDrawer("featureScope")}
-                  className="p-2 text-[10px] font-mono uppercase text-[#0EA5E9] hover:bg-[#0EA5E9]/5 transition-colors border border-dashed border-[#1E293B]"
-                >
-                  +{scopeData.features.length - 4} more features
-                </button>
-              )}
+            </div>
+            {/* View & Edit All Button */}
+            <div className="p-3 border-t border-[#1E293B] bg-black/10 mt-auto">
+              <button 
+                onClick={() => onOpenDrawer("featureScope")}
+                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase text-[#0EA5E9] hover:bg-[#0EA5E9]/10 transition-colors rounded border border-[#1E293B] hover:border-[#0EA5E9]/30"
+              >
+                <ExternalLink className="w-3 h-3" />
+                View & Edit All Features
+                {scopeData.features.length > 4 && (
+                  <span className="text-[#94A3B8]">(+{scopeData.features.length - 4} more)</span>
+                )}
+              </button>
             </div>
           </div>
 
           {/* Technical Solution Blueprint */}
-          <div className="bg-[#121821] border border-[#1E293B] p-8 flex flex-col items-center justify-center text-center space-y-6 min-h-[300px]">
-            {scopeData.technicalSolution ? (
-              <div 
-                className="w-full text-left cursor-pointer"
-                onClick={() => onOpenDrawer("technicalSolution")}
-              >
-                <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 flex items-center gap-2">
-                  <Cpu className="w-4 h-4" /> Technical Solution Blueprint
-                </h3>
-                <div className="p-4 bg-black/30 border border-[#1E293B] rounded">
-                  <p className="text-sm text-gray-300 line-clamp-6 whitespace-pre-wrap">
-                    {scopeData.technicalSolution}
-                  </p>
-                </div>
-                <button className="mt-4 text-[10px] font-mono uppercase text-[#0EA5E9] hover:underline">
-                  Click to edit full blueprint →
+          <div className="bg-[#121821] border border-[#1E293B] flex flex-col min-h-[300px]">
+            <div className="p-4 border-b border-[#1E293B] flex justify-between items-center bg-black/20">
+              <h3 className="text-xs font-mono uppercase text-[#94A3B8] flex items-center gap-2">
+                <Cpu className="w-4 h-4" /> Technical Solution Blueprint
+              </h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenDrawer("technicalSolution")}
+                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  title="Edit"
+                >
+                  <ExternalLink className="w-4 h-4" />
                 </button>
-              </div>
-            ) : (
-              <>
-                <div className="w-16 h-16 rounded-full bg-gray-900 border border-dashed border-[#1E293B] flex items-center justify-center">
-                  <Cpu className="w-8 h-8 text-gray-600" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-gray-300">Technical Solution Blueprint</h3>
-                  <p className="text-xs text-[#94A3B8] mt-2">No architecture items generated yet. Let AI define your stack.</p>
-                </div>
-                <button 
+                <button
                   onClick={() => onAIGenerate("technicalSolution")}
                   disabled={loadingSection === "technicalSolution"}
-                  className="px-6 py-2.5 bg-[#0EA5E9] text-white text-xs font-bold uppercase rounded-sm flex items-center gap-2 hover:brightness-110 shadow-[0_0_20px_rgba(14,165,233,0.2)] disabled:opacity-50"
+                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  title="Generate with AI"
                 >
                   {loadingSection === "technicalSolution" ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Sparkles className="w-4 h-4" />
                   )}
-                  Generate with AI
                 </button>
-              </>
-            )}
+              </div>
+            </div>
+            <div className="p-6 flex-grow flex flex-col items-center justify-center text-center">
+              {scopeData.technicalSolution ? (
+                <div 
+                  className="w-full text-left cursor-pointer"
+                  onClick={() => onOpenDrawer("technicalSolution")}
+                >
+                  <div className="p-4 bg-black/30 border border-[#1E293B] rounded">
+                    <p className="text-sm text-gray-300 line-clamp-6 whitespace-pre-wrap">
+                      {scopeData.technicalSolution}
+                    </p>
+                  </div>
+                  <button className="mt-4 text-[10px] font-mono uppercase text-[#0EA5E9] hover:underline flex items-center gap-1">
+                    <ExternalLink className="w-3 h-3" />
+                    Click to edit full blueprint
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="w-16 h-16 rounded-full bg-gray-900 border border-dashed border-[#1E293B] flex items-center justify-center mb-4">
+                    <Cpu className="w-8 h-8 text-gray-600" />
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-300 mb-2">Technical Solution Blueprint</h3>
+                  <p className="text-xs text-[#94A3B8] mb-4">No architecture items generated yet. Let AI define your stack.</p>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => onOpenDrawer("technicalSolution")}
+                      className="px-4 py-2 border border-[#1E293B] text-[#94A3B8] text-xs font-medium uppercase rounded-sm flex items-center gap-2 hover:border-[#0EA5E9]/50 hover:text-white transition-colors"
+                    >
+                      <Plus className="w-3 h-3" />
+                      Add Manually
+                    </button>
+                    <button 
+                      onClick={() => onAIGenerate("technicalSolution")}
+                      disabled={loadingSection === "technicalSolution"}
+                      className="px-4 py-2 bg-[#0EA5E9] text-white text-xs font-bold uppercase rounded-sm flex items-center gap-2 hover:brightness-110 shadow-[0_0_20px_rgba(14,165,233,0.2)] disabled:opacity-50"
+                    >
+                      {loadingSection === "technicalSolution" ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-3 h-3" />
+                      )}
+                      Generate with AI
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Right Column - Milestones & Timeline (3 cols) */}
         <div className="col-span-12 lg:col-span-3 space-y-6">
           {/* Core Phases / Milestones */}
-          <div className="bg-[#121821] border border-[#1E293B] p-5">
-            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center justify-between">
-              <span>Core Phases</span>
-              <button
-                onClick={() => onAIGenerate("taskBreakdown")}
-                disabled={loadingSection === "taskBreakdown"}
-                className="text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
-              >
-                {loadingSection === "taskBreakdown" ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Sparkles className="w-4 h-4" />
-                )}
-              </button>
-            </h3>
-            <div className="space-y-4">
+          <div className="bg-[#121821] border border-[#1E293B] flex flex-col">
+            <div className="p-4 border-b border-[#1E293B] flex justify-between items-center bg-black/20">
+              <h3 className="text-xs font-mono uppercase text-[#94A3B8] flex items-center gap-2">
+                <ListTodo className="w-4 h-4" /> Core Phases
+                <span className="text-[#0EA5E9]">({scopeData.milestones.length})</span>
+              </h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenDrawer("taskBreakdown")}
+                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  title="Add new"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => onAIGenerate("taskBreakdown")}
+                  disabled={loadingSection === "taskBreakdown"}
+                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  title="Generate with AI"
+                >
+                  {loadingSection === "taskBreakdown" ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+            <div className="p-4 space-y-4">
               {scopeData.milestones.length > 0 ? (
                 scopeData.milestones.slice(0, 4).map((milestone, i) => {
                   const isActive = i === 0;
@@ -382,30 +486,54 @@ export const ScopePlanningSection = ({
                   icon={ListTodo}
                   label="No milestones defined"
                   onGenerate={() => onAIGenerate("taskBreakdown")}
+                  onAdd={() => onOpenDrawer("taskBreakdown")}
                   isGenerating={loadingSection === "taskBreakdown"}
                   small
                 />
               )}
             </div>
+            {/* View & Edit All Button */}
+            <div className="p-3 border-t border-[#1E293B] bg-black/10 mt-auto">
+              <button 
+                onClick={() => onOpenDrawer("taskBreakdown")}
+                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase text-[#0EA5E9] hover:bg-[#0EA5E9]/10 transition-colors rounded border border-[#1E293B] hover:border-[#0EA5E9]/30"
+              >
+                <ExternalLink className="w-3 h-3" />
+                View & Edit All
+              </button>
+            </div>
           </div>
 
           {/* Timeline Estimates */}
-          <div className="bg-[#121821] border border-[#1E293B] p-5">
-            <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-4 border-b border-[#1E293B] pb-2 flex items-center justify-between">
-              <span>Timeline Estimates</span>
-              <button
-                onClick={() => onAIGenerate("timeline")}
-                disabled={loadingSection === "timeline"}
-                className="text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
-              >
-                {loadingSection === "timeline" ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Sparkles className="w-4 h-4" />
-                )}
-              </button>
-            </h3>
-            <div className="space-y-4">
+          <div className="bg-[#121821] border border-[#1E293B] flex flex-col">
+            <div className="p-4 border-b border-[#1E293B] flex justify-between items-center bg-black/20">
+              <h3 className="text-xs font-mono uppercase text-[#94A3B8] flex items-center gap-2">
+                <Clock className="w-4 h-4" /> Timeline Estimates
+                <span className="text-[#0EA5E9]">({scopeData.timeline.length})</span>
+              </h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenDrawer("timeline")}
+                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  title="Add new"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => onAIGenerate("timeline")}
+                  disabled={loadingSection === "timeline"}
+                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  title="Generate with AI"
+                >
+                  {loadingSection === "timeline" ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+            <div className="p-4 space-y-4">
               {scopeData.timeline.length > 0 ? (
                 <>
                   {scopeData.timeline.slice(0, 4).map((phase, i) => {
@@ -442,10 +570,21 @@ export const ScopePlanningSection = ({
                   icon={Clock}
                   label="No timeline defined"
                   onGenerate={() => onAIGenerate("timeline")}
+                  onAdd={() => onOpenDrawer("timeline")}
                   isGenerating={loadingSection === "timeline"}
                   small
                 />
               )}
+            </div>
+            {/* View & Edit All Button */}
+            <div className="p-3 border-t border-[#1E293B] bg-black/10 mt-auto">
+              <button 
+                onClick={() => onOpenDrawer("timeline")}
+                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase text-[#0EA5E9] hover:bg-[#0EA5E9]/10 transition-colors rounded border border-[#1E293B] hover:border-[#0EA5E9]/30"
+              >
+                <ExternalLink className="w-3 h-3" />
+                View & Edit All
+              </button>
             </div>
           </div>
         </div>
@@ -459,12 +598,14 @@ const EmptyState = ({
   icon: Icon, 
   label, 
   onGenerate, 
+  onAdd,
   isGenerating, 
   small = false 
 }: { 
   icon: any; 
   label: string; 
   onGenerate: () => void; 
+  onAdd?: () => void;
   isGenerating: boolean;
   small?: boolean;
 }) => (
@@ -474,17 +615,28 @@ const EmptyState = ({
   )}>
     <Icon className={cn("text-gray-600 mb-2", small ? "w-6 h-6" : "w-8 h-8")} />
     <p className={cn("text-[#94A3B8] mb-3", small ? "text-[10px]" : "text-xs")}>{label}</p>
-    <button
-      onClick={onGenerate}
-      disabled={isGenerating}
-      className="px-3 py-1.5 bg-[#0EA5E9] text-white text-[10px] font-bold uppercase rounded-sm flex items-center gap-1.5 hover:brightness-110 disabled:opacity-50"
-    >
-      {isGenerating ? (
-        <Loader2 className="w-3 h-3 animate-spin" />
-      ) : (
-        <Sparkles className="w-3 h-3" />
+    <div className="flex gap-2">
+      {onAdd && (
+        <button
+          onClick={onAdd}
+          className="px-3 py-1.5 border border-[#1E293B] text-[#94A3B8] text-[10px] font-medium uppercase rounded-sm flex items-center gap-1.5 hover:border-[#0EA5E9]/50 hover:text-white transition-colors"
+        >
+          <Plus className="w-3 h-3" />
+          Add
+        </button>
       )}
-      Generate
-    </button>
+      <button
+        onClick={onGenerate}
+        disabled={isGenerating}
+        className="px-3 py-1.5 bg-[#0EA5E9] text-white text-[10px] font-bold uppercase rounded-sm flex items-center gap-1.5 hover:brightness-110 disabled:opacity-50"
+      >
+        {isGenerating ? (
+          <Loader2 className="w-3 h-3 animate-spin" />
+        ) : (
+          <Sparkles className="w-3 h-3" />
+        )}
+        Generate
+      </button>
+    </div>
   </div>
 );
