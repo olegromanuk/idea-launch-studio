@@ -88,7 +88,9 @@ const ARCHITECTURE_PATTERNS = [
   { id: "monolith", name: "Monolithic", description: "Single deployment unit" },
   { id: "microservices", name: "Microservices", description: "Distributed services" },
   { id: "serverless", name: "Serverless", description: "Event-driven functions" },
-  { id: "jamstack", name: "JAMstack", description: "Static + APIs" },
+  { id: "event-driven", name: "Event-Driven", description: "Async message passing" },
+  { id: "hexagonal", name: "Hexagonal", description: "Ports & adapters pattern" },
+  { id: "cqrs", name: "CQRS", description: "Command/Query separation" },
 ];
 
 export const ArchitectureDiagram = ({
@@ -340,7 +342,7 @@ function generateDefaultArchitecture(
 
   const connections: ArchitectureConnection[] = [];
 
-  if (pattern === "serverless" || pattern === "jamstack") {
+  if (pattern === "serverless") {
     nodes.push({
       id: "api",
       label: "Edge Functions",
@@ -370,8 +372,116 @@ function generateDefaultArchitecture(
       });
       connections.push({ from: "gateway", to: "auth-service", label: "gRPC" });
     }
+  } else if (pattern === "event-driven") {
+    // Event-Driven Architecture
+    nodes.push({
+      id: "api",
+      label: "API Layer",
+      type: "server",
+      icon: "server",
+      description: "Command ingestion",
+    });
+    connections.push({ from: "client", to: "api", label: "HTTPS" });
+    
+    nodes.push({
+      id: "eventbus",
+      label: "Event Bus",
+      type: "queue",
+      icon: "zap",
+      description: "Message broker (Kafka/RabbitMQ)",
+    });
+    connections.push({ from: "api", to: "eventbus", label: "Publish" });
+    
+    nodes.push({
+      id: "consumers",
+      label: "Event Handlers",
+      type: "server",
+      icon: "cpu",
+      description: "Async event processors",
+    });
+    connections.push({ from: "eventbus", to: "consumers", label: "Subscribe" });
+    
+  } else if (pattern === "hexagonal") {
+    // Hexagonal (Ports & Adapters) Architecture
+    nodes.push({
+      id: "adapters-in",
+      label: "Input Adapters",
+      type: "server",
+      icon: "server",
+      description: "REST, GraphQL, CLI",
+    });
+    connections.push({ from: "client", to: "adapters-in", label: "HTTP/gRPC" });
+    
+    nodes.push({
+      id: "domain",
+      label: "Domain Core",
+      type: "server",
+      icon: "cpu",
+      description: "Business logic & entities",
+    });
+    connections.push({ from: "adapters-in", to: "domain", label: "Ports" });
+    
+    nodes.push({
+      id: "adapters-out",
+      label: "Output Adapters",
+      type: "server",
+      icon: "harddrive",
+      description: "DB, APIs, File systems",
+    });
+    connections.push({ from: "domain", to: "adapters-out", label: "Ports" });
+    
+  } else if (pattern === "cqrs") {
+    // CQRS (Command Query Responsibility Segregation)
+    nodes.push({
+      id: "commands",
+      label: "Command API",
+      type: "server",
+      icon: "server",
+      description: "Write operations",
+    });
+    connections.push({ from: "client", to: "commands", label: "Commands" });
+    
+    nodes.push({
+      id: "write-db",
+      label: "Write Store",
+      type: "database",
+      icon: "database",
+      description: "Event sourcing / Write DB",
+    });
+    connections.push({ from: "commands", to: "write-db", label: "Persist" });
+    
+    nodes.push({
+      id: "sync",
+      label: "Sync Layer",
+      type: "queue",
+      icon: "zap",
+      description: "Event projection",
+    });
+    connections.push({ from: "write-db", to: "sync", label: "Events" });
+    
+    nodes.push({
+      id: "read-db",
+      label: "Read Store",
+      type: "database",
+      icon: "database",
+      description: "Optimized read models",
+    });
+    connections.push({ from: "sync", to: "read-db", label: "Project" });
+    
+    nodes.push({
+      id: "queries",
+      label: "Query API",
+      type: "server",
+      icon: "chart",
+      description: "Read operations",
+    });
+    connections.push({ from: "read-db", to: "queries", label: "Read" });
+    
+    // Client also connects to queries
+    connections.push({ from: "client", to: "queries", label: "Queries" });
+    
   } else {
-    // Monolith
+    // Monolith (default)
     nodes.push({
       id: "api",
       label: "API Server",
@@ -382,20 +492,28 @@ function generateDefaultArchitecture(
     connections.push({ from: "client", to: "api", label: "HTTPS/JSON" });
   }
 
-  // Add database
-  nodes.push({
-    id: "db",
-    label: "Primary DB",
-    type: "database",
-    icon: "database",
-    description: "PostgreSQL database",
-  });
-  
-  const lastServerNode = nodes[nodes.length - 2];
-  connections.push({ from: lastServerNode.id, to: "db", label: "PostgreSQL" });
+  // Add database for patterns that don't already have one
+  if (!["cqrs"].includes(pattern)) {
+    nodes.push({
+      id: "db",
+      label: "Primary DB",
+      type: "database",
+      icon: "database",
+      description: "PostgreSQL database",
+    });
+    
+    // Find the appropriate node to connect to DB
+    const dbSourceNode = pattern === "event-driven" 
+      ? "consumers" 
+      : pattern === "hexagonal" 
+        ? "adapters-out" 
+        : nodes.find(n => n.type === "server" && n.id !== "client")?.id || "api";
+    
+    connections.push({ from: dbSourceNode, to: "db", label: "PostgreSQL" });
+  }
 
   // Add external services based on detected needs
-  if (needsAuth && pattern !== "microservices") {
+  if (needsAuth && !["microservices"].includes(pattern)) {
     nodes.push({
       id: "auth",
       label: "Auth Provider",
@@ -403,7 +521,10 @@ function generateDefaultArchitecture(
       icon: "lock",
       description: "Authentication service",
     });
-    connections.push({ from: "api", to: "auth", label: "OAuth" });
+    const authSourceNode = pattern === "hexagonal" ? "adapters-out" : "api";
+    if (nodes.find(n => n.id === authSourceNode)) {
+      connections.push({ from: authSourceNode, to: "auth", label: "OAuth" });
+    }
   }
 
   if (needsPayment) {
@@ -440,7 +561,9 @@ function generateDefaultArchitecture(
     monolith: "Monolithic architecture with single API server and PostgreSQL database",
     microservices: "Microservices architecture with API gateway and distributed services",
     serverless: "Serverless architecture with edge functions for API endpoints",
-    jamstack: "JAMstack architecture with static frontend and API integrations",
+    "event-driven": "Event-Driven architecture with async message passing via event bus",
+    hexagonal: "Hexagonal (Ports & Adapters) architecture separating domain from infrastructure",
+    cqrs: "CQRS architecture with separate read/write models and event projection",
   };
 
   return {
