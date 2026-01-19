@@ -56,12 +56,20 @@ import { useNavigate } from "react-router-dom";
 import { ArchitectureDiagram } from "./ArchitectureDiagram";
 import { exportToPDF } from "@/lib/exportUtils";
 
+interface DomainResult {
+  available: boolean;
+  domain: string;
+  price?: number;
+  currency?: string;
+}
+
 interface DomainCheckResult {
   available: boolean;
   domain: string;
   price?: number;
   currency?: string;
   error?: string;
+  alternatives?: DomainResult[];
 }
 
 interface ScopeData {
@@ -1330,13 +1338,66 @@ export const DevelopmentSubmissionForm = ({
                   ) : (
                     <>
                       <XCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm text-yellow-400 font-medium">
                           {domainCheckResult.domain} is not available
                         </p>
-                        <p className="text-xs text-yellow-400/70">
-                          This domain is already registered. Try a different name or TLD.
+                        <p className="text-xs text-yellow-400/70 mb-2">
+                          This domain is already registered. Try a different name or check the alternatives below.
                         </p>
+                        
+                        {/* Alternative TLD Suggestions */}
+                        {domainCheckResult.alternatives && domainCheckResult.alternatives.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-yellow-500/20">
+                            <p className="text-xs text-[#94A3B8] font-mono uppercase mb-2 flex items-center gap-1">
+                              <Globe className="w-3 h-3" /> Available Alternatives
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {domainCheckResult.alternatives.map((alt) => (
+                                <button
+                                  key={alt.domain}
+                                  onClick={() => {
+                                    setFormData(prev => ({ ...prev, customDomain: alt.domain }));
+                                    setDomainInputValue(alt.domain);
+                                    setDomainCheckResult({
+                                      ...domainCheckResult,
+                                      available: true,
+                                      domain: alt.domain,
+                                      price: alt.price,
+                                      currency: alt.currency,
+                                      alternatives: undefined,
+                                    });
+                                    toast({
+                                      title: "Domain selected",
+                                      description: `${alt.domain} has been set as your custom domain.`,
+                                    });
+                                  }}
+                                  className="flex items-center justify-between p-2 bg-green-500/10 border border-green-500/30 rounded hover:bg-green-500/20 transition-colors group"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                                    <span className="text-sm text-green-400 font-medium">{alt.domain}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {alt.price && (
+                                      <span className="text-xs text-green-400/70">
+                                        ${alt.price.toFixed(2)}/{alt.currency || 'USD'}
+                                      </span>
+                                    )}
+                                    <ChevronRight className="w-4 h-4 text-green-400/50 group-hover:text-green-400 transition-colors" />
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* No alternatives found message */}
+                        {(!domainCheckResult.alternatives || domainCheckResult.alternatives.length === 0) && (
+                          <p className="text-xs text-[#94A3B8]/70 mt-2">
+                            No alternative TLDs available. Try a different domain name.
+                          </p>
+                        )}
                       </div>
                     </>
                   )}
