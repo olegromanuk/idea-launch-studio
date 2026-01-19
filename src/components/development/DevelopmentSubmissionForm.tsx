@@ -51,6 +51,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { ArchitectureDiagram } from "./ArchitectureDiagram";
+import { exportToPDF } from "@/lib/exportUtils";
 
 interface ScopeData {
   userStories: any[];
@@ -462,7 +464,30 @@ export const DevelopmentSubmissionForm = ({
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-[#1E293B] bg-[#121821] hover:border-[#0EA5E9]/50 transition-colors text-sm font-medium">
+          <button 
+            onClick={() => {
+              const canvasTabs = [
+                {
+                  id: "scope",
+                  title: "Project Scope",
+                  sections: [
+                    { key: "features", title: "Features", subtitle: "" },
+                    { key: "userStories", title: "User Stories", subtitle: "" },
+                    { key: "technicalSolution", title: "Technical Solution", subtitle: "" },
+                  ],
+                },
+              ];
+              const exportData: Record<string, string> = {
+                features: scopeData.features.map((f) => f.name).join("\n"),
+                userStories: scopeData.userStories.map((s) => `As a ${s.persona}, I want to ${s.action}`).join("\n"),
+                technicalSolution: scopeData.technicalSolution || "",
+                ...canvasData,
+              };
+              exportToPDF(exportData, canvasTabs, formData.projectName || "Development Blueprint");
+              toast({ title: "PDF exported", description: "Your blueprint has been downloaded." });
+            }}
+            className="flex items-center gap-2 px-4 py-2 border border-[#1E293B] bg-[#121821] hover:border-[#00f0ff]/50 transition-colors text-sm font-medium"
+          >
             <Download className="w-4 h-4" />
             Export PDF
           </button>
@@ -830,70 +855,11 @@ export const DevelopmentSubmissionForm = ({
 
         {/* Full Width - System Architecture */}
         <div className="col-span-12 mt-2">
-          <div className="bg-[#121821] border border-[#1E293B] p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-20">
-              <Workflow className="w-16 h-16 text-gray-800" />
-            </div>
-            
-            <div className="flex justify-between items-end mb-6 relative z-10">
-              <div>
-                <h3 className="text-xs font-mono uppercase text-[#94A3B8] mb-1">System Architecture</h3>
-                <h2 className="text-xl font-bold text-white">Data Flow & Dependencies</h2>
-              </div>
-              <div className="flex gap-4 text-xs">
-                <div className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-blue-500" />
-                  <span className="text-gray-400">Client</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-purple-500" />
-                  <span className="text-gray-400">Server</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-orange-500" />
-                  <span className="text-gray-400">Database</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative h-48 border border-dashed border-gray-700 rounded bg-[#0A0E14] flex items-center justify-around px-12">
-              {/* Web App Node */}
-              <div className="flex flex-col items-center gap-2 relative z-10 group">
-                <div className="w-16 h-16 rounded-lg bg-blue-500/10 border border-blue-500 flex items-center justify-center group-hover:bg-blue-500/20 transition-all shadow-[0_0_15px_-5px_rgba(59,130,246,0.5)]">
-                  <Laptop className="w-6 h-6 text-blue-400" />
-                </div>
-                <span className="text-xs font-mono text-blue-400">Web App</span>
-              </div>
-
-              {/* Connection Line 1 */}
-              <div className="h-0.5 flex-grow bg-gray-700 relative mx-4">
-                <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 px-2 bg-[#0A0E14] text-[10px] text-gray-500 font-mono">HTTPS/JSON</div>
-                <div className="absolute right-0 -top-1 w-2 h-2 border-t-2 border-r-2 border-gray-700 transform rotate-45" />
-              </div>
-
-              {/* API Gateway Node */}
-              <div className="flex flex-col items-center gap-2 relative z-10 group">
-                <div className="w-16 h-16 rounded-lg bg-purple-500/10 border border-purple-500 flex items-center justify-center group-hover:bg-purple-500/20 transition-all shadow-[0_0_15px_-5px_rgba(168,85,247,0.5)]">
-                  <Server className="w-6 h-6 text-purple-400" />
-                </div>
-                <span className="text-xs font-mono text-purple-400">API Gateway</span>
-              </div>
-
-              {/* Connection Line 2 */}
-              <div className="h-0.5 flex-grow bg-gray-700 relative mx-4">
-                <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 px-2 bg-[#0A0E14] text-[10px] text-gray-500 font-mono">PostgreSQL</div>
-                <div className="absolute right-0 -top-1 w-2 h-2 border-t-2 border-r-2 border-gray-700 transform rotate-45" />
-              </div>
-
-              {/* Database Node */}
-              <div className="flex flex-col items-center gap-2 relative z-10 group">
-                <div className="w-16 h-16 rounded-lg bg-orange-500/10 border border-orange-500 flex items-center justify-center group-hover:bg-orange-500/20 transition-all shadow-[0_0_15px_-5px_rgba(249,115,22,0.5)]">
-                  <Database className="w-6 h-6 text-orange-400" />
-                </div>
-                <span className="text-xs font-mono text-orange-400">Primary DB</span>
-              </div>
-            </div>
-          </div>
+          <ArchitectureDiagram
+            canvasData={canvasData}
+            scopeData={scopeData}
+            selectedFeatures={selectedFeatures}
+          />
         </div>
       </div>
 
