@@ -4,7 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Trash2, Plus, FileDown, ZoomIn, ZoomOut, Maximize2, Grid3X3, Map, Link2, Sparkles, MoreVertical, MousePointer2 } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, FileDown, ZoomIn, ZoomOut, Maximize2, Grid3X3, Map, Link2, Sparkles, MoreVertical, MousePointer2, Pencil } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import jsPDF from "jspdf";
 import { cn } from "@/lib/utils";
 import { ConnectionLayer } from "@/components/board/ConnectionLayer";
@@ -61,6 +71,11 @@ const Board = () => {
   const [showAddElement, setShowAddElement] = useState(false);
   const [showAIDiagram, setShowAIDiagram] = useState(false);
   const [currentBoardId, setCurrentBoardId] = useState<string | null>(null);
+  
+  // Edit state
+  const [editingElement, setEditingElement] = useState<BoardElement | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
 
   // Board dimensions for minimap
   const BOARD_WIDTH = 3000;
@@ -514,6 +529,47 @@ const Board = () => {
     });
   };
 
+  const handleEditElement = (element: BoardElement) => {
+    setEditingElement(element);
+    setEditTitle(element.section_title);
+    setEditContent(element.content);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingElement) return;
+    
+    const { error } = await supabase
+      .from("dashboard_elements")
+      .update({
+        section_title: editTitle,
+        content: editContent,
+      })
+      .eq("id", editingElement.id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update element",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setElements(prev =>
+      prev.map(el =>
+        el.id === editingElement.id
+          ? { ...el, section_title: editTitle, content: editContent }
+          : el
+      )
+    );
+    
+    setEditingElement(null);
+    toast({
+      title: "Element updated",
+      description: "Your changes have been saved",
+    });
+  };
+
   const handleExportToPDF = (element: BoardElement) => {
     const doc = new jsPDF({
       orientation: 'landscape',
@@ -929,6 +985,18 @@ const Board = () => {
                       className="delete-btn h-7 w-7 text-zinc-500 hover:bg-[#38BDF8]/10 hover:text-[#38BDF8]"
                       onClick={(e) => {
                         e.stopPropagation();
+                        handleEditElement(element);
+                      }}
+                      title="Edit element"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="delete-btn h-7 w-7 text-zinc-500 hover:bg-[#38BDF8]/10 hover:text-[#38BDF8]"
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleExportToPDF(element);
                       }}
                       title="Export to PDF"
@@ -1084,6 +1152,56 @@ const Board = () => {
         onOpenChange={setShowAIDiagram}
         onGenerate={handleAIDiagramGenerate}
       />
+
+      {/* Edit Element Dialog */}
+      <Dialog open={!!editingElement} onOpenChange={(open) => !open && setEditingElement(null)}>
+        <DialogContent className="bg-[#141820] border-[#262c3a] text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-[#38BDF8]" />
+              Edit Element
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Update the title and content of this element.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-300">Title</label>
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="bg-[#0a0a0a] border-[#262c3a] text-white focus:border-[#38BDF8]"
+                placeholder="Element title"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-300">Content</label>
+              <Textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="bg-[#0a0a0a] border-[#262c3a] text-white focus:border-[#38BDF8] min-h-[200px]"
+                placeholder="Element content..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditingElement(null)}
+              className="border-[#262c3a] text-zinc-400 hover:text-white hover:bg-[#262c3a]"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEdit}
+              className="bg-[#38BDF8] text-black font-bold hover:opacity-90"
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
