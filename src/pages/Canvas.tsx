@@ -703,7 +703,8 @@ const Canvas = () => {
     if (blockId === "business") return false;
     if (blockId === "scope") return !validatedBlocks.has("business");
     if (blockId === "development") return !validatedBlocks.has("scope");
-    if (blockId === "gtm") return !validatedBlocks.has("development");
+    // GTM unlocks when development is validated OR when a submission exists
+    if (blockId === "gtm") return !validatedBlocks.has("development") && !submissionStatus;
     return false;
   };
 
@@ -1272,11 +1273,23 @@ const Canvas = () => {
                         scopeData={scopeData}
                         canvasData={canvasData}
                         onSubmitSuccess={() => {
+                          // Set submission status to unlock GTM tab
+                          setSubmissionStatus("submitted");
+                          
+                          // Show unlock notification for Market Product Fit
+                          setTimeout(() => {
+                            setUnlockedBlock("gtm");
+                            toast({
+                              title: "🎉 Market Product Fit Unlocked!",
+                              description: "Your development submission is complete. You can now work on your go-to-market strategy.",
+                            });
+                            setTimeout(() => setUnlockedBlock(null), 2000);
+                          }, 500);
+                          
                           toast({
                             title: "Submission successful!",
                             description: "Your project has been submitted for development. You can track progress in My Submissions.",
                           });
-                          navigate("/my-submissions");
                         }}
                       />
                     </div>
