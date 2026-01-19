@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   Laptop,
   Server,
@@ -24,6 +25,130 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+// Animated connection line component
+const AnimatedConnection = ({ 
+  direction = "horizontal", 
+  label, 
+  delay = 0,
+  color = "#00f0ff"
+}: { 
+  direction?: "horizontal" | "vertical"; 
+  label: string; 
+  delay?: number;
+  color?: string;
+}) => {
+  if (direction === "vertical") {
+    return (
+      <div className="flex flex-col items-center relative">
+        <div className="w-0.5 h-8 bg-gray-700 relative overflow-hidden">
+          {/* Animated pulse traveling down */}
+          <motion.div
+            className="absolute w-full h-3 rounded-full"
+            style={{ 
+              background: `linear-gradient(180deg, transparent, ${color}, transparent)`,
+              boxShadow: `0 0 8px ${color}`
+            }}
+            initial={{ top: "-12px" }}
+            animate={{ top: "32px" }}
+            transition={{
+              duration: 1.2,
+              repeat: Infinity,
+              delay,
+              ease: "easeInOut",
+            }}
+          />
+        </div>
+        <div className="text-[8px] text-gray-500 font-mono my-1 bg-[#0A0E14] px-1 relative z-10">{label}</div>
+        <motion.div 
+          className="w-2 h-2 border-b-2 border-r-2 transform rotate-45 -mt-1"
+          style={{ borderColor: color }}
+          animate={{ 
+            opacity: [0.5, 1, 0.5],
+            scale: [0.9, 1.1, 0.9]
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            delay,
+          }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-0.5 w-16 md:w-24 bg-gray-700 relative mx-4 flex-shrink-0 overflow-hidden">
+      {/* Animated pulse traveling right */}
+      <motion.div
+        className="absolute h-full w-6 rounded-full"
+        style={{ 
+          background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+          boxShadow: `0 0 8px ${color}`
+        }}
+        initial={{ left: "-24px" }}
+        animate={{ left: "100%" }}
+        transition={{
+          duration: 1.5,
+          repeat: Infinity,
+          delay,
+          ease: "easeInOut",
+        }}
+      />
+      <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 px-2 bg-[#0A0E14] text-[10px] text-gray-500 font-mono whitespace-nowrap z-10">
+        {label}
+      </div>
+      <motion.div 
+        className="absolute right-0 -top-1 w-2 h-2 border-t-2 border-r-2 transform rotate-45"
+        style={{ borderColor: color }}
+        animate={{ 
+          opacity: [0.5, 1, 0.5],
+          x: [0, 2, 0]
+        }}
+        transition={{
+          duration: 1,
+          repeat: Infinity,
+          delay,
+        }}
+      />
+    </div>
+  );
+};
+
+// Animated group connector
+const AnimatedGroupConnector = ({ delay = 0 }: { delay?: number }) => (
+  <div className="flex flex-col items-center relative">
+    <div className="w-0.5 h-6 bg-gray-600 relative overflow-hidden">
+      <motion.div
+        className="absolute w-full h-2 rounded-full"
+        style={{ 
+          background: "linear-gradient(180deg, transparent, #00f0ff, transparent)",
+          boxShadow: "0 0 6px #00f0ff"
+        }}
+        initial={{ top: "-8px" }}
+        animate={{ top: "24px" }}
+        transition={{
+          duration: 0.8,
+          repeat: Infinity,
+          delay,
+          ease: "easeInOut",
+        }}
+      />
+    </div>
+    <motion.div 
+      className="w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] transform rotate-45 -mt-1"
+      animate={{ 
+        opacity: [0.5, 1, 0.5],
+        scale: [0.9, 1.1, 0.9]
+      }}
+      transition={{
+        duration: 1,
+        repeat: Infinity,
+        delay,
+      }}
+    />
+  </div>
+);
 
 interface ArchitectureNode {
   id: string;
@@ -280,16 +405,12 @@ export const ArchitectureDiagram = ({
             
             {/* Connection arrows from client */}
             <div className="flex justify-center gap-16">
-              {architecture.groups.map((group) => {
+              {architecture.groups.map((group, idx) => {
                 const groupNodes = architecture.nodes.filter(n => n.group === group.id);
                 if (groupNodes.length === 0) return null;
-                const groupColors = GROUP_COLORS[group.id] || GROUP_COLORS.core;
                 
                 return (
-                  <div key={group.id} className="flex flex-col items-center">
-                    <div className="w-0.5 h-6 bg-gray-600" />
-                    <div className="w-2 h-2 border-b-2 border-r-2 border-gray-600 transform rotate-45 -mt-1" />
-                  </div>
+                  <AnimatedGroupConnector key={group.id} delay={idx * 0.3} />
                 );
               })}
             </div>
@@ -345,11 +466,12 @@ export const ArchitectureDiagram = ({
                             
                             {/* Internal connection arrow */}
                             {internalConnection && idx < groupNodes.length - 1 && (
-                              <div className="flex flex-col items-center">
-                                <div className="w-0.5 h-4 bg-gray-600" />
-                                <div className="text-[8px] text-gray-500 font-mono my-1">{internalConnection.label}</div>
-                                <div className="w-2 h-2 border-b-2 border-r-2 border-gray-600 transform rotate-45 -mt-1" />
-                              </div>
+                              <AnimatedConnection 
+                                direction="vertical" 
+                                label={internalConnection.label} 
+                                delay={idx * 0.2}
+                                color="#00f0ff"
+                              />
                             )}
                           </div>
                         );
@@ -413,12 +535,12 @@ export const ArchitectureDiagram = ({
 
                   {/* Connection */}
                   {connection && index < architecture.nodes.length - 1 && (
-                    <div className="h-0.5 w-16 md:w-24 bg-gray-700 relative mx-4 flex-shrink-0">
-                      <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 px-2 bg-[#0A0E14] text-[10px] text-gray-500 font-mono whitespace-nowrap">
-                        {connection.label}
-                      </div>
-                      <div className="absolute right-0 -top-1 w-2 h-2 border-t-2 border-r-2 border-gray-700 transform rotate-45" />
-                    </div>
+                    <AnimatedConnection 
+                      direction="horizontal" 
+                      label={connection.label} 
+                      delay={index * 0.3}
+                      color="#00f0ff"
+                    />
                   )}
                 </div>
               );
