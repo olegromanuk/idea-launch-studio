@@ -614,7 +614,7 @@ const Board = () => {
   const viewport = getViewportRect();
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col overflow-x-hidden">
+    <div className="h-screen bg-[#050505] flex flex-col overflow-hidden">
       {/* Blueprint Grid Background */}
       <div 
         className="fixed inset-0 pointer-events-none z-0"
@@ -662,7 +662,7 @@ const Board = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-grow relative w-full p-8 z-10">
+      <div className="relative w-full px-8 pt-6 pb-4 z-10 flex-shrink-0">
         {/* Header Section */}
         <div className="relative z-10 mb-8 flex justify-between items-end max-w-7xl mx-auto">
           <div>
@@ -790,13 +790,13 @@ const Board = () => {
             </Button>
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Board Area */}
       <div
         ref={containerRef}
         className={cn(
-          "relative flex-1 overflow-hidden",
+          "relative flex-1 min-h-0 overflow-hidden",
           isPanning || spacePressed ? "cursor-grab" : connectMode ? "cursor-crosshair" : "cursor-default",
           isPanning && "cursor-grabbing"
         )}
