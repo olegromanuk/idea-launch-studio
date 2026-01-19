@@ -412,7 +412,7 @@ export const ModuleEditorModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] max-h-[850px] p-0 bg-[#0A0A0A] border border-[#00f0ff] shadow-[0_0_15px_rgba(0,240,255,0.2)] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-6xl h-[90vh] max-h-[850px] p-0 bg-[#0A0A0A] border border-[#00f0ff] shadow-[0_0_15px_rgba(0,240,255,0.2)] overflow-hidden flex flex-col [&>button]:hidden">
         {/* Corner accents */}
         <div className="absolute bottom-1 right-1 w-2 h-2 border-b-2 border-r-2 border-[#00f0ff]/50" />
         <div className="absolute top-1 left-1 w-2 h-2 border-t-2 border-l-2 border-[#00f0ff]/50" />
@@ -503,7 +503,7 @@ export const ModuleEditorModal = ({
                     <div>
                       <div className="flex justify-between items-center mb-3">
                         <label className="block text-[10px] font-mono text-[#00f0ff] uppercase tracking-widest">
-                          {config.listItemLabel}s ({structuredContent.items.length}/{config.maxItems || 10})
+                          {sectionKey === 'uniqueValueProposition' ? 'Differentiator' : config.listItemLabel}s ({structuredContent.items.length}/{config.maxItems || 10})
                         </label>
                       </div>
                       
