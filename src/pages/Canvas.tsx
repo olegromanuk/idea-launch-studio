@@ -1117,6 +1117,7 @@ const Canvas = () => {
                         loadingSection={loadingSection}
                         onAIGenerate={(section) => generateSuggestions(section)}
                         onOpenDrawer={(section) => setOpenScopeDrawer(section)}
+                        onInitializeBuild={() => setActiveTab("development")}
                         projectData={projectData}
                       />
 
