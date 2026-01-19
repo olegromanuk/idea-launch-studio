@@ -157,29 +157,73 @@ interface ModuleEditorModalProps {
 
 type TabType = "content" | "style" | "logic";
 
-// Parse existing content into structured format
+// Parse existing content into structured format - smarter parsing
 const parseContent = (content: string, sectionKey: string): StructuredContent => {
   const config = SECTION_CONFIG[sectionKey];
   const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   
   const fields: Record<string, string> = {};
   const items: string[] = [];
+  const nonListLines: string[] = [];
   
   lines.forEach(line => {
-    // Check if it's a field (contains label:)
-    const fieldMatch = config?.fields.find(f => 
-      line.toLowerCase().startsWith(f.label.toLowerCase() + ':')
-    );
+    // Check for labeled field format: "Label:" or "**Label:**" or "Label :"
+    let matched = false;
     
-    if (fieldMatch) {
-      fields[fieldMatch.key] = line.substring(fieldMatch.label.length + 1).trim();
-    } else {
-      // It's a list item - remove markdown list prefixes
-      let cleaned = line.replace(/^[-*+]\s+/, '').replace(/^\d+\.\s+/, '');
-      cleaned = cleaned.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
-      if (cleaned) items.push(cleaned);
+    for (const field of (config?.fields || [])) {
+      const labelPatterns = [
+        new RegExp(`^\\*\\*${field.label}:\\*\\*\\s*(.*)`, 'i'),
+        new RegExp(`^\\*\\*${field.label}\\*\\*:\\s*(.*)`, 'i'),
+        new RegExp(`^${field.label}:\\s*(.*)`, 'i'),
+        new RegExp(`^${field.label}\\s*:\\s*(.*)`, 'i'),
+      ];
+      
+      for (const pattern of labelPatterns) {
+        const match = line.match(pattern);
+        if (match) {
+          fields[field.key] = match[1].trim();
+          matched = true;
+          break;
+        }
+      }
+      if (matched) break;
+    }
+    
+    if (!matched) {
+      // Check if it's a list item
+      const listMatch = line.match(/^[-*+•]\s+(.+)/) || line.match(/^\d+\.\s+(.+)/);
+      if (listMatch) {
+        let cleaned = listMatch[1];
+        cleaned = cleaned.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
+        if (cleaned.trim()) items.push(cleaned.trim());
+      } else {
+        // Regular text line
+        nonListLines.push(line);
+      }
     }
   });
+  
+  // If no fields were matched, try to intelligently assign first non-list lines to fields
+  if (Object.keys(fields).length === 0 && nonListLines.length > 0 && config?.fields.length) {
+    // First substantial line goes to the first field
+    const firstField = config.fields[0];
+    if (firstField && nonListLines[0]) {
+      let value = nonListLines[0];
+      value = value.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
+      fields[firstField.key] = value;
+    }
+    
+    // If there are more non-list lines and more fields, assign them
+    if (nonListLines.length > 1 && config.fields.length > 1) {
+      const secondField = config.fields[1];
+      if (secondField) {
+        const remainingLines = nonListLines.slice(1);
+        fields[secondField.key] = remainingLines.map(l => 
+          l.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1')
+        ).join(' ');
+      }
+    }
+  }
   
   return { fields, items };
 };
@@ -189,16 +233,17 @@ const stringifyContent = (structured: StructuredContent, sectionKey: string): st
   const config = SECTION_CONFIG[sectionKey];
   const lines: string[] = [];
   
-  // Add fields
+  // Add fields with markdown formatting
   config?.fields.forEach(field => {
     if (structured.fields[field.key]) {
       lines.push(`**${field.label}:** ${structured.fields[field.key]}`);
     }
   });
   
-  // Add items
+  // Add items as bullet list
   if (structured.items.length > 0) {
-    lines.push(''); // Empty line before list
+    if (lines.length > 0) lines.push(''); // Empty line before list
+    lines.push(`**${config?.listItemLabel || 'Item'}s:**`);
     structured.items.forEach(item => {
       lines.push(`- ${item}`);
     });
