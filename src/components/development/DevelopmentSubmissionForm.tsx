@@ -72,6 +72,13 @@ interface DomainCheckResult {
   alternatives?: DomainResult[];
 }
 
+interface DomainSuggestion {
+  domain: string;
+  style: string;
+  isChecking?: boolean;
+  availability?: DomainResult | null;
+}
+
 interface ScopeData {
   userStories: any[];
   features: any[];
@@ -157,6 +164,10 @@ export const DevelopmentSubmissionForm = ({
   const [isCheckingDomain, setIsCheckingDomain] = useState(false);
   const [domainInputValue, setDomainInputValue] = useState("");
   
+  // AI Domain suggestions
+  const [domainSuggestions, setDomainSuggestions] = useState<DomainSuggestion[]>([]);
+  const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
+  
   // Form state
   const [formData, setFormData] = useState({
     projectName: projectData?.idea || "",
@@ -219,6 +230,89 @@ export const DevelopmentSubmissionForm = ({
       setIsCheckingDomain(false);
     }
   }, []);
+
+  // Generate AI domain name suggestions
+  const generateDomainSuggestions = useCallback(async () => {
+    if (!formData.projectName) {
+      toast({
+        title: "Project name required",
+        description: "Please enter a project name first to generate domain suggestions.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingSuggestions(true);
+    setDomainSuggestions([]);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-domain-suggestions', {
+        body: { 
+          projectName: formData.projectName,
+          keywords: formData.projectDescription?.split(' ').slice(0, 5).join(' ') || '',
+        }
+      });
+
+      if (error) {
+        console.error('Domain suggestions error:', error);
+        toast({
+          title: "Failed to generate suggestions",
+          description: error.message || "Please try again later.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.suggestions) {
+        setDomainSuggestions(data.suggestions);
+        toast({
+          title: "Suggestions generated!",
+          description: `Found ${data.suggestions.length} domain name ideas.`,
+        });
+      }
+    } catch (err) {
+      console.error('Domain suggestions error:', err);
+      toast({
+        title: "Error generating suggestions",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingSuggestions(false);
+    }
+  }, [formData.projectName, formData.projectDescription, toast]);
+
+  // Check availability for a suggested domain
+  const checkSuggestionAvailability = useCallback(async (index: number) => {
+    const suggestion = domainSuggestions[index];
+    if (!suggestion) return;
+
+    // Mark as checking
+    setDomainSuggestions(prev => prev.map((s, i) => 
+      i === index ? { ...s, isChecking: true } : s
+    ));
+
+    try {
+      const { data, error } = await supabase.functions.invoke('check-domain-availability', {
+        body: { domain: suggestion.domain, checkAlternatives: false }
+      });
+
+      if (error) {
+        setDomainSuggestions(prev => prev.map((s, i) => 
+          i === index ? { ...s, isChecking: false, availability: null } : s
+        ));
+        return;
+      }
+
+      setDomainSuggestions(prev => prev.map((s, i) => 
+        i === index ? { ...s, isChecking: false, availability: data } : s
+      ));
+    } catch (err) {
+      setDomainSuggestions(prev => prev.map((s, i) => 
+        i === index ? { ...s, isChecking: false, availability: null } : s
+      ));
+    }
+  }, [domainSuggestions]);
 
   // Check for existing submissions on mount
   useEffect(() => {
@@ -1403,6 +1497,128 @@ export const DevelopmentSubmissionForm = ({
                   )}
                 </div>
               )}
+
+              {/* AI Domain Name Generator */}
+              <div className="mt-4 pt-4 border-t border-[#1E293B]">
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-[#94A3B8] text-xs font-mono uppercase flex items-center gap-2">
+                    <Bot className="w-4 h-4" /> AI Domain Generator
+                  </Label>
+                  <button
+                    onClick={generateDomainSuggestions}
+                    disabled={isGeneratingSuggestions || !formData.projectName}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase transition-colors rounded",
+                      "bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30",
+                      "disabled:opacity-50 disabled:cursor-not-allowed"
+                    )}
+                  >
+                    {isGeneratingSuggestions ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Bot className="w-3 h-3" />
+                        Generate Ideas
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <p className="text-xs text-[#94A3B8]/70 mb-3">
+                  Generate creative domain name suggestions based on your project name using AI.
+                </p>
+
+                {/* Suggestions Grid */}
+                {domainSuggestions.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                    {domainSuggestions.map((suggestion, index) => (
+                      <div
+                        key={suggestion.domain}
+                        className={cn(
+                          "p-3 border rounded transition-all",
+                          suggestion.availability?.available === true
+                            ? "bg-green-500/10 border-green-500/30"
+                            : suggestion.availability?.available === false
+                              ? "bg-red-500/10 border-red-500/30"
+                              : "bg-[#0d1117] border-[#1E293B] hover:border-[#0EA5E9]/30"
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className={cn(
+                              "font-medium text-sm truncate",
+                              suggestion.availability?.available === true
+                                ? "text-green-400"
+                                : suggestion.availability?.available === false
+                                  ? "text-red-400"
+                                  : "text-white"
+                            )}>
+                              {suggestion.domain}
+                            </p>
+                            <p className="text-[10px] text-[#94A3B8]/70 mt-0.5 truncate">
+                              {suggestion.style}
+                            </p>
+                          </div>
+                          
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {suggestion.isChecking ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-[#0EA5E9]" />
+                            ) : suggestion.availability === undefined ? (
+                              <button
+                                onClick={() => checkSuggestionAvailability(index)}
+                                className="text-[10px] px-2 py-1 bg-[#1E293B] text-[#94A3B8] hover:text-white rounded transition-colors"
+                              >
+                                Check
+                              </button>
+                            ) : suggestion.availability?.available ? (
+                              <button
+                                onClick={() => {
+                                  setFormData(prev => ({ ...prev, customDomain: suggestion.domain }));
+                                  setDomainInputValue(suggestion.domain);
+                                  toast({
+                                    title: "Domain selected",
+                                    description: `${suggestion.domain} has been set as your custom domain.`,
+                                  });
+                                }}
+                                className="flex items-center gap-1 text-[10px] px-2 py-1 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded transition-colors"
+                              >
+                                <Check className="w-3 h-3" /> Use
+                              </button>
+                            ) : (
+                              <span className="text-[10px] text-red-400/70">Taken</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {suggestion.availability?.available && suggestion.availability.price && (
+                          <p className="text-[10px] text-green-400/70 mt-1">
+                            ~${suggestion.availability.price.toFixed(2)}/yr
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Check all button */}
+                {domainSuggestions.length > 0 && domainSuggestions.some(s => s.availability === undefined && !s.isChecking) && (
+                  <button
+                    onClick={() => {
+                      domainSuggestions.forEach((s, i) => {
+                        if (s.availability === undefined && !s.isChecking) {
+                          setTimeout(() => checkSuggestionAvailability(i), i * 500);
+                        }
+                      });
+                    }}
+                    className="mt-3 text-xs text-[#0EA5E9] hover:text-white transition-colors font-mono underline"
+                  >
+                    Check all availability →
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
