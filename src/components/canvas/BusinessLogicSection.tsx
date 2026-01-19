@@ -407,10 +407,13 @@ const ValuePropDisplay = ({ content }: { content: string }) => {
         <ul className="space-y-3 text-sm text-slate-400 relative z-10">
           {points.slice(0, 3).map((point, i) => (
             <li key={i} className="flex gap-3">
-              <span className="text-[#00f0ff] mt-0.5">•</span>
-              <span className="line-clamp-2">{point}</span>
+              <span className="text-[#00f0ff] mt-0.5 flex-shrink-0">•</span>
+              <span>{point}</span>
             </li>
           ))}
+          {points.length === 0 && (
+            <li className="text-slate-600 italic">Add core value points</li>
+          )}
         </ul>
       </div>
       <div className="p-6 bg-[#0F0F0F] relative group/vp">
@@ -422,8 +425,8 @@ const ValuePropDisplay = ({ content }: { content: string }) => {
         <ul className="space-y-3 text-sm text-slate-400 relative z-10">
           {points.slice(3, 6).map((point, i) => (
             <li key={i} className="flex gap-3">
-              <span className="text-[#00f0ff] mt-0.5">•</span>
-              <span className="line-clamp-2">{point}</span>
+              <span className="text-[#00f0ff] mt-0.5 flex-shrink-0">•</span>
+              <span>{point}</span>
             </li>
           ))}
           {points.length <= 3 && (
