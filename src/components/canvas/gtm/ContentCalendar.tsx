@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
@@ -20,9 +19,16 @@ import {
   FileText,
   CheckCircle2,
   Circle,
-  Edit3
+  Edit3,
+  CalendarDays,
+  List,
+  LayoutGrid,
+  ChevronLeft,
+  ChevronRight,
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface ContentPost {
   id: string;
@@ -74,7 +80,8 @@ export const ContentCalendar = ({
   isGenerating = false,
 }: ContentCalendarProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  const [viewMode, setViewMode] = useState<"list" | "calendar" | "grid">("list");
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const addPost = () => {
     const newPost: ContentPost = {
@@ -140,13 +147,79 @@ export const ContentCalendar = ({
     return new Date(a).getTime() - new Date(b).getTime();
   });
 
+  // Stats
+  const scheduledCount = posts.filter(p => p.status === "scheduled").length;
+  const draftCount = posts.filter(p => p.status === "draft").length;
+  const publishedCount = posts.filter(p => p.status === "published").length;
+
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Plan and schedule your content across all platforms
-        </p>
+    <div className="space-y-6">
+      {/* Header Toolbar */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4">
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-1 p-1 rounded-lg bg-black/40 border border-white/10">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className={cn(
+                "h-7 px-2",
+                viewMode === "list" && "bg-cyan-500/20 text-cyan-400"
+              )}
+            >
+              <List className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode("calendar")}
+              className={cn(
+                "h-7 px-2",
+                viewMode === "calendar" && "bg-cyan-500/20 text-cyan-400"
+              )}
+            >
+              <CalendarDays className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className={cn(
+                "h-7 px-2",
+                viewMode === "grid" && "bg-cyan-500/20 text-cyan-400"
+              )}
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {/* Month Navigation */}
+          {viewMode === "calendar" && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)))}
+                className="h-7 w-7"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-sm font-mono text-white min-w-32 text-center">
+                {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)))}
+                className="h-7 w-7"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+
         <div className="flex items-center gap-2">
           {onAIGenerate && (
             <Button
@@ -154,76 +227,246 @@ export const ContentCalendar = ({
               size="sm"
               onClick={onAIGenerate}
               disabled={isGenerating}
-              className="gap-2"
+              className="gap-2 border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20"
             >
               <Sparkles className={cn("w-4 h-4", isGenerating && "animate-spin")} />
               Generate Ideas
             </Button>
           )}
-          <Button onClick={addPost} size="sm" className="gap-2">
+          <Button onClick={addPost} size="sm" className="gap-2 bg-cyan-600 hover:bg-cyan-500">
             <Plus className="w-4 h-4" />
             Add Post
           </Button>
         </div>
       </div>
 
-      {/* Stats */}
-      {posts.length > 0 && (
-        <div className="flex items-center gap-4 flex-wrap">
-          {PLATFORMS.map(platform => {
-            const count = posts.filter(p => p.platform === platform.value).length;
-            if (count === 0) return null;
-            return (
-              <Badge key={platform.value} variant="outline" className="gap-1">
-                <platform.icon className="w-3 h-3" />
-                {count} {platform.label}
-              </Badge>
-            );
-          })}
+      {/* Stats Bar */}
+      <div className="grid grid-cols-3 md:grid-cols-7 gap-3">
+        {PLATFORMS.slice(0, 4).map(platform => {
+          const count = posts.filter(p => p.platform === platform.value).length;
+          return (
+            <div 
+              key={platform.value}
+              className="rounded-lg border border-white/10 bg-black/40 p-3 text-center"
+            >
+              <platform.icon className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+              <div className="text-lg font-bold text-white">{count}</div>
+              <div className="text-[10px] font-mono text-muted-foreground uppercase">{platform.label}</div>
+            </div>
+          );
+        })}
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-center">
+          <CheckCircle2 className="w-5 h-5 mx-auto mb-1 text-emerald-400" />
+          <div className="text-lg font-bold text-emerald-400">{publishedCount}</div>
+          <div className="text-[10px] font-mono text-emerald-400/60 uppercase">Published</div>
         </div>
-      )}
+        <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3 text-center">
+          <Clock className="w-5 h-5 mx-auto mb-1 text-cyan-400" />
+          <div className="text-lg font-bold text-cyan-400">{scheduledCount}</div>
+          <div className="text-[10px] font-mono text-cyan-400/60 uppercase">Scheduled</div>
+        </div>
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-center">
+          <Circle className="w-5 h-5 mx-auto mb-1 text-amber-400" />
+          <div className="text-lg font-bold text-amber-400">{draftCount}</div>
+          <div className="text-[10px] font-mono text-amber-400/60 uppercase">Drafts</div>
+        </div>
+      </div>
 
       {/* Posts grouped by date */}
       <div className="space-y-6">
-        {sortedDates.map(date => {
-          const datePosts = groupPostsByDate()[date];
-          const isUnscheduled = date === "Unscheduled";
-          
-          return (
-            <div key={date}>
-              <div className="flex items-center gap-2 mb-3">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <h3 className="font-medium text-foreground">
-                  {isUnscheduled ? "Unscheduled" : new Date(date).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </h3>
-                <Badge variant="outline" className="text-xs">
-                  {datePosts.length} posts
-                </Badge>
-              </div>
-              
-              <div className="space-y-3">
-                {datePosts.map((post) => {
-                  const platformInfo = getPlatformInfo(post.platform);
-                  const PlatformIcon = platformInfo.icon;
-                  const isEditing = editingId === post.id;
+        <AnimatePresence mode="popLayout">
+          {sortedDates.map(date => {
+            const datePosts = groupPostsByDate()[date];
+            const isUnscheduled = date === "Unscheduled";
+            
+            return (
+              <motion.div 
+                key={date}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <h3 className="font-mono text-white">
+                    {isUnscheduled ? "Unscheduled" : new Date(date).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </h3>
+                  <Badge variant="outline" className="text-[10px] font-mono border-white/10">
+                    {datePosts.length} posts
+                  </Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  {datePosts.map((post) => {
+                    const platformInfo = getPlatformInfo(post.platform);
+                    const PlatformIcon = platformInfo.icon;
+                    const isEditing = editingId === post.id;
 
-                  return (
-                    <Card key={post.id} className="overflow-hidden">
-                      <div className="flex">
-                        {/* Platform indicator */}
-                        <div className={cn(
-                          "w-1.5 bg-gradient-to-b flex-shrink-0",
-                          platformInfo.color
-                        )} />
-                        
-                        <div className="flex-1 p-4">
-                          {isEditing ? (
-                            <div className="space-y-4">
-                              <div className="flex items-start gap-3">
+                    return (
+                      <motion.div 
+                        key={post.id} 
+                        layout
+                        className={cn(
+                          "rounded-xl border backdrop-blur-sm overflow-hidden",
+                          "bg-gradient-to-br from-white/[0.05] to-transparent",
+                          isEditing ? "border-cyan-500/50" : "border-white/10"
+                        )}
+                      >
+                        <div className="flex">
+                          {/* Platform indicator */}
+                          <div className={cn(
+                            "w-1.5 bg-gradient-to-b flex-shrink-0",
+                            platformInfo.color
+                          )} />
+                          
+                          <div className="flex-1 p-4">
+                            {isEditing ? (
+                              <div className="space-y-4">
+                                <div className="flex items-start gap-3">
+                                  <div className={cn(
+                                    "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
+                                    "bg-gradient-to-br",
+                                    platformInfo.color
+                                  )}>
+                                    <PlatformIcon className="w-5 h-5 text-white" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <Input
+                                      value={post.title}
+                                      onChange={(e) => updatePost(post.id, { title: e.target.value })}
+                                      placeholder="Post title"
+                                      className="font-medium mb-2 bg-black/40 border-white/10"
+                                    />
+                                    <Textarea
+                                      value={post.content}
+                                      onChange={(e) => updatePost(post.id, { content: e.target.value })}
+                                      placeholder="Write your post content..."
+                                      className="min-h-[100px] bg-black/40 border-white/10"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Post Settings */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                  <Select
+                                    value={post.platform}
+                                    onValueChange={(v) => updatePost(post.id, { platform: v })}
+                                  >
+                                    <SelectTrigger className="bg-black/40 border-white/10">
+                                      <SelectValue placeholder="Platform" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {PLATFORMS.map((p) => (
+                                        <SelectItem key={p.value} value={p.value}>
+                                          <div className="flex items-center gap-2">
+                                            <p.icon className="w-4 h-4" />
+                                            {p.label}
+                                          </div>
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <Select
+                                    value={post.postType}
+                                    onValueChange={(v) => updatePost(post.id, { postType: v })}
+                                  >
+                                    <SelectTrigger className="bg-black/40 border-white/10">
+                                      <SelectValue placeholder="Type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {POST_TYPES.map((type) => (
+                                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <Input
+                                    type="date"
+                                    value={post.scheduledDate}
+                                    onChange={(e) => updatePost(post.id, { scheduledDate: e.target.value })}
+                                    className="bg-black/40 border-white/10"
+                                  />
+                                  <Input
+                                    type="time"
+                                    value={post.scheduledTime}
+                                    onChange={(e) => updatePost(post.id, { scheduledTime: e.target.value })}
+                                    className="bg-black/40 border-white/10"
+                                  />
+                                </div>
+
+                                {/* Hashtags */}
+                                <div>
+                                  <label className="text-[10px] font-mono text-cyan-500 uppercase mb-2 block">Hashtags</label>
+                                  <div className="flex flex-wrap gap-2 mb-2">
+                                    {post.hashtags.map((tag, i) => (
+                                      <Badge
+                                        key={i}
+                                        variant="secondary"
+                                        className="gap-1 cursor-pointer hover:bg-destructive/20 bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
+                                        onClick={() => removeHashtag(post.id, i)}
+                                      >
+                                        {tag}
+                                        <Trash2 className="w-3 h-3" />
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                  <Input
+                                    placeholder="Add hashtag and press Enter..."
+                                    className="bg-black/40 border-white/10"
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        addHashtag(post.id, e.currentTarget.value);
+                                        e.currentTarget.value = "";
+                                      }
+                                    }}
+                                  />
+                                </div>
+
+                                {/* Status & Actions */}
+                                <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                                  <Select
+                                    value={post.status}
+                                    onValueChange={(v) => updatePost(post.id, { status: v as ContentPost["status"] })}
+                                  >
+                                    <SelectTrigger className="w-32 bg-black/40 border-white/10">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="draft">Draft</SelectItem>
+                                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                                      <SelectItem value="published">Published</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setEditingId(null)}
+                                      className="border-white/10 hover:bg-white/5"
+                                    >
+                                      Done
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => deletePost(post.id)}
+                                      className="text-destructive/60 hover:text-destructive"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div
+                                className="flex items-start gap-3 cursor-pointer"
+                                onClick={() => setEditingId(post.id)}
+                              >
                                 <div className={cn(
                                   "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
                                   "bg-gradient-to-br",
@@ -231,201 +474,81 @@ export const ContentCalendar = ({
                                 )}>
                                   <PlatformIcon className="w-5 h-5 text-white" />
                                 </div>
-                                <div className="flex-1">
-                                  <Input
-                                    value={post.title}
-                                    onChange={(e) => updatePost(post.id, { title: e.target.value })}
-                                    placeholder="Post title"
-                                    className="font-medium mb-2"
-                                  />
-                                  <Textarea
-                                    value={post.content}
-                                    onChange={(e) => updatePost(post.id, { content: e.target.value })}
-                                    placeholder="Write your post content..."
-                                    className="min-h-[100px]"
-                                  />
-                                </div>
-                              </div>
-
-                              {/* Post Settings */}
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <Select
-                                  value={post.platform}
-                                  onValueChange={(v) => updatePost(post.id, { platform: v })}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Platform" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {PLATFORMS.map((p) => (
-                                      <SelectItem key={p.value} value={p.value}>
-                                        <div className="flex items-center gap-2">
-                                          <p.icon className="w-4 h-4" />
-                                          {p.label}
-                                        </div>
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <Select
-                                  value={post.postType}
-                                  onValueChange={(v) => updatePost(post.id, { postType: v })}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Type" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {POST_TYPES.map((type) => (
-                                      <SelectItem key={type} value={type}>{type}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <Input
-                                  type="date"
-                                  value={post.scheduledDate}
-                                  onChange={(e) => updatePost(post.id, { scheduledDate: e.target.value })}
-                                />
-                                <Input
-                                  type="time"
-                                  value={post.scheduledTime}
-                                  onChange={(e) => updatePost(post.id, { scheduledTime: e.target.value })}
-                                />
-                              </div>
-
-                              {/* Hashtags */}
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-2 block">Hashtags</label>
-                                <div className="flex flex-wrap gap-2 mb-2">
-                                  {post.hashtags.map((tag, i) => (
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h4 className="font-medium text-white truncate">
+                                      {post.title || "Untitled Post"}
+                                    </h4>
                                     <Badge
-                                      key={i}
-                                      variant="secondary"
-                                      className="gap-1 cursor-pointer hover:bg-destructive/10"
-                                      onClick={() => removeHashtag(post.id, i)}
+                                      variant="outline"
+                                      className={cn(
+                                        "text-[10px] font-mono uppercase",
+                                        post.status === "published" && "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+                                        post.status === "scheduled" && "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+                                        post.status === "draft" && "bg-white/10 border-white/10"
+                                      )}
                                     >
-                                      {tag}
-                                      <Trash2 className="w-3 h-3" />
+                                      {post.status === "published" && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                                      {post.status === "scheduled" && <Clock className="w-3 h-3 mr-1" />}
+                                      {post.status === "draft" && <Circle className="w-3 h-3 mr-1" />}
+                                      {post.status}
                                     </Badge>
-                                  ))}
-                                </div>
-                                <Input
-                                  placeholder="Add hashtag and press Enter..."
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      addHashtag(post.id, e.currentTarget.value);
-                                      e.currentTarget.value = "";
-                                    }
-                                  }}
-                                />
-                              </div>
-
-                              {/* Status & Actions */}
-                              <div className="flex items-center justify-between pt-2 border-t border-border">
-                                <Select
-                                  value={post.status}
-                                  onValueChange={(v) => updatePost(post.id, { status: v as ContentPost["status"] })}
-                                >
-                                  <SelectTrigger className="w-32">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="draft">Draft</SelectItem>
-                                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                                    <SelectItem value="published">Published</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setEditingId(null)}
-                                  >
-                                    Done
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => deletePost(post.id)}
-                                    className="text-destructive hover:text-destructive"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <div
-                              className="flex items-start gap-3 cursor-pointer"
-                              onClick={() => setEditingId(post.id)}
-                            >
-                              <div className={cn(
-                                "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
-                                "bg-gradient-to-br",
-                                platformInfo.color
-                              )}>
-                                <PlatformIcon className="w-5 h-5 text-white" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h4 className="font-medium text-foreground truncate">
-                                    {post.title || "Untitled Post"}
-                                  </h4>
-                                  <Badge
-                                    variant="outline"
-                                    className={cn(
-                                      "text-xs",
-                                      post.status === "published" && "bg-success/10 text-success border-success/30",
-                                      post.status === "scheduled" && "bg-blue-500/10 text-blue-500 border-blue-500/30",
-                                      post.status === "draft" && "bg-muted"
+                                  </div>
+                                  <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                                    {post.content || "No content yet"}
+                                  </p>
+                                  <div className="flex items-center gap-4 text-[10px] font-mono text-muted-foreground uppercase">
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="w-3 h-3" />
+                                      {post.scheduledTime}
+                                    </span>
+                                    <span>{post.postType}</span>
+                                    {post.hashtags.length > 0 && (
+                                      <span className="text-cyan-400">{post.hashtags.length} hashtags</span>
                                     )}
-                                  >
-                                    {post.status === "published" && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                                    {post.status === "scheduled" && <Clock className="w-3 h-3 mr-1" />}
-                                    {post.status === "draft" && <Circle className="w-3 h-3 mr-1" />}
-                                    {post.status}
-                                  </Badge>
+                                  </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                                  {post.content || "No content yet"}
-                                </p>
-                                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="w-3 h-3" />
-                                    {post.scheduledTime}
-                                  </span>
-                                  <span>{post.postType}</span>
-                                  {post.hashtags.length > 0 && (
-                                    <span>{post.hashtags.length} hashtags</span>
-                                  )}
-                                </div>
+                                <Button variant="ghost" size="icon" className="flex-shrink-0 text-muted-foreground hover:text-cyan-400">
+                                  <Edit3 className="w-4 h-4" />
+                                </Button>
                               </div>
-                              <Button variant="ghost" size="icon" className="flex-shrink-0">
-                                <Edit3 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
 
       {posts.length === 0 && (
-        <div className="text-center py-12 rounded-lg bg-muted/30 border border-dashed border-border">
+        <div className="text-center py-16 rounded-xl bg-black/40 border border-dashed border-white/10">
           <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">No Content Scheduled</h3>
+          <h3 className="text-lg font-medium text-white mb-2">No Content Scheduled</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Start planning your content calendar
+            Start building your content calendar by adding your first post
           </p>
-          <Button onClick={addPost} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Create First Post
-          </Button>
+          <div className="flex items-center justify-center gap-2">
+            <Button onClick={addPost} className="gap-2 bg-cyan-600 hover:bg-cyan-500">
+              <Plus className="w-4 h-4" />
+              Create Post
+            </Button>
+            {onAIGenerate && (
+              <Button 
+                variant="outline" 
+                onClick={onAIGenerate}
+                disabled={isGenerating}
+                className="gap-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+              >
+                <Zap className="w-4 h-4" />
+                Generate with AI
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </div>
