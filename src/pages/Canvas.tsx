@@ -739,6 +739,12 @@ const Canvas = () => {
               </button>
               <span className="text-[#00f0ff] font-bold shadow-[0_1px_0_0_#00f0ff]">Projects</span>
               <button
+                onClick={() => navigate("/board")}
+                className="text-slate-500 hover:text-[#00f0ff] transition-colors"
+              >
+                Board
+              </button>
+              <button
                 onClick={() => setIsRoadmapOpen(true)}
                 className="text-slate-500 hover:text-[#00f0ff] transition-colors"
               >
