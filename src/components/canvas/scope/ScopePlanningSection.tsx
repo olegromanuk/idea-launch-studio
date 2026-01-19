@@ -28,6 +28,7 @@ interface ScopePlanningSectionProps {
   loadingSection: string | null;
   onAIGenerate: (section: string) => void;
   onOpenDrawer: (section: string) => void;
+  onInitializeBuild?: () => void;
   projectData?: any;
 }
 
@@ -36,6 +37,7 @@ export const ScopePlanningSection = ({
   loadingSection,
   onAIGenerate,
   onOpenDrawer,
+  onInitializeBuild,
   projectData,
 }: ScopePlanningSectionProps) => {
   // Calculate overall completion
@@ -92,9 +94,13 @@ export const ScopePlanningSection = ({
             )}
             Optimize Plan
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#0EA5E9] text-white hover:bg-[#0EA5E9]/90 transition-colors text-xs font-bold uppercase shadow-[0_0_15px_-3px_rgba(14,165,233,0.3)]">
+          <button 
+            onClick={onInitializeBuild}
+            className="flex items-center gap-2 px-4 py-2 bg-[#0EA5E9] text-white hover:bg-[#0EA5E9]/90 transition-colors text-xs font-bold uppercase shadow-[0_0_15px_-3px_rgba(14,165,233,0.3)]"
+            title="Proceed to Development phase to submit your project for building"
+          >
             <ChevronRight className="w-4 h-4" />
-            Initialize Build
+            Proceed to Development
           </button>
         </div>
       </div>
