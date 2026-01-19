@@ -71,13 +71,16 @@ export const ScopePlanningSection = ({
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <span className="text-xs font-mono text-[#0EA5E9] uppercase">Module: 02_Scope_Planning</span>
-            <span className="bg-[#0EA5E9]/10 text-[#0EA5E9] text-[10px] px-2 py-0.5 border border-[#0EA5E9]/30 rounded font-bold">
+            <span className="text-xs font-mono text-[#00f0ff] uppercase tracking-widest flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-[#00f0ff] rounded-full shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
+              Module: 02_Scope_Planning
+            </span>
+            <span className="bg-[#00f0ff]/10 text-[#00f0ff] text-[10px] px-2 py-0.5 border border-[#00f0ff]/30 font-bold font-mono">
               {completionPercent}% COMPLETE
             </span>
           </div>
-          <h1 className="text-3xl font-bold uppercase tracking-tight mb-2 text-white">Scope & Planning</h1>
-          <p className="text-[#94A3B8] text-sm max-w-xl">
+          <h1 className="text-3xl font-bold uppercase tracking-tight mb-2 text-white font-mono">Scope & Planning</h1>
+          <p className="text-slate-500 text-sm max-w-xl">
             Define the core functionalities and roadmap for your {projectData?.idea || "project"}. Orchestrating the transition from idea to automated execution.
           </p>
         </div>
@@ -85,7 +88,7 @@ export const ScopePlanningSection = ({
           <button 
             onClick={() => onAIGenerate("userStories")}
             disabled={loadingSection !== null}
-            className="flex items-center gap-2 px-4 py-2 border border-[#1E293B] bg-[#121821] hover:border-[#0EA5E9]/50 transition-colors text-xs font-medium uppercase"
+            className="flex items-center gap-2 px-4 py-2 border border-white/10 bg-[#0A0A0A] hover:border-[#00f0ff]/50 hover:text-[#00f0ff] transition-colors text-xs font-mono uppercase tracking-wider text-slate-400"
           >
             {loadingSection ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -96,7 +99,7 @@ export const ScopePlanningSection = ({
           </button>
           <button 
             onClick={onInitializeBuild}
-            className="flex items-center gap-2 px-4 py-2 bg-[#0EA5E9] text-white hover:bg-[#0EA5E9]/90 transition-colors text-xs font-bold uppercase shadow-[0_0_15px_-3px_rgba(14,165,233,0.3)]"
+            className="flex items-center gap-2 px-4 py-2 bg-[#00f0ff] text-black hover:opacity-90 transition-colors text-xs font-bold font-mono uppercase tracking-wider shadow-[0_0_15px_rgba(0,240,255,0.3)]"
             title="Proceed to Development phase to submit your project for building"
           >
             <ChevronRight className="w-4 h-4" />
@@ -110,16 +113,20 @@ export const ScopePlanningSection = ({
         {/* Left Column - User Stories & Risks (4 cols) */}
         <div className="col-span-12 lg:col-span-4 space-y-6">
           {/* User Stories */}
-          <div className="bg-[#121821] border border-[#1E293B] flex flex-col">
-            <div className="p-4 border-b border-[#1E293B] flex justify-between items-center bg-black/20">
-              <h3 className="text-xs font-mono uppercase text-[#94A3B8] flex items-center gap-2">
-                <Users className="w-4 h-4" /> User Stories
-                <span className="text-[#0EA5E9]">({scopeData.userStories.length})</span>
+          <div className="relative bg-[#0A0A0A] border border-white/[0.08] flex flex-col overflow-hidden">
+            {/* Blueprint corner accents */}
+            <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+            <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
+            
+            <div className="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
+              <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <Users className="w-4 h-4" /> User_Stories
+                <span className="text-[#00f0ff]">({scopeData.userStories.length})</span>
               </h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onOpenDrawer("userStories")}
-                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-[#00f0ff] transition-colors"
                   title="Add new"
                 >
                   <Plus className="w-4 h-4" />
@@ -127,7 +134,7 @@ export const ScopePlanningSection = ({
                 <button
                   onClick={() => onAIGenerate("userStories")}
                   disabled={loadingSection === "userStories"}
-                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-[#00f0ff] transition-colors"
                   title="Generate with AI"
                 >
                   {loadingSection === "userStories" ? (
@@ -143,17 +150,17 @@ export const ScopePlanningSection = ({
                 scopeData.userStories.slice(0, 5).map((story, i) => (
                   <div 
                     key={i}
-                    className="group flex items-start gap-3 p-3 bg-gray-900/50 border border-[#1E293B] hover:border-[#0EA5E9]/40 transition-colors rounded cursor-pointer"
+                    className="group flex items-start gap-3 p-3 bg-[#0F0F0F] border border-white/5 hover:border-[#00f0ff]/30 transition-colors cursor-pointer"
                     onClick={() => onOpenDrawer("userStories")}
                   >
                     {story.completed ? (
-                      <CheckCircle className="w-4 h-4 text-[#0EA5E9] mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="w-4 h-4 text-[#00f0ff] mt-0.5 flex-shrink-0" />
                     ) : (
-                      <Circle className="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <Circle className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
                     )}
                     <div className="flex-grow min-w-0">
-                      <h4 className="text-xs font-bold text-gray-200 truncate">{story.title || story.action}</h4>
-                      <p className="text-[11px] text-[#94A3B8] mt-1 line-clamp-2">
+                      <h4 className="text-xs font-bold text-white truncate font-mono">{story.title || story.action}</h4>
+                      <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">
                         As a {story.persona}, I want to {story.action}
                       </p>
                     </div>
@@ -170,31 +177,35 @@ export const ScopePlanningSection = ({
               )}
             </div>
             {/* View & Edit All Button */}
-            <div className="p-3 border-t border-[#1E293B] bg-black/10">
+            <div className="p-3 border-t border-white/5 bg-black/10">
               <button 
                 onClick={() => onOpenDrawer("userStories")}
-                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase text-[#0EA5E9] hover:bg-[#0EA5E9]/10 transition-colors rounded border border-[#1E293B] hover:border-[#0EA5E9]/30"
+                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase tracking-wider text-[#00f0ff] hover:bg-[#00f0ff]/10 transition-colors border border-white/10 hover:border-[#00f0ff]/30"
               >
                 <ExternalLink className="w-3 h-3" />
                 View & Edit All Items
                 {scopeData.userStories.length > 5 && (
-                  <span className="text-[#94A3B8]">(+{scopeData.userStories.length - 5} more)</span>
+                  <span className="text-slate-500">(+{scopeData.userStories.length - 5} more)</span>
                 )}
               </button>
             </div>
           </div>
 
           {/* Risks & Constraints */}
-          <div className="bg-[#121821] border border-[#1E293B] flex flex-col">
-            <div className="p-4 border-b border-[#1E293B] flex justify-between items-center bg-black/20">
-              <h3 className="text-xs font-mono uppercase text-[#94A3B8] flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" /> Risks & Constraints
-                <span className="text-[#0EA5E9]">({scopeData.risks.length})</span>
+          <div className="relative bg-[#0A0A0A] border border-white/[0.08] flex flex-col overflow-hidden">
+            {/* Blueprint corner accents */}
+            <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+            <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
+            
+            <div className="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
+              <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" /> Risks_Constraints
+                <span className="text-[#00f0ff]">({scopeData.risks.length})</span>
               </h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onOpenDrawer("risksConstraints")}
-                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-[#00f0ff] transition-colors"
                   title="Add new"
                 >
                   <Plus className="w-4 h-4" />
@@ -202,7 +213,7 @@ export const ScopePlanningSection = ({
                 <button
                   onClick={() => onAIGenerate("risksConstraints")}
                   disabled={loadingSection === "risksConstraints"}
-                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-[#00f0ff] transition-colors"
                   title="Generate with AI"
                 >
                   {loadingSection === "risksConstraints" ? (
@@ -219,7 +230,7 @@ export const ScopePlanningSection = ({
                   const impactColors = {
                     high: { bg: "bg-red-500/5", border: "border-red-500/20", text: "text-red-400", label: "text-red-500/50" },
                     medium: { bg: "bg-orange-500/5", border: "border-orange-500/20", text: "text-orange-400", label: "text-orange-500/50" },
-                    low: { bg: "bg-gray-500/5", border: "border-gray-500/20", text: "text-gray-400", label: "text-gray-500/50" },
+                    low: { bg: "bg-slate-500/5", border: "border-slate-500/20", text: "text-slate-400", label: "text-slate-500/50" },
                   };
                   const colors = impactColors[risk.impact as keyof typeof impactColors] || impactColors.low;
                   
@@ -228,7 +239,7 @@ export const ScopePlanningSection = ({
                       key={i}
                       onClick={() => onOpenDrawer("risksConstraints")}
                       className={cn(
-                        "flex items-center justify-between p-2 rounded cursor-pointer hover:brightness-110 transition-all",
+                        "flex items-center justify-between p-2 cursor-pointer hover:brightness-110 transition-all font-mono",
                         colors.bg, colors.border, "border"
                       )}
                     >
@@ -251,10 +262,10 @@ export const ScopePlanningSection = ({
               )}
             </div>
             {/* View & Edit All Button */}
-            <div className="p-3 border-t border-[#1E293B] bg-black/10 mt-auto">
+            <div className="p-3 border-t border-white/5 bg-black/10 mt-auto">
               <button 
                 onClick={() => onOpenDrawer("risksConstraints")}
-                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase text-[#0EA5E9] hover:bg-[#0EA5E9]/10 transition-colors rounded border border-[#1E293B] hover:border-[#0EA5E9]/30"
+                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase tracking-wider text-[#00f0ff] hover:bg-[#00f0ff]/10 transition-colors border border-white/10 hover:border-[#00f0ff]/30"
               >
                 <ExternalLink className="w-3 h-3" />
                 View & Edit All
@@ -266,17 +277,21 @@ export const ScopePlanningSection = ({
         {/* Middle Column - Features & Technical (5 cols) */}
         <div className="col-span-12 lg:col-span-5 space-y-6">
           {/* Feature Scope Matrix */}
-          <div className="bg-[#121821] border border-[#1E293B] flex flex-col">
-            <div className="p-4 border-b border-[#1E293B] flex justify-between items-center bg-black/20">
-              <h3 className="text-xs font-mono uppercase text-[#94A3B8] flex items-center gap-2">
-                <Layers className="w-4 h-4" /> Feature Scope Matrix
-                <span className="text-[#0EA5E9]">({scopeData.features.length})</span>
+          <div className="relative bg-[#0A0A0A] border border-white/[0.08] flex flex-col overflow-hidden">
+            {/* Blueprint corner accents */}
+            <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+            <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
+            
+            <div className="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
+              <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <Layers className="w-4 h-4" /> Feature_Scope
+                <span className="text-[#00f0ff]">({scopeData.features.length})</span>
               </h3>
               <div className="flex items-center gap-3">
-                <span className="text-[10px] text-[#0EA5E9] font-mono">MVP v1.0</span>
+                <span className="text-[10px] text-[#00f0ff] font-mono">MVP v1.0</span>
                 <button
                   onClick={() => onOpenDrawer("featureScope")}
-                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-[#00f0ff] transition-colors"
                   title="Add new"
                 >
                   <Plus className="w-4 h-4" />
@@ -284,7 +299,7 @@ export const ScopePlanningSection = ({
                 <button
                   onClick={() => onAIGenerate("featureScope")}
                   disabled={loadingSection === "featureScope"}
-                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-[#00f0ff] transition-colors"
                   title="Generate with AI"
                 >
                   {loadingSection === "featureScope" ? (
@@ -301,17 +316,17 @@ export const ScopePlanningSection = ({
                   <div 
                     key={i}
                     onClick={() => onOpenDrawer("featureScope")}
-                    className="p-3 border border-[#1E293B] bg-black/20 rounded flex items-center justify-between cursor-pointer hover:border-[#0EA5E9]/30 transition-colors"
+                    className="p-3 border border-white/5 bg-[#0F0F0F] flex items-center justify-between cursor-pointer hover:border-[#00f0ff]/30 transition-colors"
                   >
                     <div className="min-w-0">
-                      <div className="text-sm font-bold text-white truncate">{feature.name}</div>
-                      <div className="text-[10px] text-[#94A3B8] truncate">{feature.description}</div>
+                      <div className="text-sm font-bold text-white truncate font-mono">{feature.name}</div>
+                      <div className="text-[10px] text-slate-500 truncate">{feature.description}</div>
                     </div>
                     <span className={cn(
-                      "px-2 py-0.5 text-[10px] font-bold rounded flex-shrink-0 ml-2",
+                      "px-2 py-0.5 text-[10px] font-bold font-mono flex-shrink-0 ml-2",
                       feature.category === "mvp" 
-                        ? "bg-[#0EA5E9]/10 text-[#0EA5E9]" 
-                        : "bg-gray-800 text-gray-500"
+                        ? "bg-[#00f0ff]/10 text-[#00f0ff] border border-[#00f0ff]/30" 
+                        : "bg-slate-800 text-slate-500 border border-white/10"
                     )}>
                       {feature.category?.toUpperCase() || "MVP"}
                     </span>
@@ -328,30 +343,34 @@ export const ScopePlanningSection = ({
               )}
             </div>
             {/* View & Edit All Button */}
-            <div className="p-3 border-t border-[#1E293B] bg-black/10 mt-auto">
+            <div className="p-3 border-t border-white/5 bg-black/10 mt-auto">
               <button 
                 onClick={() => onOpenDrawer("featureScope")}
-                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase text-[#0EA5E9] hover:bg-[#0EA5E9]/10 transition-colors rounded border border-[#1E293B] hover:border-[#0EA5E9]/30"
+                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase tracking-wider text-[#00f0ff] hover:bg-[#00f0ff]/10 transition-colors border border-white/10 hover:border-[#00f0ff]/30"
               >
                 <ExternalLink className="w-3 h-3" />
                 View & Edit All Features
                 {scopeData.features.length > 4 && (
-                  <span className="text-[#94A3B8]">(+{scopeData.features.length - 4} more)</span>
+                  <span className="text-slate-500">(+{scopeData.features.length - 4} more)</span>
                 )}
               </button>
             </div>
           </div>
 
           {/* Technical Solution Blueprint */}
-          <div className="bg-[#121821] border border-[#1E293B] flex flex-col min-h-[300px]">
-            <div className="p-4 border-b border-[#1E293B] flex justify-between items-center bg-black/20">
-              <h3 className="text-xs font-mono uppercase text-[#94A3B8] flex items-center gap-2">
-                <Cpu className="w-4 h-4" /> Technical Solution Blueprint
+          <div className="relative bg-[#0A0A0A] border border-white/[0.08] flex flex-col min-h-[300px] overflow-hidden">
+            {/* Blueprint corner accents */}
+            <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+            <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
+            
+            <div className="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
+              <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <Cpu className="w-4 h-4" /> Technical_Solution
               </h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onOpenDrawer("technicalSolution")}
-                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-[#00f0ff] transition-colors"
                   title="Edit"
                 >
                   <ExternalLink className="w-4 h-4" />
@@ -359,7 +378,7 @@ export const ScopePlanningSection = ({
                 <button
                   onClick={() => onAIGenerate("technicalSolution")}
                   disabled={loadingSection === "technicalSolution"}
-                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-[#00f0ff] transition-colors"
                   title="Generate with AI"
                 >
                   {loadingSection === "technicalSolution" ? (
@@ -376,27 +395,27 @@ export const ScopePlanningSection = ({
                   className="w-full text-left cursor-pointer"
                   onClick={() => onOpenDrawer("technicalSolution")}
                 >
-                  <div className="p-4 bg-black/30 border border-[#1E293B] rounded">
-                    <p className="text-sm text-gray-300 line-clamp-6 whitespace-pre-wrap">
+                  <div className="p-4 bg-[#0F0F0F] border border-white/5">
+                    <p className="text-sm text-slate-300 line-clamp-6 whitespace-pre-wrap font-mono">
                       {scopeData.technicalSolution}
                     </p>
                   </div>
-                  <button className="mt-4 text-[10px] font-mono uppercase text-[#0EA5E9] hover:underline flex items-center gap-1">
+                  <button className="mt-4 text-[10px] font-mono uppercase tracking-wider text-[#00f0ff] hover:underline flex items-center gap-1">
                     <ExternalLink className="w-3 h-3" />
                     Click to edit full blueprint
                   </button>
                 </div>
               ) : (
                 <>
-                  <div className="w-16 h-16 rounded-full bg-gray-900 border border-dashed border-[#1E293B] flex items-center justify-center mb-4">
-                    <Cpu className="w-8 h-8 text-gray-600" />
+                  <div className="w-16 h-16 bg-[#0F0F0F] border border-dashed border-white/10 flex items-center justify-center mb-4">
+                    <Cpu className="w-8 h-8 text-slate-700" />
                   </div>
-                  <h3 className="text-sm font-bold text-gray-300 mb-2">Technical Solution Blueprint</h3>
-                  <p className="text-xs text-[#94A3B8] mb-4">No architecture items generated yet. Let AI define your stack.</p>
+                  <h3 className="text-sm font-bold text-white mb-2 font-mono">Technical_Solution_Blueprint</h3>
+                  <p className="text-xs text-slate-500 mb-4">No architecture items generated yet. Let AI define your stack.</p>
                   <div className="flex gap-2">
                     <button 
                       onClick={() => onOpenDrawer("technicalSolution")}
-                      className="px-4 py-2 border border-[#1E293B] text-[#94A3B8] text-xs font-medium uppercase rounded-sm flex items-center gap-2 hover:border-[#0EA5E9]/50 hover:text-white transition-colors"
+                      className="px-4 py-2 border border-white/10 text-slate-400 text-xs font-mono uppercase tracking-wider flex items-center gap-2 hover:border-[#00f0ff]/50 hover:text-white transition-colors"
                     >
                       <Plus className="w-3 h-3" />
                       Add Manually
@@ -404,7 +423,7 @@ export const ScopePlanningSection = ({
                     <button 
                       onClick={() => onAIGenerate("technicalSolution")}
                       disabled={loadingSection === "technicalSolution"}
-                      className="px-4 py-2 bg-[#0EA5E9] text-white text-xs font-bold uppercase rounded-sm flex items-center gap-2 hover:brightness-110 shadow-[0_0_20px_rgba(14,165,233,0.2)] disabled:opacity-50"
+                      className="px-4 py-2 bg-[#00f0ff] text-black text-xs font-bold font-mono uppercase tracking-wider flex items-center gap-2 hover:opacity-90 shadow-[0_0_15px_rgba(0,240,255,0.3)] disabled:opacity-50"
                     >
                       {loadingSection === "technicalSolution" ? (
                         <Loader2 className="w-3 h-3 animate-spin" />
