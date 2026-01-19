@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,6 +99,63 @@ export const ModuleEditorModal = ({
     glowIntensity: 40,
     selectedIcon: "warning",
   });
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const insertMarkdown = (prefix: string, suffix: string = prefix) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = value.substring(start, end);
+    
+    let newText: string;
+    let newCursorPos: number;
+
+    if (selectedText) {
+      // Wrap selected text
+      newText = value.substring(0, start) + prefix + selectedText + suffix + value.substring(end);
+      newCursorPos = end + prefix.length + suffix.length;
+    } else {
+      // Insert at cursor with placeholder
+      newText = value.substring(0, start) + prefix + suffix + value.substring(end);
+      newCursorPos = start + prefix.length;
+    }
+
+    onChange(newText);
+    
+    // Restore focus and cursor position after state update
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
+  const insertBold = () => insertMarkdown("**");
+  const insertItalic = () => insertMarkdown("*");
+  const insertList = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const beforeCursor = value.substring(0, start);
+    const afterCursor = value.substring(start);
+    
+    // Check if we're at the start of a line
+    const lastNewline = beforeCursor.lastIndexOf('\n');
+    const isStartOfLine = lastNewline === beforeCursor.length - 1 || start === 0;
+    
+    const prefix = isStartOfLine ? "- " : "\n- ";
+    const newText = beforeCursor + prefix + afterCursor;
+    const newCursorPos = start + prefix.length;
+
+    onChange(newText);
+    
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
 
   const config = SECTION_CONFIG[sectionKey] || {
     icon: AlertTriangle,
@@ -241,18 +298,34 @@ export const ModuleEditorModal = ({
                           Sub-Points (Rich Text)
                         </label>
                         <div className="flex gap-2">
-                          <button className="p-1 text-slate-500 hover:text-white transition-colors">
+                          <button 
+                            type="button"
+                            onClick={insertBold}
+                            className="p-1 text-slate-500 hover:text-white hover:bg-white/10 transition-colors rounded"
+                            title="Bold (wrap selection with **)"
+                          >
                             <Bold className="w-3.5 h-3.5" />
                           </button>
-                          <button className="p-1 text-slate-500 hover:text-white transition-colors">
+                          <button 
+                            type="button"
+                            onClick={insertItalic}
+                            className="p-1 text-slate-500 hover:text-white hover:bg-white/10 transition-colors rounded"
+                            title="Italic (wrap selection with *)"
+                          >
                             <Italic className="w-3.5 h-3.5" />
                           </button>
-                          <button className="p-1 text-slate-500 hover:text-white transition-colors">
+                          <button 
+                            type="button"
+                            onClick={insertList}
+                            className="p-1 text-slate-500 hover:text-white hover:bg-white/10 transition-colors rounded"
+                            title="Insert bullet point"
+                          >
                             <List className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
                       <Textarea
+                        ref={textareaRef}
                         value={value}
                         onChange={(e) => onChange(e.target.value)}
                         placeholder={`Enter your ${title.toLowerCase()} content here...
