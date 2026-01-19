@@ -9,6 +9,7 @@ import { CanvasCell } from "@/components/canvas/CanvasCell";
 import { BusinessLogicSection } from "@/components/canvas/BusinessLogicSection";
 import { ScopePlanningSection } from "@/components/canvas/scope/ScopePlanningSection";
 import { ExpandedCanvasEditor } from "@/components/canvas/ExpandedCanvasEditor";
+import { ModuleEditorModal } from "@/components/canvas/ModuleEditorModal";
 import { TeamChat } from "@/components/canvas/TeamChat";
 import { AIChat } from "@/components/canvas/AIChat";
 import { CelebrationModal } from "@/components/canvas/CelebrationModal";
@@ -1612,51 +1613,96 @@ const Canvas = () => {
         </div>
       </main>
 
-      {/* Expanded Editor */}
-      <ExpandedCanvasEditor
-        isOpen={expandedSection !== null}
-        onClose={() => {
-          setExpandedSection(null);
-          setPendingSuggestion("");
-        }}
-        title={
-          canvasTabs
-            .flatMap((t) => t.sections)
-            .find((s) => s.key === expandedSection)?.title || ""
+      {/* Module Editor Modal for Business Logic sections */}
+      {(() => {
+        const businessLogicKeys = ["problem", "targetAudience", "uniqueValueProposition", "revenueModel", "marketTrends", "successMetrics"];
+        const isBusinessSection = expandedSection && businessLogicKeys.includes(expandedSection);
+        
+        if (isBusinessSection) {
+          return (
+            <ModuleEditorModal
+              isOpen={expandedSection !== null}
+              onClose={() => {
+                setExpandedSection(null);
+                setPendingSuggestion("");
+              }}
+              sectionKey={expandedSection || ""}
+              title={
+                canvasTabs
+                  .flatMap((t) => t.sections)
+                  .find((s) => s.key === expandedSection)?.title || ""
+              }
+              subtitle={
+                canvasTabs
+                  .flatMap((t) => t.sections)
+                  .find((s) => s.key === expandedSection)?.subtitle || ""
+              }
+              value={expandedSection ? canvasData[expandedSection as keyof typeof canvasData] : ""}
+              onChange={(value) => {
+                if (expandedSection) {
+                  handleCanvasChange(expandedSection, value);
+                }
+              }}
+              onAIGenerate={() => {
+                if (expandedSection) {
+                  generateSuggestions(expandedSection);
+                }
+              }}
+              isGenerating={loadingSection === expandedSection}
+              aiSuggestion={pendingSuggestion}
+              onAcceptSuggestion={handleAcceptSuggestion}
+              onDiscardSuggestion={() => setPendingSuggestion("")}
+            />
+          );
         }
-        subtitle={
-          canvasTabs
-            .flatMap((t) => t.sections)
-            .find((s) => s.key === expandedSection)?.subtitle || ""
-        }
-        value={expandedSection ? canvasData[expandedSection as keyof typeof canvasData] : ""}
-        onChange={(value) => {
-          if (expandedSection) {
-            handleCanvasChange(expandedSection, value);
-          }
-        }}
-        onAIGenerate={() => {
-          if (expandedSection) {
-            generateSuggestions(expandedSection);
-          }
-        }}
-        isGenerating={loadingSection === expandedSection}
-        aiSuggestion={pendingSuggestion}
-        onAcceptSuggestion={handleAcceptSuggestion}
-        onDiscardSuggestion={() => setPendingSuggestion("")}
-        onRequestSupport={() => {}}
-        onChatWithAI={() => {}}
-        canvasContext={expandedSection ? {
-          sectionTitle: canvasTabs
-            .flatMap((t) => t.sections)
-            .find((s) => s.key === expandedSection)?.title || "",
-          sectionSubtitle: canvasTabs
-            .flatMap((t) => t.sections)
-            .find((s) => s.key === expandedSection)?.subtitle || "",
-          currentContent: canvasData[expandedSection as keyof typeof canvasData] || "",
-          projectData
-        } : undefined}
-      />
+        
+        return (
+          <ExpandedCanvasEditor
+            isOpen={expandedSection !== null}
+            onClose={() => {
+              setExpandedSection(null);
+              setPendingSuggestion("");
+            }}
+            title={
+              canvasTabs
+                .flatMap((t) => t.sections)
+                .find((s) => s.key === expandedSection)?.title || ""
+            }
+            subtitle={
+              canvasTabs
+                .flatMap((t) => t.sections)
+                .find((s) => s.key === expandedSection)?.subtitle || ""
+            }
+            value={expandedSection ? canvasData[expandedSection as keyof typeof canvasData] : ""}
+            onChange={(value) => {
+              if (expandedSection) {
+                handleCanvasChange(expandedSection, value);
+              }
+            }}
+            onAIGenerate={() => {
+              if (expandedSection) {
+                generateSuggestions(expandedSection);
+              }
+            }}
+            isGenerating={loadingSection === expandedSection}
+            aiSuggestion={pendingSuggestion}
+            onAcceptSuggestion={handleAcceptSuggestion}
+            onDiscardSuggestion={() => setPendingSuggestion("")}
+            onRequestSupport={() => {}}
+            onChatWithAI={() => {}}
+            canvasContext={expandedSection ? {
+              sectionTitle: canvasTabs
+                .flatMap((t) => t.sections)
+                .find((s) => s.key === expandedSection)?.title || "",
+              sectionSubtitle: canvasTabs
+                .flatMap((t) => t.sections)
+                .find((s) => s.key === expandedSection)?.subtitle || "",
+              currentContent: canvasData[expandedSection as keyof typeof canvasData] || "",
+              projectData
+            } : undefined}
+          />
+        );
+      })()}
 
       {/* Team Chat Panel */}
       <TeamChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
