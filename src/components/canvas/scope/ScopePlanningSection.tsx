@@ -448,16 +448,20 @@ export const ScopePlanningSection = ({
         {/* Right Column - Milestones & Timeline (3 cols) */}
         <div className="col-span-12 lg:col-span-3 space-y-6">
           {/* Core Phases / Milestones */}
-          <div className="bg-[#121821] border border-[#1E293B] flex flex-col">
-            <div className="p-4 border-b border-[#1E293B] flex justify-between items-center bg-black/20">
-              <h3 className="text-xs font-mono uppercase text-[#94A3B8] flex items-center gap-2">
-                <ListTodo className="w-4 h-4" /> Core Phases
-                <span className="text-[#0EA5E9]">({scopeData.milestones.length})</span>
+          <div className="relative bg-[#0A0A0A] border border-white/[0.08] flex flex-col overflow-hidden">
+            {/* Blueprint corner accents */}
+            <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+            <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
+            
+            <div className="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
+              <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <ListTodo className="w-4 h-4" /> Core_Phases
+                <span className="text-[#00f0ff]">({scopeData.milestones.length})</span>
               </h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onOpenDrawer("taskBreakdown")}
-                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-[#00f0ff] transition-colors"
                   title="Add new"
                 >
                   <Plus className="w-4 h-4" />
@@ -465,7 +469,7 @@ export const ScopePlanningSection = ({
                 <button
                   onClick={() => onAIGenerate("taskBreakdown")}
                   disabled={loadingSection === "taskBreakdown"}
-                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-[#00f0ff] transition-colors"
                   title="Generate with AI"
                 >
                   {loadingSection === "taskBreakdown" ? (
@@ -488,23 +492,23 @@ export const ScopePlanningSection = ({
                       onClick={() => onOpenDrawer("taskBreakdown")}
                       className={cn(
                         "relative pl-6 py-1 cursor-pointer",
-                        isActive ? "border-l border-[#0EA5E9]/30" : "border-l border-gray-700"
+                        isActive ? "border-l border-[#00f0ff]/30" : "border-l border-white/10"
                       )}
                     >
                       <div className={cn(
-                        "absolute -left-[5px] top-1 w-[9px] h-[9px] rounded-full",
-                        isActive ? "bg-[#0EA5E9] ring-4 ring-[#0EA5E9]/20" : "bg-gray-600"
+                        "absolute -left-[5px] top-1 w-[9px] h-[9px]",
+                        isActive ? "bg-[#00f0ff] shadow-[0_0_10px_rgba(0,240,255,0.5)]" : "bg-slate-600"
                       )} />
                       <div className="flex justify-between items-center">
                         <span className={cn(
-                          "text-xs font-bold truncate",
-                          isActive ? "text-white" : "text-gray-400"
+                          "text-xs font-bold truncate font-mono",
+                          isActive ? "text-white" : "text-slate-400"
                         )}>
                           {milestone.name}
                         </span>
                         <span className={cn(
                           "text-[10px] font-mono flex-shrink-0 ml-2",
-                          isActive ? "text-[#0EA5E9]" : "text-[#94A3B8]"
+                          isActive ? "text-[#00f0ff]" : "text-slate-500"
                         )}>
                           {taskCount} Tasks
                         </span>
@@ -524,10 +528,10 @@ export const ScopePlanningSection = ({
               )}
             </div>
             {/* View & Edit All Button */}
-            <div className="p-3 border-t border-[#1E293B] bg-black/10 mt-auto">
+            <div className="p-3 border-t border-white/5 bg-black/10 mt-auto">
               <button 
                 onClick={() => onOpenDrawer("taskBreakdown")}
-                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase text-[#0EA5E9] hover:bg-[#0EA5E9]/10 transition-colors rounded border border-[#1E293B] hover:border-[#0EA5E9]/30"
+                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase tracking-wider text-[#00f0ff] hover:bg-[#00f0ff]/10 transition-colors border border-white/10 hover:border-[#00f0ff]/30"
               >
                 <ExternalLink className="w-3 h-3" />
                 View & Edit All
@@ -536,16 +540,20 @@ export const ScopePlanningSection = ({
           </div>
 
           {/* Timeline Estimates */}
-          <div className="bg-[#121821] border border-[#1E293B] flex flex-col">
-            <div className="p-4 border-b border-[#1E293B] flex justify-between items-center bg-black/20">
-              <h3 className="text-xs font-mono uppercase text-[#94A3B8] flex items-center gap-2">
-                <Clock className="w-4 h-4" /> Timeline Estimates
-                <span className="text-[#0EA5E9]">({scopeData.timeline.length})</span>
+          <div className="relative bg-[#0A0A0A] border border-white/[0.08] flex flex-col overflow-hidden">
+            {/* Blueprint corner accents */}
+            <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-[#00f0ff] opacity-70" />
+            <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-[#00f0ff] opacity-70" />
+            
+            <div className="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
+              <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <Clock className="w-4 h-4" /> Timeline_Estimates
+                <span className="text-[#00f0ff]">({scopeData.timeline.length})</span>
               </h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onOpenDrawer("timeline")}
-                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-[#00f0ff] transition-colors"
                   title="Add new"
                 >
                   <Plus className="w-4 h-4" />
@@ -553,7 +561,7 @@ export const ScopePlanningSection = ({
                 <button
                   onClick={() => onAIGenerate("timeline")}
                   disabled={loadingSection === "timeline"}
-                  className="p-1.5 text-[#94A3B8] hover:text-[#0EA5E9] transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-[#00f0ff] transition-colors"
                   title="Generate with AI"
                 >
                   {loadingSection === "timeline" ? (
@@ -605,7 +613,7 @@ export const ScopePlanningSection = ({
                     );
                   })}
                   <div className="mt-4 p-3 bg-[#00f0ff]/5 border border-[#00f0ff]/20 text-center">
-                    <span className="text-[10px] text-slate-500 uppercase font-mono">Total Estimated Cycle</span>
+                    <span className="text-[10px] text-slate-500 uppercase font-mono tracking-wider">Total Estimated Cycle</span>
                     <div className="text-xl font-bold text-[#00f0ff] font-mono">{totalWeeks} WEEKS</div>
                     <div className="text-xs text-slate-500 font-mono">≈ {totalDays} days</div>
                   </div>
@@ -622,10 +630,10 @@ export const ScopePlanningSection = ({
               )}
             </div>
             {/* View & Edit All Button */}
-            <div className="p-3 border-t border-[#1E293B] bg-black/10 mt-auto">
+            <div className="p-3 border-t border-white/5 bg-black/10 mt-auto">
               <button 
                 onClick={() => onOpenDrawer("timeline")}
-                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase text-[#0EA5E9] hover:bg-[#0EA5E9]/10 transition-colors rounded border border-[#1E293B] hover:border-[#0EA5E9]/30"
+                className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-mono uppercase tracking-wider text-[#00f0ff] hover:bg-[#00f0ff]/10 transition-colors border border-white/10 hover:border-[#00f0ff]/30"
               >
                 <ExternalLink className="w-3 h-3" />
                 View & Edit All
