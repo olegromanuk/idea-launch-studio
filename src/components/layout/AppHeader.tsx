@@ -148,18 +148,37 @@ export const AppHeader = ({
                     {user.email?.slice(0, 2).toUpperCase()}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-[#0F1115] border-[#1f2937]">
-                  <DropdownMenuItem className="text-slate-300 text-xs font-mono">
-                    {user.email}
-                  </DropdownMenuItem>
+                <DropdownMenuContent 
+                  align="end" 
+                  className="z-50 bg-[#0a0d10] border border-[#1E293B] shadow-[0_0_20px_rgba(0,224,255,0.1)] min-w-[200px] p-1 relative"
+                >
+                  {/* Corner accents */}
+                  <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[#00E0FF]/50" />
+                  <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-[#00E0FF]/50" />
+                  <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-[#00E0FF]/50" />
+                  <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-[#00E0FF]/50" />
+                  
+                  {/* User email display */}
+                  <div className="px-3 py-2 border-b border-[#1E293B] mb-1">
+                    <p className="text-[10px] font-mono text-[#64748B] uppercase tracking-wider">Signed in as</p>
+                    <p className="text-xs font-mono text-white truncate mt-0.5">{user.email}</p>
+                  </div>
+                  
                   <DropdownMenuItem asChild>
-                    <Link to="/projects" className="flex items-center gap-2 text-slate-300 hover:text-white">
-                      <FolderOpen className="w-4 h-4" />
+                    <Link 
+                      to="/projects" 
+                      className="flex items-center gap-3 px-3 py-2.5 text-sm font-mono text-slate-300 hover:text-white hover:bg-[#1E293B]/50 rounded cursor-pointer transition-colors"
+                    >
+                      <FolderOpen className="w-4 h-4 text-[#00E0FF]" />
                       My Projects
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleSignOut} className="text-red-400 hover:text-red-300">
-                    <LogOut className="w-4 h-4 mr-2" />
+                  
+                  <DropdownMenuItem 
+                    onClick={handleSignOut} 
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-mono text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded cursor-pointer transition-colors mt-1 border-t border-[#1E293B] pt-2"
+                  >
+                    <LogOut className="w-4 h-4" />
                     Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
