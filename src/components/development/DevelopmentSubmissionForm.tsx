@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,7 +44,9 @@ import {
   Database,
   Workflow,
   Bot,
-  Verified
+  Verified,
+  Search,
+  XCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -53,6 +55,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { ArchitectureDiagram } from "./ArchitectureDiagram";
 import { exportToPDF } from "@/lib/exportUtils";
+
+interface DomainCheckResult {
+  available: boolean;
+  domain: string;
+  price?: number;
+  currency?: string;
+  error?: string;
+}
 
 interface ScopeData {
   userStories: any[];
@@ -134,6 +144,11 @@ export const DevelopmentSubmissionForm = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [timelineView, setTimelineView] = useState<"weeks" | "months">("weeks");
   
+  // Domain availability checking
+  const [domainCheckResult, setDomainCheckResult] = useState<DomainCheckResult | null>(null);
+  const [isCheckingDomain, setIsCheckingDomain] = useState(false);
+  const [domainInputValue, setDomainInputValue] = useState("");
+  
   // Form state
   const [formData, setFormData] = useState({
     projectName: projectData?.idea || "",
@@ -153,6 +168,49 @@ export const DevelopmentSubmissionForm = ({
     priority: "normal" as "low" | "normal" | "high" | "urgent",
     additionalRequirements: "",
   });
+
+  // Check domain availability via GoDaddy API
+  const checkDomainAvailability = useCallback(async (domain: string) => {
+    if (!domain || domain.length < 3) {
+      setDomainCheckResult(null);
+      return;
+    }
+
+    setIsCheckingDomain(true);
+    setDomainCheckResult(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('check-domain-availability', {
+        body: { domain }
+      });
+
+      if (error) {
+        console.error('Domain check error:', error);
+        setDomainCheckResult({
+          available: false,
+          domain,
+          error: error.message || 'Failed to check domain'
+        });
+        return;
+      }
+
+      setDomainCheckResult(data);
+      
+      // If domain is available, set it in form data
+      if (data.available) {
+        setFormData(prev => ({ ...prev, customDomain: data.domain }));
+      }
+    } catch (err) {
+      console.error('Domain check error:', err);
+      setDomainCheckResult({
+        available: false,
+        domain,
+        error: 'Failed to check domain availability'
+      });
+    } finally {
+      setIsCheckingDomain(false);
+    }
+  }, []);
 
   // Check for existing submissions on mount
   useEffect(() => {
@@ -1187,6 +1245,105 @@ export const DevelopmentSubmissionForm = ({
 
           {/* Additional Settings */}
           <div className="bg-[#121821] border border-[#1E293B] p-5">
+            {/* Domain Availability Checker */}
+            <div className="mb-6">
+              <Label className="text-[#94A3B8] text-xs font-mono uppercase flex items-center gap-2">
+                <Globe className="w-4 h-4" /> Check Domain Availability (GoDaddy)
+              </Label>
+              <div className="flex gap-2 mt-2">
+                <div className="flex-1 relative">
+                  <Input
+                    value={domainInputValue}
+                    onChange={(e) => setDomainInputValue(e.target.value)}
+                    placeholder="Enter domain to check (e.g., mywebsite.com)"
+                    className="bg-black/30 border-[#1E293B] focus:border-[#0EA5E9] text-white placeholder:text-[#94A3B8]/50 pr-10"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        checkDomainAvailability(domainInputValue);
+                      }
+                    }}
+                  />
+                  {isCheckingDomain && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-[#0EA5E9]" />
+                  )}
+                </div>
+                <button
+                  onClick={() => checkDomainAvailability(domainInputValue)}
+                  disabled={isCheckingDomain || !domainInputValue}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase transition-colors",
+                    "bg-[#0EA5E9] text-white hover:bg-[#0EA5E9]/90",
+                    "disabled:opacity-50 disabled:cursor-not-allowed"
+                  )}
+                >
+                  <Search className="w-4 h-4" />
+                  Check
+                </button>
+              </div>
+
+              {/* Domain Check Result */}
+              {domainCheckResult && (
+                <div className={cn(
+                  "mt-3 p-3 rounded border flex items-start gap-3",
+                  domainCheckResult.error
+                    ? "bg-red-500/10 border-red-500/30"
+                    : domainCheckResult.available
+                      ? "bg-green-500/10 border-green-500/30"
+                      : "bg-yellow-500/10 border-yellow-500/30"
+                )}>
+                  {domainCheckResult.error ? (
+                    <>
+                      <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-red-400 font-medium">Error checking domain</p>
+                        <p className="text-xs text-red-400/70">{domainCheckResult.error}</p>
+                      </div>
+                    </>
+                  ) : domainCheckResult.available ? (
+                    <>
+                      <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm text-green-400 font-medium flex items-center gap-2">
+                          {domainCheckResult.domain} is available!
+                          <Verified className="w-4 h-4" />
+                        </p>
+                        {domainCheckResult.price && (
+                          <p className="text-xs text-green-400/70">
+                            Estimated price: ${domainCheckResult.price.toFixed(2)} {domainCheckResult.currency}/year
+                          </p>
+                        )}
+                        <button
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, customDomain: domainCheckResult.domain }));
+                            toast({
+                              title: "Domain selected",
+                              description: `${domainCheckResult.domain} has been set as your custom domain.`,
+                            });
+                          }}
+                          className="mt-2 text-xs text-green-400 hover:text-green-300 underline flex items-center gap-1"
+                        >
+                          <Check className="w-3 h-3" /> Use this domain
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-yellow-400 font-medium">
+                          {domainCheckResult.domain} is not available
+                        </p>
+                        <p className="text-xs text-yellow-400/70">
+                          This domain is already registered. Try a different name or TLD.
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <Label className="text-[#94A3B8] text-xs font-mono uppercase">Custom Domain (optional)</Label>
@@ -1194,8 +1351,19 @@ export const DevelopmentSubmissionForm = ({
                   value={formData.customDomain}
                   onChange={(e) => setFormData({ ...formData, customDomain: e.target.value })}
                   placeholder="example.com"
-                  className="bg-black/30 border-[#1E293B] focus:border-[#0EA5E9] text-white placeholder:text-[#94A3B8]/50"
+                  className={cn(
+                    "bg-black/30 border-[#1E293B] focus:border-[#0EA5E9] text-white placeholder:text-[#94A3B8]/50",
+                    formData.customDomain && domainCheckResult?.available && domainCheckResult.domain === formData.customDomain
+                      && "border-green-500/50 bg-green-500/5"
+                  )}
                 />
+                {formData.customDomain && (
+                  <p className="text-[10px] text-[#94A3B8] mt-1 font-mono">
+                    {domainCheckResult?.available && domainCheckResult.domain === formData.customDomain
+                      ? "✓ Domain verified as available"
+                      : "Use the checker above to verify availability"}
+                  </p>
+                )}
               </div>
               <div>
                 <Label className="text-[#94A3B8] text-xs font-mono uppercase">Environment Type</Label>
