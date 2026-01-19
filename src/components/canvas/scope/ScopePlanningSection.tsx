@@ -59,11 +59,17 @@ export const ScopePlanningSection = ({
   
   const completionPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
-  // Calculate total timeline
-  const totalDays = scopeData.timeline.reduce((acc, phase) => {
-    const days = parseInt(phase.duration) || 0;
-    return acc + days;
+  // Calculate total timeline - handle both weeks and duration properties
+  const totalWeeks = scopeData.timeline.reduce((acc, phase) => {
+    // Check for weeks first (used by TimelineEstimates component), then fall back to duration
+    const weeks = typeof phase.weeks === 'number' && !isNaN(phase.weeks) 
+      ? phase.weeks 
+      : (typeof phase.duration === 'number' && !isNaN(phase.duration) 
+        ? phase.duration 
+        : parseInt(phase.duration) || 0);
+    return acc + weeks;
   }, 0);
+  const totalDays = totalWeeks * 7;
 
   return (
     <div className="space-y-6">
@@ -562,9 +568,22 @@ export const ScopePlanningSection = ({
               {scopeData.timeline.length > 0 ? (
                 <>
                   {scopeData.timeline.slice(0, 4).map((phase, i) => {
-                    const days = parseInt(phase.duration) || 0;
-                    const maxDays = Math.max(...scopeData.timeline.map(p => parseInt(p.duration) || 0), 1);
-                    const widthPercent = (days / maxDays) * 100;
+                    // Handle both weeks and duration properties
+                    const weeks = typeof phase.weeks === 'number' && !isNaN(phase.weeks) 
+                      ? phase.weeks 
+                      : (typeof phase.duration === 'number' && !isNaN(phase.duration) 
+                        ? phase.duration 
+                        : parseInt(phase.duration) || 0);
+                    const maxWeeks = Math.max(...scopeData.timeline.map(p => {
+                      const w = typeof p.weeks === 'number' && !isNaN(p.weeks) 
+                        ? p.weeks 
+                        : (typeof p.duration === 'number' && !isNaN(p.duration) 
+                          ? p.duration 
+                          : parseInt(p.duration) || 0);
+                      return w;
+                    }), 1);
+                    const widthPercent = (weeks / maxWeeks) * 100;
+                    const displayDuration = weeks > 0 ? `${weeks} ${weeks === 1 ? 'week' : 'weeks'}` : phase.duration;
                     
                     return (
                       <div 
@@ -573,21 +592,22 @@ export const ScopePlanningSection = ({
                         className="cursor-pointer"
                       >
                         <div className="flex justify-between text-[11px] mb-1.5 uppercase tracking-wider">
-                          <span className="text-gray-400 truncate">{phase.name}</span>
-                          <span className="font-mono text-[#0EA5E9] flex-shrink-0 ml-2">{phase.duration}</span>
+                          <span className="text-slate-400 truncate font-mono">{phase.name}</span>
+                          <span className="font-mono text-[#00f0ff] flex-shrink-0 ml-2">{displayDuration}</span>
                         </div>
-                        <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
+                        <div className="h-1 bg-[#0F0F0F] overflow-hidden">
                           <div 
-                            className="h-full bg-[#0EA5E9] transition-all duration-500"
+                            className="h-full bg-[#00f0ff] transition-all duration-500"
                             style={{ width: `${widthPercent}%` }}
                           />
                         </div>
                       </div>
                     );
                   })}
-                  <div className="mt-4 p-3 bg-[#0EA5E9]/5 border border-[#0EA5E9]/20 rounded text-center">
-                    <span className="text-[10px] text-[#94A3B8] uppercase">Total Estimated Cycle</span>
-                    <div className="text-xl font-bold text-[#0EA5E9] font-mono">{totalDays} DAYS</div>
+                  <div className="mt-4 p-3 bg-[#00f0ff]/5 border border-[#00f0ff]/20 text-center">
+                    <span className="text-[10px] text-slate-500 uppercase font-mono">Total Estimated Cycle</span>
+                    <div className="text-xl font-bold text-[#00f0ff] font-mono">{totalWeeks} WEEKS</div>
+                    <div className="text-xs text-slate-500 font-mono">≈ {totalDays} days</div>
                   </div>
                 </>
               ) : (
