@@ -1590,19 +1590,6 @@ const Canvas = () => {
                       ))}
                     </div>
                   )}
-
-                  {/* Show Roadmap after any block is validated */}
-                  {tab.id === "business" && validatedBlocks.has("business") && (
-                    <div className="mt-8">
-                      <Roadmap
-                        projectData={projectData}
-                        validatedBlocks={validatedBlocks}
-                        onPhaseClick={(tabId) => {
-                          setActiveTab(tabId);
-                        }}
-                      />
-                    </div>
-                  )}
                   </motion.div>
                 </TabsContent>
                 );
