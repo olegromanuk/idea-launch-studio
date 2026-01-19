@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,9 @@ import {
   TrendingUp,
   BarChart3,
   Plus,
-  LucideIcon
+  Trash2,
+  LucideIcon,
+  GripVertical
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
@@ -36,24 +38,104 @@ const ICON_OPTIONS = [
   { id: "chart", icon: BarChart3, label: "Chart" },
 ];
 
-// Section config for display
-const SECTION_CONFIG: Record<string, { 
+// Section-specific content configurations
+interface ContentField {
+  key: string;
+  label: string;
+  type: "text" | "textarea" | "list";
+  placeholder: string;
+}
+
+interface SectionContentConfig {
   icon: LucideIcon;
   sectionNumber: string;
   displayKey: string;
-}> = {
-  problem: { icon: AlertTriangle, sectionNumber: "01", displayKey: "PROBLEM_STATEMENT" },
-  targetAudience: { icon: Users, sectionNumber: "02", displayKey: "TARGET_AUDIENCE" },
-  uniqueValueProposition: { icon: Gem, sectionNumber: "03", displayKey: "VALUE_PROPOSITION" },
-  revenueModel: { icon: DollarSign, sectionNumber: "04", displayKey: "REVENUE_MODEL" },
-  marketTrends: { icon: TrendingUp, sectionNumber: "05", displayKey: "MARKET_VALIDATION" },
-  successMetrics: { icon: BarChart3, sectionNumber: "06", displayKey: "SUCCESS_KPIS" },
+  fields: ContentField[];
+  listItemLabel?: string;
+  maxItems?: number;
+}
+
+const SECTION_CONFIG: Record<string, SectionContentConfig> = {
+  problem: { 
+    icon: AlertTriangle, 
+    sectionNumber: "01", 
+    displayKey: "PROBLEM_STATEMENT",
+    fields: [
+      { key: "headline", label: "Problem Headline", type: "text", placeholder: "Main problem statement..." },
+      { key: "description", label: "Problem Description", type: "textarea", placeholder: "Describe the core problem..." },
+    ],
+    listItemLabel: "Pain Point",
+    maxItems: 5,
+  },
+  targetAudience: { 
+    icon: Users, 
+    sectionNumber: "02", 
+    displayKey: "TARGET_AUDIENCE",
+    fields: [
+      { key: "primarySegment", label: "Primary Segment", type: "text", placeholder: "Main target audience..." },
+      { key: "demographics", label: "Demographics", type: "textarea", placeholder: "Age, location, profession..." },
+      { key: "psychographics", label: "Psychographics", type: "textarea", placeholder: "Values, interests, behaviors..." },
+    ],
+    listItemLabel: "Audience Segment",
+    maxItems: 6,
+  },
+  uniqueValueProposition: { 
+    icon: Gem, 
+    sectionNumber: "03", 
+    displayKey: "VALUE_PROPOSITION",
+    fields: [
+      { key: "coreValue", label: "Core Value", type: "text", placeholder: "What unique value do you provide?" },
+      { key: "howItWorks", label: "How It Works", type: "textarea", placeholder: "Explain the mechanism..." },
+    ],
+    listItemLabel: "Differentiator",
+    maxItems: 4,
+  },
+  revenueModel: { 
+    icon: DollarSign, 
+    sectionNumber: "04", 
+    displayKey: "REVENUE_MODEL",
+    fields: [
+      { key: "primaryModel", label: "Primary Revenue Model", type: "text", placeholder: "Subscription, one-time, freemium..." },
+      { key: "pricingStrategy", label: "Pricing Strategy", type: "textarea", placeholder: "How will you price your offering?" },
+    ],
+    listItemLabel: "Revenue Stream",
+    maxItems: 5,
+  },
+  marketTrends: { 
+    icon: TrendingUp, 
+    sectionNumber: "05", 
+    displayKey: "MARKET_VALIDATION",
+    fields: [
+      { key: "marketSize", label: "Market Size", type: "text", placeholder: "TAM, SAM, SOM..." },
+      { key: "growthRate", label: "Growth Rate", type: "text", placeholder: "Annual growth rate..." },
+      { key: "validation", label: "Validation Evidence", type: "textarea", placeholder: "Research, surveys, competitor analysis..." },
+    ],
+    listItemLabel: "Market Trend",
+    maxItems: 4,
+  },
+  successMetrics: { 
+    icon: BarChart3, 
+    sectionNumber: "06", 
+    displayKey: "SUCCESS_KPIS",
+    fields: [
+      { key: "northStar", label: "North Star Metric", type: "text", placeholder: "Primary success metric..." },
+      { key: "timeframe", label: "Timeframe", type: "text", placeholder: "30 days, 90 days, 1 year..." },
+    ],
+    listItemLabel: "KPI",
+    maxItems: 6,
+  },
 };
 
 interface ModuleStyle {
   bgOpacity: number;
   glowIntensity: number;
   selectedIcon: string;
+  accentColor?: string;
+}
+
+interface StructuredContent {
+  fields: Record<string, string>;
+  items: string[];
 }
 
 interface ModuleEditorModalProps {
@@ -75,6 +157,56 @@ interface ModuleEditorModalProps {
 
 type TabType = "content" | "style" | "logic";
 
+// Parse existing content into structured format
+const parseContent = (content: string, sectionKey: string): StructuredContent => {
+  const config = SECTION_CONFIG[sectionKey];
+  const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  
+  const fields: Record<string, string> = {};
+  const items: string[] = [];
+  
+  lines.forEach(line => {
+    // Check if it's a field (contains label:)
+    const fieldMatch = config?.fields.find(f => 
+      line.toLowerCase().startsWith(f.label.toLowerCase() + ':')
+    );
+    
+    if (fieldMatch) {
+      fields[fieldMatch.key] = line.substring(fieldMatch.label.length + 1).trim();
+    } else {
+      // It's a list item - remove markdown list prefixes
+      let cleaned = line.replace(/^[-*+]\s+/, '').replace(/^\d+\.\s+/, '');
+      cleaned = cleaned.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
+      if (cleaned) items.push(cleaned);
+    }
+  });
+  
+  return { fields, items };
+};
+
+// Convert structured content back to string
+const stringifyContent = (structured: StructuredContent, sectionKey: string): string => {
+  const config = SECTION_CONFIG[sectionKey];
+  const lines: string[] = [];
+  
+  // Add fields
+  config?.fields.forEach(field => {
+    if (structured.fields[field.key]) {
+      lines.push(`**${field.label}:** ${structured.fields[field.key]}`);
+    }
+  });
+  
+  // Add items
+  if (structured.items.length > 0) {
+    lines.push(''); // Empty line before list
+    structured.items.forEach(item => {
+      lines.push(`- ${item}`);
+    });
+  }
+  
+  return lines.join('\n');
+};
+
 export const ModuleEditorModal = ({
   isOpen,
   onClose,
@@ -95,11 +227,60 @@ export const ModuleEditorModal = ({
   const [localTitle, setLocalTitle] = useState(title);
   const [localDescription, setLocalDescription] = useState(subtitle);
   const [localStyle, setLocalStyle] = useState<ModuleStyle>(moduleStyle || {
-    bgOpacity: 85,
+    bgOpacity: 100,
     glowIntensity: 40,
     selectedIcon: "warning",
+    accentColor: "#00f0ff",
   });
+  
+  const [structuredContent, setStructuredContent] = useState<StructuredContent>(() => 
+    parseContent(value, sectionKey)
+  );
+  const [newItem, setNewItem] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Sync value changes to structured content
+  useEffect(() => {
+    setStructuredContent(parseContent(value, sectionKey));
+  }, [value, sectionKey]);
+
+  // Update parent when structured content changes
+  const updateContent = (newStructured: StructuredContent) => {
+    setStructuredContent(newStructured);
+    onChange(stringifyContent(newStructured, sectionKey));
+  };
+
+  const handleFieldChange = (key: string, fieldValue: string) => {
+    updateContent({
+      ...structuredContent,
+      fields: { ...structuredContent.fields, [key]: fieldValue }
+    });
+  };
+
+  const handleAddItem = () => {
+    if (!newItem.trim()) return;
+    const config = SECTION_CONFIG[sectionKey];
+    if (config?.maxItems && structuredContent.items.length >= config.maxItems) return;
+    
+    updateContent({
+      ...structuredContent,
+      items: [...structuredContent.items, newItem.trim()]
+    });
+    setNewItem("");
+  };
+
+  const handleRemoveItem = (index: number) => {
+    updateContent({
+      ...structuredContent,
+      items: structuredContent.items.filter((_, i) => i !== index)
+    });
+  };
+
+  const handleUpdateItem = (index: number, newValue: string) => {
+    const newItems = [...structuredContent.items];
+    newItems[index] = newValue;
+    updateContent({ ...structuredContent, items: newItems });
+  };
 
   const insertMarkdown = (prefix: string, suffix: string = prefix) => {
     const textarea = textareaRef.current;
@@ -113,18 +294,15 @@ export const ModuleEditorModal = ({
     let newCursorPos: number;
 
     if (selectedText) {
-      // Wrap selected text
       newText = value.substring(0, start) + prefix + selectedText + suffix + value.substring(end);
       newCursorPos = end + prefix.length + suffix.length;
     } else {
-      // Insert at cursor with placeholder
       newText = value.substring(0, start) + prefix + suffix + value.substring(end);
       newCursorPos = start + prefix.length;
     }
 
     onChange(newText);
     
-    // Restore focus and cursor position after state update
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(newCursorPos, newCursorPos);
@@ -141,7 +319,6 @@ export const ModuleEditorModal = ({
     const beforeCursor = value.substring(0, start);
     const afterCursor = value.substring(start);
     
-    // Check if we're at the start of a line
     const lastNewline = beforeCursor.lastIndexOf('\n');
     const isStartOfLine = lastNewline === beforeCursor.length - 1 || start === 0;
     
@@ -161,6 +338,9 @@ export const ModuleEditorModal = ({
     icon: AlertTriangle,
     sectionNumber: "01",
     displayKey: sectionKey.toUpperCase(),
+    fields: [],
+    listItemLabel: "Item",
+    maxItems: 10,
   };
 
   const handleStyleChange = (updates: Partial<ModuleStyle>) => {
@@ -177,23 +357,6 @@ export const ModuleEditorModal = ({
     onClose();
   };
 
-  // Parse content into structured points for preview
-  const parseContentToPoints = (content: string) => {
-    return content
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
-      .map(line => {
-        let cleaned = line.replace(/^[-*+]\s+/, '');
-        cleaned = cleaned.replace(/^\d+\.\s+/, '');
-        cleaned = cleaned.replace(/\*\*(.+?)\*\*/g, '$1');
-        cleaned = cleaned.replace(/\*(.+?)\*/g, '$1');
-        return cleaned.trim();
-      })
-      .filter(line => line.length > 0);
-  };
-
-  const points = parseContentToPoints(value);
   const SelectedIcon = ICON_OPTIONS.find(i => i.id === localStyle.selectedIcon)?.icon || AlertTriangle;
 
   const tabs = [
@@ -266,43 +429,95 @@ export const ModuleEditorModal = ({
               <div className="max-w-2xl mx-auto space-y-8">
                 {activeTab === "content" && (
                   <>
-                    {/* Module Title */}
-                    <div>
-                      <label className="block text-[10px] font-mono text-[#00f0ff] uppercase tracking-widest mb-2">
-                        Module Title
-                      </label>
-                      <Input
-                        value={localTitle}
-                        onChange={(e) => setLocalTitle(e.target.value)}
-                        className="w-full bg-[#0F0F0F] border-white/10 text-white p-3 text-sm focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all rounded-none"
-                      />
-                    </div>
+                    {/* Section-specific fields */}
+                    {config.fields.map((field) => (
+                      <div key={field.key}>
+                        <label className="block text-[10px] font-mono text-[#00f0ff] uppercase tracking-widest mb-2">
+                          {field.label}
+                        </label>
+                        {field.type === "text" ? (
+                          <Input
+                            value={structuredContent.fields[field.key] || ""}
+                            onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                            placeholder={field.placeholder}
+                            className="w-full bg-[#0F0F0F] border-white/10 text-white p-3 text-sm focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all rounded-none"
+                          />
+                        ) : (
+                          <Textarea
+                            value={structuredContent.fields[field.key] || ""}
+                            onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                            placeholder={field.placeholder}
+                            rows={3}
+                            className="w-full bg-[#0F0F0F] border-white/10 text-white p-3 text-sm focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all rounded-none resize-none"
+                          />
+                        )}
+                      </div>
+                    ))}
 
-                    {/* Main Description */}
+                    {/* List Items Section */}
                     <div>
-                      <label className="block text-[10px] font-mono text-[#00f0ff] uppercase tracking-widest mb-2">
-                        Main Description
-                      </label>
-                      <Textarea
-                        value={localDescription}
-                        onChange={(e) => setLocalDescription(e.target.value)}
-                        rows={3}
-                        className="w-full bg-[#0F0F0F] border-white/10 text-white p-3 text-sm focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all rounded-none resize-none"
-                      />
-                    </div>
-
-                    {/* Sub-Points (Rich Text) */}
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
+                      <div className="flex justify-between items-center mb-3">
                         <label className="block text-[10px] font-mono text-[#00f0ff] uppercase tracking-widest">
-                          Sub-Points (Rich Text)
+                          {config.listItemLabel}s ({structuredContent.items.length}/{config.maxItems || 10})
+                        </label>
+                      </div>
+                      
+                      {/* Existing items */}
+                      <div className="space-y-2 mb-4">
+                        {structuredContent.items.map((item, index) => (
+                          <div 
+                            key={index}
+                            className="flex items-center gap-2 p-3 bg-[#0F0F0F] border border-white/5 group hover:border-[#00f0ff]/30 transition-all"
+                          >
+                            <GripVertical className="w-4 h-4 text-slate-700 cursor-grab" />
+                            <span className="text-[10px] font-mono text-[#00f0ff] w-6">#{index + 1}</span>
+                            <Input
+                              value={item}
+                              onChange={(e) => handleUpdateItem(index, e.target.value)}
+                              className="flex-1 bg-transparent border-0 text-white text-sm p-0 h-auto focus:ring-0"
+                            />
+                            <button
+                              onClick={() => handleRemoveItem(index)}
+                              className="p-1 text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Add new item */}
+                      {(!config.maxItems || structuredContent.items.length < config.maxItems) && (
+                        <div className="flex gap-2">
+                          <Input
+                            value={newItem}
+                            onChange={(e) => setNewItem(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
+                            placeholder={`Add new ${config.listItemLabel?.toLowerCase()}...`}
+                            className="flex-1 bg-[#0F0F0F] border-white/10 text-white p-3 text-sm focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all rounded-none"
+                          />
+                          <Button
+                            onClick={handleAddItem}
+                            className="bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[#00f0ff] hover:bg-[#00f0ff]/20 rounded-none"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Raw Markdown Editor (collapsible) */}
+                    <div className="pt-4 border-t border-white/5">
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-widest">
+                          Raw Markdown (Advanced)
                         </label>
                         <div className="flex gap-2">
                           <button 
                             type="button"
                             onClick={insertBold}
                             className="p-1 text-slate-500 hover:text-white hover:bg-white/10 transition-colors rounded"
-                            title="Bold (wrap selection with **)"
+                            title="Bold"
                           >
                             <Bold className="w-3.5 h-3.5" />
                           </button>
@@ -310,7 +525,7 @@ export const ModuleEditorModal = ({
                             type="button"
                             onClick={insertItalic}
                             className="p-1 text-slate-500 hover:text-white hover:bg-white/10 transition-colors rounded"
-                            title="Italic (wrap selection with *)"
+                            title="Italic"
                           >
                             <Italic className="w-3.5 h-3.5" />
                           </button>
@@ -318,7 +533,7 @@ export const ModuleEditorModal = ({
                             type="button"
                             onClick={insertList}
                             className="p-1 text-slate-500 hover:text-white hover:bg-white/10 transition-colors rounded"
-                            title="Insert bullet point"
+                            title="List"
                           >
                             <List className="w-3.5 h-3.5" />
                           </button>
@@ -328,14 +543,8 @@ export const ModuleEditorModal = ({
                         ref={textareaRef}
                         value={value}
                         onChange={(e) => onChange(e.target.value)}
-                        placeholder={`Enter your ${title.toLowerCase()} content here...
-
-Use markdown formatting:
-- **Bold text** for emphasis
-- *Italic text* for subtle emphasis
-- Bullet points with dashes (-)
-- Numbered lists (1. 2. 3.)`}
-                        className="w-full bg-[#0F0F0F] border-white/10 text-white p-4 min-h-[160px] text-sm focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all rounded-none resize-none"
+                        placeholder={`Enter raw markdown content...`}
+                        className="w-full bg-[#0F0F0F] border-white/10 text-white p-4 min-h-[120px] text-sm focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all rounded-none resize-none font-mono text-xs"
                       />
                     </div>
 
@@ -381,14 +590,14 @@ Use markdown formatting:
                         {/* BG Opacity */}
                         <div>
                           <label className="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-3">
-                            BG Opacity
+                            Background Opacity
                           </label>
                           <div className="flex items-center gap-4">
                             <Slider
                               value={[localStyle.bgOpacity]}
                               onValueChange={([val]) => handleStyleChange({ bgOpacity: val })}
                               max={100}
-                              min={0}
+                              min={10}
                               step={5}
                               className="flex-grow accent-[#00f0ff]"
                             />
@@ -396,6 +605,9 @@ Use markdown formatting:
                               {localStyle.bgOpacity}%
                             </span>
                           </div>
+                          <p className="text-[9px] text-slate-600 mt-1">
+                            Controls card background darkness
+                          </p>
                         </div>
 
                         {/* Glow Intensity */}
@@ -416,13 +628,16 @@ Use markdown formatting:
                               {localStyle.glowIntensity}%
                             </span>
                           </div>
+                          <p className="text-[9px] text-slate-600 mt-1">
+                            Controls border glow effect
+                          </p>
                         </div>
                       </div>
 
                       {/* Icon Selection */}
                       <div>
                         <label className="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-3">
-                          Icon Selection
+                          Section Icon
                         </label>
                         <div className="grid grid-cols-6 gap-2">
                           {ICON_OPTIONS.map((option) => {
@@ -500,12 +715,14 @@ Use markdown formatting:
               </span>
             </div>
 
-            {/* Preview Card */}
+            {/* Preview Card - Fixed opacity bug */}
             <div 
-              className="relative bg-[#050505] p-5 border border-white/5 overflow-hidden group"
+              className="relative p-5 border border-white/5 overflow-hidden group"
               style={{
-                opacity: localStyle.bgOpacity / 100,
-                boxShadow: `0 0 ${localStyle.glowIntensity / 3}px rgba(0, 240, 255, ${localStyle.glowIntensity / 200})`,
+                backgroundColor: `rgba(5, 5, 5, ${localStyle.bgOpacity / 100})`,
+                boxShadow: localStyle.glowIntensity > 0 
+                  ? `0 0 ${localStyle.glowIntensity / 2}px rgba(0, 240, 255, ${localStyle.glowIntensity / 150}), inset 0 0 ${localStyle.glowIntensity / 4}px rgba(0, 240, 255, ${localStyle.glowIntensity / 300})`
+                  : 'none',
               }}
             >
               {/* Corner accents */}
@@ -518,48 +735,56 @@ Use markdown formatting:
 
               <h3 className="font-mono text-[10px] text-[#00f0ff] uppercase tracking-widest mb-3 flex items-center gap-2">
                 <span className="w-1 h-1 bg-[#00f0ff] rounded-full shadow-[0_0_5px_#00f0ff]" />
-                {localTitle || title}
+                {config.displayKey.replace(/_/g, ' ')}
               </h3>
 
-              <p className="text-[10px] text-slate-400 leading-relaxed mb-4">
-                {localDescription || subtitle}
-              </p>
-
-              {/* Sub-points preview */}
-              <div className="space-y-2">
-                {points.slice(0, 3).map((point, i) => {
-                  const parts = point.split(':');
-                  const hasTitle = parts.length > 1;
+              {/* Fields preview */}
+              <div className="space-y-2 mb-3">
+                {config.fields.slice(0, 2).map((field) => {
+                  const fieldValue = structuredContent.fields[field.key];
+                  if (!fieldValue) return null;
                   return (
-                    <div key={i} className="p-2 bg-white/5 border border-white/5">
-                      {hasTitle ? (
-                        <>
-                          <h4 className="text-[9px] font-bold text-white uppercase tracking-tight">
-                            {parts[0]}
-                          </h4>
-                          <p className="text-[9px] text-slate-500 line-clamp-2">
-                            {parts.slice(1).join(':').trim()}
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-[9px] text-slate-400 line-clamp-2">{point}</p>
-                      )}
+                    <div key={field.key} className="p-2 bg-white/5 border border-white/5">
+                      <h4 className="text-[8px] font-mono text-slate-500 uppercase tracking-tight mb-1">
+                        {field.label}
+                      </h4>
+                      <p className="text-[9px] text-slate-300 line-clamp-2">{fieldValue}</p>
                     </div>
                   );
                 })}
-                {points.length === 0 && (
+              </div>
+
+              {/* Items preview */}
+              <div className="space-y-1.5">
+                {structuredContent.items.slice(0, 3).map((item, i) => (
+                  <div key={i} className="flex items-start gap-2 p-2 bg-white/5 border border-white/5">
+                    <span className="text-[#00f0ff] text-[9px]">•</span>
+                    <p className="text-[9px] text-slate-400 line-clamp-1">{item}</p>
+                  </div>
+                ))}
+                {structuredContent.items.length === 0 && Object.keys(structuredContent.fields).length === 0 && (
                   <div className="p-2 bg-white/5 border border-dashed border-white/10 text-center">
                     <p className="text-[9px] text-slate-600">Add content to see preview</p>
                   </div>
                 )}
+                {structuredContent.items.length > 3 && (
+                  <p className="text-[8px] text-slate-600 text-center">
+                    +{structuredContent.items.length - 3} more
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* Responsive Stack placeholder */}
-            <div className="flex-grow flex items-center justify-center border border-dashed border-white/5">
-              <div className="text-center">
-                <BarChart3 className="w-8 h-8 text-slate-800 mx-auto mb-2" />
-                <span className="text-[10px] font-mono text-slate-700">Responsive Stack</span>
+            {/* Style info */}
+            <div className="p-4 bg-[#0F0F0F] border border-white/5 space-y-2">
+              <h4 className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">Style Applied</h4>
+              <div className="flex justify-between text-[9px]">
+                <span className="text-slate-600">Background</span>
+                <span className="text-white">{localStyle.bgOpacity}%</span>
+              </div>
+              <div className="flex justify-between text-[9px]">
+                <span className="text-slate-600">Glow</span>
+                <span className="text-white">{localStyle.glowIntensity}%</span>
               </div>
             </div>
           </aside>
