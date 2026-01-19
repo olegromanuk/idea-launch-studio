@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,9 +20,11 @@ import {
   Megaphone,
   Zap,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Clock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface LaunchPhase {
   id: string;
@@ -167,9 +168,9 @@ export const LaunchStrategy = ({
 
   const getStatusColor = (status: LaunchPhase["status"]) => {
     switch (status) {
-      case "completed": return "bg-success/10 text-success border-success/30";
-      case "in_progress": return "bg-blue-500/10 text-blue-500 border-blue-500/30";
-      default: return "bg-muted";
+      case "completed": return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+      case "in_progress": return "bg-cyan-500/20 text-cyan-400 border-cyan-500/30";
+      default: return "bg-white/10 text-muted-foreground border-white/10";
     }
   };
 
@@ -177,13 +178,16 @@ export const LaunchStrategy = ({
     ? safePhases.reduce((sum, p) => sum + getPhaseProgress(p), 0) / safePhases.length
     : 0;
 
+  const completedTasks = safePhases.reduce((sum, p) => sum + (p.tasks || []).filter(t => t.completed).length, 0);
+  const totalTasks = safePhases.reduce((sum, p) => sum + (p.tasks || []).length, 0);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Plan your product launch strategy with phases, tasks, and goals
-        </p>
+        <div className="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">
+          {safePhases.length} PHASE{safePhases.length !== 1 ? 'S' : ''} DEFINED
+        </div>
         <div className="flex items-center gap-2">
           {onAIGenerate && (
             <Button
@@ -191,13 +195,13 @@ export const LaunchStrategy = ({
               size="sm"
               onClick={onAIGenerate}
               disabled={isGenerating}
-              className="gap-2"
+              className="gap-2 border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20"
             >
               <Sparkles className={cn("w-4 h-4", isGenerating && "animate-spin")} />
               Generate Plan
             </Button>
           )}
-          <Button onClick={addPhase} size="sm" className="gap-2">
+          <Button onClick={addPhase} size="sm" className="gap-2 bg-cyan-600 hover:bg-cyan-500">
             <Plus className="w-4 h-4" />
             Add Phase
           </Button>
@@ -206,26 +210,26 @@ export const LaunchStrategy = ({
 
       {/* Overall Progress */}
       {safePhases.length > 0 && (
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="font-medium text-foreground flex items-center gap-2">
-              <Rocket className="w-4 h-4 text-primary" />
-              Launch Progress
+        <div className="rounded-xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-transparent p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-medium text-white flex items-center gap-2">
+              <Rocket className="w-5 h-5 text-cyan-400" />
+              <span className="font-mono">LAUNCH_PROGRESS</span>
             </h4>
-            <span className="text-sm font-bold text-foreground">{Math.round(overallProgress)}%</span>
+            <span className="text-xl font-bold text-cyan-400 font-mono">{Math.round(overallProgress)}%</span>
           </div>
-          <Progress value={overallProgress} className="h-2" />
-          <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+          <Progress value={overallProgress} className="h-2 mb-3" />
+          <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground uppercase">
             <span>{safePhases.filter(p => p.status === "completed").length} of {safePhases.length} phases completed</span>
-            <span>{safePhases.reduce((sum, p) => sum + (p.tasks || []).filter(t => t.completed).length, 0)} tasks done</span>
+            <span className="text-cyan-400">{completedTasks} / {totalTasks} tasks done</span>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Quick Add Default Phases */}
       {safePhases.length === 0 && (
-        <Card className="p-4">
-          <h4 className="font-medium text-foreground mb-3">Quick Start: Add Common Phases</h4>
+        <div className="rounded-xl border border-white/10 bg-black/40 p-4">
+          <h4 className="font-mono text-white mb-3 text-sm">QUICK START: Add Common Phases</h4>
           <div className="flex flex-wrap gap-2">
             {DEFAULT_PHASES.map((phase) => (
               <Button
@@ -246,274 +250,314 @@ export const LaunchStrategy = ({
                   };
                   onChange([...safePhases, newPhase]);
                 }}
-                className="gap-2"
+                className="gap-2 border-white/10 hover:bg-white/5"
               >
                 <phase.icon className="w-4 h-4" />
                 {phase.name}
               </Button>
             ))}
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Phases List */}
       <div className="space-y-4">
-        {safePhases.map((phase, index) => {
-          const phaseInfo = DEFAULT_PHASES.find(p => phase.name.toLowerCase().includes(p.name.toLowerCase().split(" ")[0])) || DEFAULT_PHASES[0];
-          const PhaseIcon = phaseInfo.icon;
-          const progress = getPhaseProgress(phase);
+        <AnimatePresence mode="popLayout">
+          {safePhases.map((phase, index) => {
+            const phaseInfo = DEFAULT_PHASES.find(p => phase.name.toLowerCase().includes(p.name.toLowerCase().split(" ")[0])) || DEFAULT_PHASES[0];
+            const PhaseIcon = phaseInfo.icon;
+            const progress = getPhaseProgress(phase);
 
-          return (
-            <Card key={phase.id} className="overflow-hidden">
-              {/* Phase Header */}
-              <div
-                className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => setExpandedId(expandedId === phase.id ? null : phase.id)}
+            return (
+              <motion.div 
+                key={phase.id} 
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className={cn(
+                  "rounded-xl border backdrop-blur-sm overflow-hidden",
+                  "bg-gradient-to-br from-white/[0.05] to-transparent",
+                  expandedId === phase.id ? "border-cyan-500/50" : "border-white/10"
+                )}
               >
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground">
-                      {index + 1}
+                {/* Phase Header */}
+                <div
+                  className="p-4 cursor-pointer hover:bg-white/5 transition-colors"
+                  onClick={() => setExpandedId(expandedId === phase.id ? null : phase.id)}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm font-bold font-mono text-cyan-400">
+                        {index + 1}
+                      </div>
+                      <div className={cn(
+                        "w-12 h-12 rounded-xl flex items-center justify-center",
+                        "bg-gradient-to-br",
+                        phaseInfo.color
+                      )}>
+                        <PhaseIcon className="w-6 h-6 text-white" />
+                      </div>
                     </div>
-                    <div className={cn(
-                      "w-12 h-12 rounded-xl flex items-center justify-center",
-                      "bg-gradient-to-br",
-                      phaseInfo.color
-                    )}>
-                      <PhaseIcon className="w-6 h-6 text-white" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Input
+                          value={phase.name}
+                          onChange={(e) => updatePhase(phase.id, { name: e.target.value })}
+                          placeholder="Phase Name"
+                          className="font-medium border-none p-0 h-auto text-white bg-transparent focus-visible:ring-0 text-lg"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <Badge variant="outline" className={cn("text-[10px] font-mono uppercase", getStatusColor(phase.status))}>
+                          {phase.status === "completed" && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                          {phase.status === "in_progress" && <Zap className="w-3 h-3 mr-1" />}
+                          {phase.status === "planned" && <Clock className="w-3 h-3 mr-1" />}
+                          {phase.status.replace("_", " ")}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Progress value={progress} className="flex-1 h-1.5" />
+                        <span className="text-[10px] font-mono text-muted-foreground w-12">
+                          {(phase.tasks || []).filter(t => t.completed).length}/{(phase.tasks || []).length}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Input
-                        value={phase.name}
-                        onChange={(e) => updatePhase(phase.id, { name: e.target.value })}
-                        placeholder="Phase Name"
-                        className="font-medium border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 text-lg"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <Badge variant="outline" className={getStatusColor(phase.status)}>
-                        {phase.status === "completed" && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                        {phase.status === "in_progress" && <Zap className="w-3 h-3 mr-1" />}
-                        {phase.status.replace("_", " ")}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <Progress value={progress} className="flex-1 h-1.5" />
-                      <span className="text-xs text-muted-foreground w-12">
-                        {(phase.tasks || []).filter(t => t.completed).length}/{(phase.tasks || []).length}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deletePhase(phase.id);
-                      }}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                    {expandedId === phase.id ? (
-                      <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Expanded Content */}
-              {expandedId === phase.id && (
-                <div className="p-4 pt-0 space-y-6 border-t border-border">
-                  {/* Description */}
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Description</label>
-                    <Textarea
-                      value={phase.description}
-                      onChange={(e) => updatePhase(phase.id, { description: e.target.value })}
-                      placeholder="Describe this launch phase..."
-                      className="min-h-[80px]"
-                    />
-                  </div>
-
-                  {/* Dates & Status */}
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
-                        <Calendar className="w-3 h-3" /> Start Date
-                      </label>
-                      <Input
-                        type="date"
-                        value={phase.startDate}
-                        onChange={(e) => updatePhase(phase.id, { startDate: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
-                        <Calendar className="w-3 h-3" /> End Date
-                      </label>
-                      <Input
-                        type="date"
-                        value={phase.endDate}
-                        onChange={(e) => updatePhase(phase.id, { endDate: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Status</label>
-                      <Select
-                        value={phase.status}
-                        onValueChange={(v) => updatePhase(phase.id, { status: v as LaunchPhase["status"] })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="planned">Planned</SelectItem>
-                          <SelectItem value="in_progress">In Progress</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Tasks */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-primary" />
-                        Tasks
-                      </h4>
+                    <div className="flex items-center gap-2">
                       <Button
                         variant="ghost"
-                        size="sm"
-                        onClick={() => addTask(phase.id)}
-                        className="gap-1"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deletePhase(phase.id);
+                        }}
+                        className="h-8 w-8 text-destructive/60 hover:text-destructive"
                       >
-                        <Plus className="w-3 h-3" />
-                        Add Task
+                        <Trash2 className="w-4 h-4" />
                       </Button>
-                    </div>
-                    <div className="space-y-2">
-                      {(phase.tasks || []).map((task) => (
-                        <div key={task.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                          <Checkbox
-                            checked={task.completed}
-                            onCheckedChange={(checked) => updateTask(phase.id, task.id, { completed: !!checked })}
-                          />
-                          <Input
-                            value={task.title}
-                            onChange={(e) => updateTask(phase.id, task.id, { title: e.target.value })}
-                            placeholder="Task description..."
-                            className={cn(
-                              "flex-1 border-none bg-transparent focus-visible:ring-0",
-                              task.completed && "line-through text-muted-foreground"
-                            )}
-                          />
-                          <Input
-                            type="date"
-                            value={task.dueDate || ""}
-                            onChange={(e) => updateTask(phase.id, task.id, { dueDate: e.target.value })}
-                            className="w-36"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteTask(phase.id, task.id)}
-                            className="flex-shrink-0"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
-                      {(phase.tasks || []).length === 0 && (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          No tasks yet. Add tasks to track progress.
-                        </p>
+                      {expandedId === phase.id ? (
+                        <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
                       )}
                     </div>
                   </div>
-
-                  {/* Goals & Channels */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                        <Flag className="w-4 h-4 text-primary" />
-                        Goals
-                      </h4>
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {(phase.goals || []).map((goal, i) => (
-                          <Badge
-                            key={i}
-                            variant="secondary"
-                            className="gap-1 cursor-pointer hover:bg-destructive/10"
-                            onClick={() => removeGoal(phase.id, i)}
-                          >
-                            {goal}
-                            <Trash2 className="w-3 h-3" />
-                          </Badge>
-                        ))}
-                      </div>
-                      <Input
-                        placeholder="Add goal and press Enter..."
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            addGoal(phase.id, e.currentTarget.value);
-                            e.currentTarget.value = "";
-                          }
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                        <Megaphone className="w-4 h-4 text-primary" />
-                        Channels
-                      </h4>
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {(phase.channels || []).map((channel, i) => (
-                          <Badge
-                            key={i}
-                            variant="secondary"
-                            className="gap-1 cursor-pointer hover:bg-destructive/10"
-                            onClick={() => removeChannel(phase.id, i)}
-                          >
-                            {channel}
-                            <Trash2 className="w-3 h-3" />
-                          </Badge>
-                        ))}
-                      </div>
-                      <Input
-                        placeholder="Add channel and press Enter..."
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            addChannel(phase.id, e.currentTarget.value);
-                            e.currentTarget.value = "";
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
                 </div>
-              )}
-            </Card>
-          );
-        })}
+
+                {/* Expanded Content */}
+                <AnimatePresence>
+                  {expandedId === phase.id && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-4 pt-0 space-y-6 border-t border-white/10">
+                        {/* Description */}
+                        <div>
+                          <label className="text-[10px] font-mono text-cyan-500 uppercase mb-2 block">Description</label>
+                          <Textarea
+                            value={phase.description}
+                            onChange={(e) => updatePhase(phase.id, { description: e.target.value })}
+                            placeholder="Describe this launch phase..."
+                            className="min-h-[80px] bg-black/40 border-white/10"
+                          />
+                        </div>
+
+                        {/* Dates & Status */}
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <label className="text-[10px] font-mono text-muted-foreground uppercase mb-1 block flex items-center gap-1">
+                              <Calendar className="w-3 h-3" /> Start Date
+                            </label>
+                            <Input
+                              type="date"
+                              value={phase.startDate}
+                              onChange={(e) => updatePhase(phase.id, { startDate: e.target.value })}
+                              className="bg-black/40 border-white/10"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-mono text-muted-foreground uppercase mb-1 block flex items-center gap-1">
+                              <Calendar className="w-3 h-3" /> End Date
+                            </label>
+                            <Input
+                              type="date"
+                              value={phase.endDate}
+                              onChange={(e) => updatePhase(phase.id, { endDate: e.target.value })}
+                              className="bg-black/40 border-white/10"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-mono text-muted-foreground uppercase mb-1 block">Status</label>
+                            <Select
+                              value={phase.status}
+                              onValueChange={(v) => updatePhase(phase.id, { status: v as LaunchPhase["status"] })}
+                            >
+                              <SelectTrigger className="bg-black/40 border-white/10">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="planned">Planned</SelectItem>
+                                <SelectItem value="in_progress">In Progress</SelectItem>
+                                <SelectItem value="completed">Completed</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* Tasks */}
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle2 className="w-4 h-4 text-cyan-500" />
+                              <span className="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">Tasks</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => addTask(phase.id)}
+                              className="gap-1 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10"
+                            >
+                              <Plus className="w-3 h-3" />
+                              Add Task
+                            </Button>
+                          </div>
+                          <div className="space-y-2">
+                            {(phase.tasks || []).map((task) => (
+                              <div key={task.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
+                                <Checkbox
+                                  checked={task.completed}
+                                  onCheckedChange={(checked) => updateTask(phase.id, task.id, { completed: !!checked })}
+                                />
+                                <Input
+                                  value={task.title}
+                                  onChange={(e) => updateTask(phase.id, task.id, { title: e.target.value })}
+                                  placeholder="Task description..."
+                                  className={cn(
+                                    "flex-1 border-none bg-transparent focus-visible:ring-0",
+                                    task.completed && "line-through text-muted-foreground"
+                                  )}
+                                />
+                                <Input
+                                  type="date"
+                                  value={task.dueDate || ""}
+                                  onChange={(e) => updateTask(phase.id, task.id, { dueDate: e.target.value })}
+                                  className="w-36 bg-black/40 border-white/10"
+                                />
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => deleteTask(phase.id, task.id)}
+                                  className="flex-shrink-0 h-8 w-8"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ))}
+                            {(phase.tasks || []).length === 0 && (
+                              <p className="text-sm text-muted-foreground text-center py-4 font-mono">
+                                No tasks yet. Add tasks to track progress.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Goals & Channels */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Flag className="w-4 h-4 text-cyan-500" />
+                              <span className="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">Goals</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {(phase.goals || []).map((goal, i) => (
+                                <Badge
+                                  key={i}
+                                  variant="secondary"
+                                  className="gap-1 cursor-pointer hover:bg-destructive/20 bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
+                                  onClick={() => removeGoal(phase.id, i)}
+                                >
+                                  {goal}
+                                  <Trash2 className="w-3 h-3" />
+                                </Badge>
+                              ))}
+                            </div>
+                            <Input
+                              placeholder="Add a goal and press Enter..."
+                              className="bg-black/40 border-white/10"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  addGoal(phase.id, e.currentTarget.value);
+                                  e.currentTarget.value = "";
+                                }
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Megaphone className="w-4 h-4 text-cyan-500" />
+                              <span className="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">Channels</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {(phase.channels || []).map((channel, i) => (
+                                <Badge
+                                  key={i}
+                                  variant="secondary"
+                                  className="gap-1 cursor-pointer hover:bg-destructive/20 bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
+                                  onClick={() => removeChannel(phase.id, i)}
+                                >
+                                  {channel}
+                                  <Trash2 className="w-3 h-3" />
+                                </Badge>
+                              ))}
+                            </div>
+                            <Input
+                              placeholder="Add a channel and press Enter..."
+                              className="bg-black/40 border-white/10"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  addChannel(phase.id, e.currentTarget.value);
+                                  e.currentTarget.value = "";
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
 
-      {phases.length === 0 && (
-        <div className="text-center py-12 rounded-lg bg-muted/30 border border-dashed border-border">
+      {safePhases.length === 0 && (
+        <div className="text-center py-16 rounded-xl bg-black/40 border border-dashed border-white/10">
           <Rocket className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">No Launch Phases</h3>
+          <h3 className="text-lg font-medium text-white mb-2">No Launch Phases</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Plan your product launch with phases and milestones
+            Plan your product launch with phases, tasks, and milestones
           </p>
-          <Button onClick={addPhase} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Create First Phase
-          </Button>
+          <div className="flex items-center justify-center gap-2">
+            <Button onClick={addPhase} className="gap-2 bg-cyan-600 hover:bg-cyan-500">
+              <Plus className="w-4 h-4" />
+              Create Phase
+            </Button>
+            {onAIGenerate && (
+              <Button 
+                variant="outline" 
+                onClick={onAIGenerate}
+                disabled={isGenerating}
+                className="gap-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+              >
+                <Sparkles className="w-4 h-4" />
+                AI Generate
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </div>

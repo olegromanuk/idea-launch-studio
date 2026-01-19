@@ -1,11 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { 
   Plus, 
   Trash2, 
@@ -19,9 +16,11 @@ import {
   ChevronUp,
   Eye,
   MousePointer,
-  ShoppingCart
+  ShoppingCart,
+  Activity
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface AdSet {
   id: string;
@@ -163,21 +162,21 @@ export const AdsManager = ({
 
   const getStatusColor = (status: AdSet["status"]) => {
     switch (status) {
-      case "active": return "bg-success/10 text-success border-success/30";
-      case "paused": return "bg-amber-500/10 text-amber-500 border-amber-500/30";
-      default: return "bg-muted";
+      case "active": return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+      case "paused": return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+      default: return "bg-white/10 text-muted-foreground border-white/10";
     }
   };
 
   const totalBudget = adSets.reduce((sum, a) => sum + (parseFloat(a.budget.amount) || 0), 0);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Configure your ad campaigns and targeting across platforms
-        </p>
+        <div className="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">
+          {adSets.length} AD SET{adSets.length !== 1 ? 'S' : ''} CONFIGURED
+        </div>
         <div className="flex items-center gap-2">
           {onAIGenerate && (
             <Button
@@ -185,13 +184,13 @@ export const AdsManager = ({
               size="sm"
               onClick={onAIGenerate}
               disabled={isGenerating}
-              className="gap-2"
+              className="gap-2 border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20"
             >
               <Sparkles className={cn("w-4 h-4", isGenerating && "animate-spin")} />
               Generate Strategy
             </Button>
           )}
-          <Button onClick={addAdSet} size="sm" className="gap-2">
+          <Button onClick={addAdSet} size="sm" className="gap-2 bg-cyan-600 hover:bg-cyan-500">
             <Plus className="w-4 h-4" />
             Add Ad Set
           </Button>
@@ -201,347 +200,346 @@ export const AdsManager = ({
       {/* Summary Stats */}
       {adSets.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+          <div className="rounded-xl border border-white/10 bg-black/40 p-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-2">
               <Megaphone className="w-4 h-4" />
-              <span className="text-xs">Ad Sets</span>
+              <span className="text-[10px] font-mono uppercase">Ad Sets</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">{adSets.length}</p>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+            <p className="text-2xl font-bold text-white">{adSets.length}</p>
+          </div>
+          <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4">
+            <div className="flex items-center gap-2 text-cyan-400/60 mb-2">
               <DollarSign className="w-4 h-4" />
-              <span className="text-xs">Total Budget</span>
+              <span className="text-[10px] font-mono uppercase">Total Budget</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">
+            <p className="text-2xl font-bold text-cyan-400">
               ${totalBudget.toLocaleString()}/day
             </p>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <TrendingUp className="w-4 h-4" />
-              <span className="text-xs">Active</span>
+          </div>
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+            <div className="flex items-center gap-2 text-emerald-400/60 mb-2">
+              <Activity className="w-4 h-4" />
+              <span className="text-[10px] font-mono uppercase">Active</span>
             </div>
-            <p className="text-2xl font-bold text-success">
+            <p className="text-2xl font-bold text-emerald-400">
               {adSets.filter(a => a.status === "active").length}
             </p>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/40 p-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-2">
               <Target className="w-4 h-4" />
-              <span className="text-xs">Platforms</span>
+              <span className="text-[10px] font-mono uppercase">Platforms</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">
+            <p className="text-2xl font-bold text-white">
               {new Set(adSets.map(a => a.platform)).size}
             </p>
-          </Card>
+          </div>
         </div>
       )}
 
       {/* Ad Sets List */}
       <div className="space-y-4">
-        {adSets.map((adSet) => {
-          const ObjectiveIcon = AD_OBJECTIVES.find(o => o.value === adSet.objective)?.icon || Target;
-          
-          return (
-            <Card key={adSet.id} className="overflow-hidden">
-              {/* Header */}
-              <div
-                className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => setExpandedId(expandedId === adSet.id ? null : adSet.id)}
+        <AnimatePresence mode="popLayout">
+          {adSets.map((adSet) => {
+            const ObjectiveIcon = AD_OBJECTIVES.find(o => o.value === adSet.objective)?.icon || Target;
+            
+            return (
+              <motion.div 
+                key={adSet.id} 
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className={cn(
+                  "rounded-xl border backdrop-blur-sm overflow-hidden",
+                  "bg-gradient-to-br from-white/[0.05] to-transparent",
+                  expandedId === adSet.id ? "border-cyan-500/50" : "border-white/10"
+                )}
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
-                    <Megaphone className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Input
-                        value={adSet.name}
-                        onChange={(e) => updateAdSet(adSet.id, { name: e.target.value })}
-                        placeholder="Ad Set Name"
-                        className="font-medium border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 text-lg"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <Badge variant="outline" className={getStatusColor(adSet.status)}>
-                        {adSet.status}
-                      </Badge>
+                {/* Header */}
+                <div
+                  className="p-4 cursor-pointer hover:bg-white/5 transition-colors"
+                  onClick={() => setExpandedId(expandedId === adSet.id ? null : adSet.id)}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                      <Megaphone className="w-6 h-6 text-white" />
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>{AD_PLATFORMS.find(p => p.value === adSet.platform)?.label}</span>
-                      <span className="flex items-center gap-1">
-                        <ObjectiveIcon className="w-3 h-3" />
-                        {AD_OBJECTIVES.find(o => o.value === adSet.objective)?.label}
-                      </span>
-                      {adSet.budget.amount && (
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Input
+                          value={adSet.name}
+                          onChange={(e) => updateAdSet(adSet.id, { name: e.target.value })}
+                          placeholder="Ad Set Name"
+                          className="font-medium border-none p-0 h-auto text-white bg-transparent focus-visible:ring-0 text-lg"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <Badge variant="outline" className={cn("text-[10px] font-mono uppercase", getStatusColor(adSet.status))}>
+                          {adSet.status}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-[10px] font-mono text-muted-foreground uppercase">
+                        <span>{AD_PLATFORMS.find(p => p.value === adSet.platform)?.label}</span>
                         <span className="flex items-center gap-1">
-                          <DollarSign className="w-3 h-3" />
-                          ${adSet.budget.amount}/{adSet.budget.type === "daily" ? "day" : "total"}
+                          <ObjectiveIcon className="w-3 h-3" />
+                          {AD_OBJECTIVES.find(o => o.value === adSet.objective)?.label}
                         </span>
+                        {adSet.budget.amount && (
+                          <span className="flex items-center gap-1 text-cyan-400">
+                            <DollarSign className="w-3 h-3" />
+                            ${adSet.budget.amount}/{adSet.budget.type === "daily" ? "day" : "total"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteAdSet(adSet.id);
+                        }}
+                        className="h-8 w-8 text-destructive/60 hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                      {expandedId === adSet.id ? (
+                        <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteAdSet(adSet.id);
-                      }}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                    {expandedId === adSet.id ? (
-                      <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                    )}
-                  </div>
                 </div>
-              </div>
 
-              {/* Expanded Content */}
-              {expandedId === adSet.id && (
-                <div className="p-4 pt-0 space-y-6 border-t border-border">
-                  {/* Basic Settings */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Platform</label>
-                      <Select
-                        value={adSet.platform}
-                        onValueChange={(v) => updateAdSet(adSet.id, { platform: v })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {AD_PLATFORMS.map((p) => (
-                            <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Objective</label>
-                      <Select
-                        value={adSet.objective}
-                        onValueChange={(v) => updateAdSet(adSet.id, { objective: v })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {AD_OBJECTIVES.map((o) => (
-                            <SelectItem key={o.value} value={o.value}>
-                              <div className="flex items-center gap-2">
-                                <o.icon className="w-4 h-4" />
-                                {o.label}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Status</label>
-                      <Select
-                        value={adSet.status}
-                        onValueChange={(v) => updateAdSet(adSet.id, { status: v as AdSet["status"] })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="draft">Draft</SelectItem>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="paused">Paused</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Bid Strategy</label>
-                      <Select
-                        value={adSet.bidStrategy}
-                        onValueChange={(v) => updateAdSet(adSet.id, { bidStrategy: v })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {BID_STRATEGIES.map((s) => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                {/* Expanded Content */}
+                <AnimatePresence>
+                  {expandedId === adSet.id && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-4 pt-0 space-y-6 border-t border-white/10">
+                        {/* Basic Settings */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div>
+                            <label className="text-[10px] font-mono text-muted-foreground uppercase mb-1 block">Platform</label>
+                            <Select
+                              value={adSet.platform}
+                              onValueChange={(v) => updateAdSet(adSet.id, { platform: v })}
+                            >
+                              <SelectTrigger className="bg-black/40 border-white/10">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {AD_PLATFORMS.map((p) => (
+                                  <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-mono text-muted-foreground uppercase mb-1 block">Objective</label>
+                            <Select
+                              value={adSet.objective}
+                              onValueChange={(v) => updateAdSet(adSet.id, { objective: v })}
+                            >
+                              <SelectTrigger className="bg-black/40 border-white/10">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {AD_OBJECTIVES.map((o) => (
+                                  <SelectItem key={o.value} value={o.value}>
+                                    <div className="flex items-center gap-2">
+                                      <o.icon className="w-4 h-4" />
+                                      {o.label}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-mono text-muted-foreground uppercase mb-1 block">Status</label>
+                            <Select
+                              value={adSet.status}
+                              onValueChange={(v) => updateAdSet(adSet.id, { status: v as AdSet["status"] })}
+                            >
+                              <SelectTrigger className="bg-black/40 border-white/10">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="draft">Draft</SelectItem>
+                                <SelectItem value="active">Active</SelectItem>
+                                <SelectItem value="paused">Paused</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-mono text-muted-foreground uppercase mb-1 block">Bid Strategy</label>
+                            <Select
+                              value={adSet.bidStrategy}
+                              onValueChange={(v) => updateAdSet(adSet.id, { bidStrategy: v })}
+                            >
+                              <SelectTrigger className="bg-black/40 border-white/10">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {BID_STRATEGIES.map((s) => (
+                                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
 
-                  {/* Budget */}
-                  <div>
-                    <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-primary" />
-                      Budget
-                    </h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-xs text-muted-foreground mb-1 block">Budget Type</label>
-                        <Select
-                          value={adSet.budget.type}
-                          onValueChange={(v) => updateAdSet(adSet.id, {
-                            budget: { ...adSet.budget, type: v as "daily" | "lifetime" }
-                          })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="daily">Daily Budget</SelectItem>
-                            <SelectItem value="lifetime">Lifetime Budget</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground mb-1 block">Amount ($)</label>
-                        <Input
-                          type="number"
-                          value={adSet.budget.amount}
-                          onChange={(e) => updateAdSet(adSet.id, {
-                            budget: { ...adSet.budget, amount: e.target.value }
-                          })}
-                          placeholder="100"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Targeting */}
-                  <div>
-                    <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      Targeting
-                    </h4>
-                    
-                    {/* Age Range */}
-                    <div className="mb-4">
-                      <label className="text-xs text-muted-foreground mb-2 block">
-                        Age Range: {adSet.targeting.ageMin} - {adSet.targeting.ageMax}
-                      </label>
-                      <div className="flex items-center gap-4">
-                        <Input
-                          type="number"
-                          value={adSet.targeting.ageMin}
-                          onChange={(e) => updateAdSet(adSet.id, {
-                            targeting: { ...adSet.targeting, ageMin: parseInt(e.target.value) || 18 }
-                          })}
-                          className="w-20"
-                          min={13}
-                          max={65}
-                        />
-                        <span className="text-muted-foreground">to</span>
-                        <Input
-                          type="number"
-                          value={adSet.targeting.ageMax}
-                          onChange={(e) => updateAdSet(adSet.id, {
-                            targeting: { ...adSet.targeting, ageMax: parseInt(e.target.value) || 65 }
-                          })}
-                          className="w-20"
-                          min={13}
-                          max={65}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Gender */}
-                    <div className="mb-4">
-                      <label className="text-xs text-muted-foreground mb-1 block">Gender</label>
-                      <Select
-                        value={adSet.targeting.genders[0]}
-                        onValueChange={(v) => updateAdSet(adSet.id, {
-                          targeting: { ...adSet.targeting, genders: [v] }
-                        })}
-                      >
-                        <SelectTrigger className="w-40">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="All">All</SelectItem>
-                          <SelectItem value="Male">Male</SelectItem>
-                          <SelectItem value="Female">Female</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Locations, Interests, Behaviors */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {(["locations", "interests", "behaviors"] as const).map((field) => (
-                        <div key={field}>
-                          <label className="text-xs text-muted-foreground mb-2 block capitalize">
-                            {field}
-                          </label>
-                          <div className="flex flex-wrap gap-2 mb-2">
-                            {adSet.targeting[field].map((item, i) => (
-                              <Badge
-                                key={i}
-                                variant="secondary"
-                                className="gap-1 cursor-pointer hover:bg-destructive/10"
-                                onClick={() => removeArrayItem(adSet.id, field, i)}
+                        {/* Budget */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <DollarSign className="w-4 h-4 text-cyan-500" />
+                            <span className="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">Budget</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-[10px] font-mono text-muted-foreground uppercase mb-1 block">Budget Type</label>
+                              <Select
+                                value={adSet.budget.type}
+                                onValueChange={(v) => updateAdSet(adSet.id, {
+                                  budget: { ...adSet.budget, type: v as "daily" | "lifetime" }
+                                })}
                               >
-                                {item}
-                                <Trash2 className="w-3 h-3" />
-                              </Badge>
+                                <SelectTrigger className="bg-black/40 border-white/10">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="daily">Daily Budget</SelectItem>
+                                  <SelectItem value="lifetime">Lifetime Budget</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-mono text-muted-foreground uppercase mb-1 block">Amount ($)</label>
+                              <Input
+                                type="number"
+                                value={adSet.budget.amount}
+                                onChange={(e) => updateAdSet(adSet.id, {
+                                  budget: { ...adSet.budget, amount: e.target.value }
+                                })}
+                                placeholder="100"
+                                className="bg-black/40 border-white/10"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Targeting */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <Target className="w-4 h-4 text-cyan-500" />
+                            <span className="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">Targeting</span>
+                          </div>
+                          
+                          {/* Age Range */}
+                          <div className="mb-4">
+                            <label className="text-[10px] font-mono text-muted-foreground uppercase mb-2 block">
+                              Age Range: {adSet.targeting.ageMin} - {adSet.targeting.ageMax}
+                            </label>
+                            <div className="flex items-center gap-4">
+                              <Input
+                                type="number"
+                                value={adSet.targeting.ageMin}
+                                onChange={(e) => updateAdSet(adSet.id, {
+                                  targeting: { ...adSet.targeting, ageMin: parseInt(e.target.value) || 18 }
+                                })}
+                                className="w-20 bg-black/40 border-white/10"
+                                min={13}
+                                max={65}
+                              />
+                              <span className="text-muted-foreground">to</span>
+                              <Input
+                                type="number"
+                                value={adSet.targeting.ageMax}
+                                onChange={(e) => updateAdSet(adSet.id, {
+                                  targeting: { ...adSet.targeting, ageMax: parseInt(e.target.value) || 65 }
+                                })}
+                                className="w-20 bg-black/40 border-white/10"
+                                min={13}
+                                max={65}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Locations & Interests */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {(["locations", "interests", "behaviors"] as const).map((field) => (
+                              <div key={field}>
+                                <label className="text-[10px] font-mono text-muted-foreground uppercase mb-2 block capitalize">
+                                  {field}
+                                </label>
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                  {(adSet.targeting[field] as string[]).map((item, i) => (
+                                    <Badge
+                                      key={i}
+                                      variant="secondary"
+                                      className="gap-1 cursor-pointer hover:bg-destructive/20 bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
+                                      onClick={() => removeArrayItem(adSet.id, field, i)}
+                                    >
+                                      {item}
+                                      <Trash2 className="w-3 h-3" />
+                                    </Badge>
+                                  ))}
+                                </div>
+                                <Input
+                                  placeholder={`Add ${field}...`}
+                                  className="bg-black/40 border-white/10"
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      addArrayItem(adSet.id, field, e.currentTarget.value);
+                                      e.currentTarget.value = "";
+                                    }
+                                  }}
+                                />
+                              </div>
                             ))}
                           </div>
-                          <Input
-                            placeholder={`Add ${field.slice(0, -1)}...`}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                addArrayItem(adSet.id, field, e.currentTarget.value);
-                                e.currentTarget.value = "";
-                              }
-                            }}
-                          />
                         </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Performance Metrics (placeholder) */}
-                  <div>
-                    <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-primary" />
-                      Performance (Estimated)
-                    </h4>
-                    <div className="grid grid-cols-5 gap-4">
-                      {Object.entries(adSet.metrics).map(([key, value]) => (
-                        <div key={key} className="text-center p-3 rounded-lg bg-muted/50">
-                          <p className="text-xs text-muted-foreground capitalize mb-1">
-                            {key.replace(/([A-Z])/g, " $1")}
-                          </p>
-                          <p className="text-lg font-bold text-foreground">{value}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Card>
-          );
-        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
 
       {adSets.length === 0 && (
-        <div className="text-center py-12 rounded-lg bg-muted/30 border border-dashed border-border">
+        <div className="text-center py-16 rounded-xl bg-black/40 border border-dashed border-white/10">
           <Megaphone className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">No Ad Sets Yet</h3>
+          <h3 className="text-lg font-medium text-white mb-2">No Ad Sets Yet</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Create your first ad set to start advertising
+            Configure your advertising campaigns across platforms
           </p>
-          <Button onClick={addAdSet} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Create Ad Set
-          </Button>
+          <div className="flex items-center justify-center gap-2">
+            <Button onClick={addAdSet} className="gap-2 bg-cyan-600 hover:bg-cyan-500">
+              <Plus className="w-4 h-4" />
+              Create Ad Set
+            </Button>
+            {onAIGenerate && (
+              <Button 
+                variant="outline" 
+                onClick={onAIGenerate}
+                disabled={isGenerating}
+                className="gap-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+              >
+                <Sparkles className="w-4 h-4" />
+                AI Generate
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </div>
