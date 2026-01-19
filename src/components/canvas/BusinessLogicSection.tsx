@@ -171,11 +171,11 @@ export const BusinessLogicSection = ({
           // Determine grid span based on section
           const getGridSpan = () => {
             if (section.key === "problem") return "md:col-span-12";
-            if (section.key === "marketTrends") return "md:col-span-8";
-            if (section.key === "successMetrics") return "md:col-span-4";
             if (section.key === "targetAudience") return "md:col-span-12";
-            if (section.key === "uniqueValueProposition") return "md:col-span-7";
-            if (section.key === "revenueModel") return "md:col-span-5";
+            if (section.key === "uniqueValueProposition") return "md:col-span-6";
+            if (section.key === "revenueModel") return "md:col-span-6";
+            if (section.key === "marketTrends") return "md:col-span-6";
+            if (section.key === "successMetrics") return "md:col-span-6";
             return "md:col-span-6";
           };
 
