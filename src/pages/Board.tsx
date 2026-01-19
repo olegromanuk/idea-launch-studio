@@ -76,6 +76,20 @@ const Board = () => {
   const [editingElement, setEditingElement] = useState<BoardElement | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
+  const [editTag, setEditTag] = useState("");
+  const [editColor, setEditColor] = useState("");
+
+  // Available colors for elements
+  const ELEMENT_COLORS = [
+    { name: "Blue", value: "#3b82f6" },
+    { name: "Cyan", value: "#38BDF8" },
+    { name: "Green", value: "#22c55e" },
+    { name: "Yellow", value: "#eab308" },
+    { name: "Orange", value: "#f97316" },
+    { name: "Red", value: "#ef4444" },
+    { name: "Purple", value: "#a855f7" },
+    { name: "Pink", value: "#ec4899" },
+  ];
 
   // Board dimensions for minimap
   const BOARD_WIDTH = 3000;
@@ -533,6 +547,8 @@ const Board = () => {
     setEditingElement(element);
     setEditTitle(element.section_title);
     setEditContent(element.content);
+    setEditTag(element.section_key);
+    setEditColor(element.color);
   };
 
   const handleSaveEdit = async () => {
@@ -543,6 +559,8 @@ const Board = () => {
       .update({
         section_title: editTitle,
         content: editContent,
+        section_key: editTag,
+        color: editColor,
       })
       .eq("id", editingElement.id);
 
@@ -558,7 +576,7 @@ const Board = () => {
     setElements(prev =>
       prev.map(el =>
         el.id === editingElement.id
-          ? { ...el, section_title: editTitle, content: editContent }
+          ? { ...el, section_title: editTitle, content: editContent, section_key: editTag, color: editColor }
           : el
       )
     );
@@ -1162,10 +1180,40 @@ const Board = () => {
               Edit Element
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Update the title and content of this element.
+              Update the tag, color, title and content of this element.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-300">Tag</label>
+                <Input
+                  value={editTag}
+                  onChange={(e) => setEditTag(e.target.value)}
+                  className="bg-[#0a0a0a] border-[#262c3a] text-white focus:border-[#38BDF8]"
+                  placeholder="e.g., PROBLEM, SOLUTION"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-300">Color</label>
+                <div className="flex flex-wrap gap-2">
+                  {ELEMENT_COLORS.map((color) => (
+                    <button
+                      key={color.value}
+                      onClick={() => setEditColor(color.value)}
+                      className={cn(
+                        "w-7 h-7 rounded-md border-2 transition-all",
+                        editColor === color.value 
+                          ? "border-white scale-110" 
+                          : "border-transparent hover:scale-105"
+                      )}
+                      style={{ backgroundColor: color.value }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-300">Title</label>
               <Input
@@ -1180,7 +1228,7 @@ const Board = () => {
               <Textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="bg-[#0a0a0a] border-[#262c3a] text-white focus:border-[#38BDF8] min-h-[200px]"
+                className="bg-[#0a0a0a] border-[#262c3a] text-white focus:border-[#38BDF8] min-h-[150px]"
                 placeholder="Element content..."
               />
             </div>
