@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.check-domain-availability]
 verify_jwt = false
+
+[functions.generate-domain-suggestions]
+verify_jwt = false
