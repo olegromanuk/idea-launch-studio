@@ -84,11 +84,11 @@ const SECTION_CONFIG: Record<string, SectionContentConfig> = {
     sectionNumber: "03", 
     displayKey: "VALUE_PROPOSITION",
     fields: [
-      { key: "coreValue", label: "Core Value", type: "text", placeholder: "What unique value do you provide?" },
+      { key: "coreValue", label: "Core Value Statement", type: "text", placeholder: "Your main unique value in one sentence..." },
       { key: "howItWorks", label: "How It Works", type: "textarea", placeholder: "Explain the mechanism..." },
     ],
-    listItemLabel: "Differentiator",
-    maxItems: 4,
+    listItemLabel: "Value Proposition Point",
+    maxItems: 6,
   },
   revenueModel: { 
     icon: DollarSign, 
@@ -503,7 +503,7 @@ export const ModuleEditorModal = ({
                     <div>
                       <div className="flex justify-between items-center mb-3">
                         <label className="block text-[10px] font-mono text-[#00f0ff] uppercase tracking-widest">
-                          {sectionKey === 'uniqueValueProposition' ? 'Differentiator' : config.listItemLabel}s ({structuredContent.items.length}/{config.maxItems || 10})
+                          {config.listItemLabel}s ({structuredContent.items.length}/{config.maxItems || 10})
                         </label>
                       </div>
                       
