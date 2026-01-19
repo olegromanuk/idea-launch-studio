@@ -32,7 +32,8 @@ import { CampaignPlanner, Campaign } from "@/components/canvas/gtm/CampaignPlann
 import { ContentCalendar, ContentPost } from "@/components/canvas/gtm/ContentCalendar";
 import { AdsManager, AdSet } from "@/components/canvas/gtm/AdsManager";
 import { LaunchStrategy, LaunchPhase } from "@/components/canvas/gtm/LaunchStrategy";
-import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen, LogIn, Users, Layers, ListTodo, Clock, AlertTriangle, Cpu, Map, Rocket, Target, Image, Calendar, DollarSign, Settings } from "lucide-react";
+import { ArrowLeft, Download, Home, Briefcase, Code, Megaphone, CheckCircle2, Lock, Info, FileText, File, Sparkles, ClipboardList, FolderOpen, LogIn, Users, Layers, ListTodo, Clock, AlertTriangle, Cpu, Map, Rocket, Target, Image, Calendar, DollarSign, Settings, Palette } from "lucide-react";
+import { DesignConfigSection, DesignConfig } from "@/components/canvas/design/DesignConfigSection";
 import { DevelopmentSubmissionForm } from "@/components/development/DevelopmentSubmissionForm";
 import { HorizontalRoadmap } from "@/components/canvas/HorizontalRoadmap";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -124,6 +125,23 @@ const Canvas = () => {
     launchPhases: [] as LaunchPhase[],
   });
 
+  // Design configuration data
+  const [designConfig, setDesignConfig] = useState<DesignConfig>({
+    platforms: {
+      web: true,
+      mobile: false,
+      desktop: false,
+    },
+    colorPalette: ["#0EA5E9", "#10B981", "#6366F1", "#0F172A"],
+    typography: {
+      headingFont: "Inter",
+      bodyFont: "JetBrains Mono",
+    },
+    uiDensity: 50,
+    designPhilosophy: "",
+    moodboardUrls: [],
+  });
+
   const [openGtmDrawer, setOpenGtmDrawer] = useState<string | null>(null);
 
   const canvasTabs: CanvasTab[] = [
@@ -151,6 +169,19 @@ const Canvas = () => {
         { key: "technicalSolution", title: "Technical Solution", subtitle: "Architecture and technology decisions" },
         { key: "risksConstraints", title: "Risks & Constraints", subtitle: "Identify blockers and mitigation plans" },
         { key: "timeline", title: "Timeline & Estimates", subtitle: "Project phases and delivery schedule" },
+      ],
+    },
+    {
+      id: "design",
+      title: "Design",
+      icon: Palette,
+      sections: [
+        { key: "platforms", title: "Platform Targets", subtitle: "Web, mobile, or desktop?" },
+        { key: "colorPalette", title: "Color Palette", subtitle: "Core colors for your design system" },
+        { key: "typography", title: "Typography", subtitle: "Font pairings and text styles" },
+        { key: "uiDensity", title: "UI Density", subtitle: "Information density preferences" },
+        { key: "designPhilosophy", title: "Design Philosophy", subtitle: "Your visual language description" },
+        { key: "moodboards", title: "Reference Moodboards", subtitle: "Inspiration and style references" },
       ],
     },
     {
@@ -618,6 +649,21 @@ const Canvas = () => {
       
       return (filledSections.length / gtmFields.length) * 100;
     }
+
+    // Special handling for Design tab which uses designConfig
+    if (tabId === "design") {
+      const designFields = [
+        { key: "platforms", filled: designConfig.platforms.web || designConfig.platforms.mobile || designConfig.platforms.desktop },
+        { key: "colorPalette", filled: designConfig.colorPalette.length > 0 },
+        { key: "typography", filled: !!designConfig.typography.headingFont },
+        { key: "uiDensity", filled: true }, // Always has a default value
+        { key: "designPhilosophy", filled: designConfig.designPhilosophy.length > 10 },
+        { key: "moodboards", filled: designConfig.moodboardUrls.length > 0 },
+      ];
+      
+      const filledSections = designFields.filter(field => field.filled);
+      return (filledSections.length / designFields.length) * 100;
+    }
     
     const filledSections = tab.sections.filter(section => {
       const value = canvasData[section.key as keyof typeof canvasData];
@@ -648,6 +694,26 @@ const Canvas = () => {
           if (typeof field === 'string') return field.trim().length > 0;
           return Array.isArray(field) && field.length > 0;
         }).length;
+      } else if (tab.id === "gtm") {
+        // GTM tab uses gtmData
+        const gtmFields = [
+          gtmData.audienceSegments,
+          gtmData.creatives,
+          gtmData.campaigns,
+          gtmData.contentPosts,
+          gtmData.adSets,
+          gtmData.launchPhases,
+        ];
+        totalSections += gtmFields.length;
+        filledSections += gtmFields.filter(field => Array.isArray(field) && field.length > 0).length;
+      } else if (tab.id === "design") {
+        // Design tab uses designConfig
+        totalSections += 5;
+        if (designConfig.platforms.web || designConfig.platforms.mobile || designConfig.platforms.desktop) filledSections++;
+        if (designConfig.colorPalette.length > 0) filledSections++;
+        if (designConfig.typography.headingFont) filledSections++;
+        if (designConfig.designPhilosophy.length > 10) filledSections++;
+        if (designConfig.moodboardUrls.length > 0) filledSections++;
       } else {
         // Other tabs use canvasData
         tab.sections.forEach(section => {
@@ -674,6 +740,8 @@ const Canvas = () => {
     if (blockId === "business") {
       nextBlock = "scope";
     } else if (blockId === "scope") {
+      nextBlock = "design";
+    } else if (blockId === "design") {
       nextBlock = "development";
     } else if (blockId === "development") {
       nextBlock = "gtm";
@@ -703,7 +771,8 @@ const Canvas = () => {
   const isBlockLocked = (blockId: string) => {
     if (blockId === "business") return false;
     if (blockId === "scope") return !validatedBlocks.has("business");
-    if (blockId === "development") return !validatedBlocks.has("scope");
+    if (blockId === "design") return !validatedBlocks.has("scope");
+    if (blockId === "development") return !validatedBlocks.has("design");
     // GTM unlocks when development is validated OR when a submission exists
     if (blockId === "gtm") return !validatedBlocks.has("development") && !submissionStatus;
     return false;
@@ -808,7 +877,8 @@ const Canvas = () => {
                   const isActive = activeTab === tab.id;
                   const getPreviousBlockName = (tabId: string) => {
                     if (tabId === "scope") return "Business Logic";
-                    if (tabId === "development") return "Scope & Planning";
+                    if (tabId === "design") return "Scope & Planning";
+                    if (tabId === "development") return "Design";
                     if (tabId === "gtm") return "Development";
                     return "";
                   };
@@ -1100,8 +1170,10 @@ const Canvas = () => {
                           onClick={() => {
                             if (tab.id === "scope") {
                               setActiveTab("business");
-                            } else if (tab.id === "development") {
+                            } else if (tab.id === "design") {
                               setActiveTab("scope");
+                            } else if (tab.id === "development") {
+                              setActiveTab("design");
                             } else if (tab.id === "gtm") {
                               setActiveTab("development");
                             }
@@ -1234,6 +1306,14 @@ const Canvas = () => {
                         />
                       </ScopeEditorDrawer>
                     </>
+                  ) : tab.id === "design" ? (
+                    <DesignConfigSection
+                      config={designConfig}
+                      onChange={setDesignConfig}
+                      onAIGenerate={() => generateSuggestions("designSystem")}
+                      isGenerating={loadingSection === "designSystem"}
+                      projectName={projectData?.idea}
+                    />
                   ) : tab.id === "development" ? (
                     <div className="space-y-6">
                       {/* Blueprint-style Development Header */}
